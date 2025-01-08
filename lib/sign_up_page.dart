@@ -1,0 +1,90 @@
+import 'dart:developer';
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sabaidee/user_provider.dart';
+
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
+
+  @override
+  _SignUpPageState createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends State<SignUpPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  Future<void> _signUp() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        await Provider.of<UserProvider>(context, listen: false).signUp(
+          _emailController.text,
+          _passwordController.text,
+          _phoneNumberController.text,
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        log('Sign up failed: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to sign up: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _passwordController,
+                decoration: const InputDecoration(labelText: 'Password'),
+                obscureText: true,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your password';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _phoneNumberController,
+                decoration: const InputDecoration(labelText: 'Phone Number'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your phone number';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _signUp,
+                child: const Text('Sign Up'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

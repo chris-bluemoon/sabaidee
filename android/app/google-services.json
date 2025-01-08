@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "857762147173",
+    "project_id": "sabaidee-fe340",
+    "storage_bucket": "sabaidee-fe340.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:857762147173:android:3c2e2f6dce233a04a94f8c",
+        "android_client_info": {
+          "package_name": "sg.bluemoon.sabaidee"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCkSWHQ71RRWYBMldI_He1l5fecduPB70k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

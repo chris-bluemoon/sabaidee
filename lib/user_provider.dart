@@ -1,17 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class UserProvider with ChangeNotifier {
   User? _user;
   String? _phoneNumber;
   List<TimeOfDay>? _checkInTimes;
-  List<TimeOfDay>? _scheduleTimes;
 
   User? get user => _user;
   String? get phoneNumber => _phoneNumber;
   List<TimeOfDay>? get checkInTimes => _checkInTimes;
-  List<TimeOfDay>? get scheduleTimes => _scheduleTimes;
 
   UserProvider() {
     _initializeUser();
@@ -32,12 +31,6 @@ class UserProvider with ChangeNotifier {
     if (userDoc.exists) {
       _phoneNumber = userDoc['phoneNumber'];
       _checkInTimes = (userDoc['checkInTimes'] as List<dynamic>?)
-          ?.map((timestamp) {
-            final dateTime = (timestamp as Timestamp).toDate();
-            return TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
-          })
-          .toList();
-      _scheduleTimes = (userDoc['scheduleTimes'] as List<dynamic>?)
           ?.map((timestamp) {
             final dateTime = (timestamp as Timestamp).toDate();
             return TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
@@ -68,7 +61,6 @@ class UserProvider with ChangeNotifier {
         'email': user.email,
         'phoneNumber': phoneNumber,
         'checkInTimes': [],
-        'scheduleTimes': [],
       });
     }
   }
@@ -86,5 +78,26 @@ class UserProvider with ChangeNotifier {
 
   Future<void> signOut() async {
     await FirebaseAuth.instance.signOut();
+  }
+
+  Future<void> signInWithGoogle() async {
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+    if (googleUser != null) {
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final user = userCredential.user;
+
+      if (user != null) {
+        final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        if (!userDoc.exists) {
+          await _saveUserToFirestore(user, user.phoneNumber ?? '');
+        }
+        await _fetchUserData(user.uid);
+      }
+    }
   }
 }

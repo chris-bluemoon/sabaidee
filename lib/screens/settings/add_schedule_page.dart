@@ -24,7 +24,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
     }
   }
 
-  Future<void> _addScheduleTime() async {
+  Future<void> _addCheckInTime() async {
     if (_selectedTime != null) {
       await Provider.of<UserProvider>(context, listen: false).addCheckInTime(_selectedTime!);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -53,7 +53,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _addScheduleTime,
+              onPressed: _addCheckInTime,
               child: const Text('Add Schedule Time'),
             ),
           ],

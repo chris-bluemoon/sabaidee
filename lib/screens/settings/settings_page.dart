@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sabaidee/screens/next_check_in_page.dart';
 import 'package:sabaidee/screens/settings/add_schedule_page.dart';
 import 'package:sabaidee/screens/settings/my_relatives_page.dart';
 import 'package:sabaidee/screens/settings/notifications_page.dart';
+import 'package:sabaidee/sign_in_page.dart';
+import 'package:sabaidee/user_provider.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -34,6 +38,27 @@ class SettingsPage extends StatelessWidget {
               'Notifications',
               Icons.notifications,
               const NotificationsPage(),
+            ),
+            const SizedBox(height: 10),
+            _buildSettingsOption(
+              context,
+              'Next Check-In Time',
+              Icons.access_time,
+              const NextCheckInPage(),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton.icon(
+              onPressed: () async {
+                await Provider.of<UserProvider>(context, listen: false).signOut();
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => const SignInPage()),
+                );
+              },
+              icon: const Icon(Icons.logout),
+              label: const Text('Log Out'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+              ),
             ),
           ],
         ),

@@ -49,7 +49,7 @@ class AuthWrapper extends StatelessWidget {
 
       Provider.of<UserProvider>(context, listen: false).setUser(
         User(
-          id: uid,
+          uid: uid,
           email: userData['email'],
           name: userData['name'],
           phoneNumber: userData['phoneNumber'],

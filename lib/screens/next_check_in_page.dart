@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sabaidee/flip_clock.dart';
 import 'package:sabaidee/user_provider.dart';
 
 class NextCheckInPage extends StatelessWidget {
@@ -37,6 +38,7 @@ class NextCheckInPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
+                  const SizedBox(height: 150),
                   Container(
                     width: MediaQuery.of(context).size.width * 0.9, // 90% of the screen width
                     height: MediaQuery.of(context).size.height * 0.3, // 30% of the screen height
@@ -58,22 +60,23 @@ class NextCheckInPage extends StatelessWidget {
                       children: [
                         const Text(
                           'Next Check-In Time',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 10),
-                        Expanded(
-                          child: Center(
-                            child: Text(
-                              nextCheckInTime.format(context),
-                              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
+                        // Expanded(
+                        //   child: Center(
+                        //     child: Text(
+                        //       nextCheckInTime.format(context),
+                        //       style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                        //       textAlign: TextAlign.center,
+                        //     ),
+                        //   ),
+                        // ),
+                      FlipClock(time: nextCheckInTime),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 60),
                   ElevatedButton.icon(
                     onPressed: () async {
                       // Provider.of<UserProvider>(context, listen: false).addCheckInTime(nextCheckInTime);
@@ -101,12 +104,15 @@ class NextCheckInPage extends StatelessWidget {
                       userProvider.setCheckInStatus(nextCheckInTime, 'checked in');
                     },
                     icon: const Icon(Icons.check_box_outlined),
-                    label: const Text('Check In'),
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20), // More rounded corners
-                      ),
-                    ),
+                    label: const Text('CHECK IN'),
+                                    style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black, // Button color
+                  foregroundColor: Colors.white, // Text color
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
+                ),
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
@@ -115,10 +121,11 @@ class NextCheckInPage extends StatelessWidget {
                         const SnackBar(content: Text('I Need Help!')),
                       );
                     },
-                    icon: const Icon(Icons.help_outline),
-                    label: const Text('I Need Help!'),
+                    icon: const Icon(Icons.local_hospital),
+                    label: const Text('I NEED HELP!'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFDF6D2D), // Set the button color to #DF6D2D
+                      backgroundColor: Colors.red, // Button color
+                      foregroundColor: Colors.white, // Button color
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20), // More rounded corners
                       ),

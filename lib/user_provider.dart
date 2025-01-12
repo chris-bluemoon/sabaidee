@@ -23,7 +23,7 @@ class UserProvider with ChangeNotifier {
       _user!.checkInTimes.add(checkInTime);
 
       // Update Firestore
-      await _firestore.collection('users').doc(_user!.id).update({
+      await _firestore.collection('users').doc(_user!.uid).update({
         'checkInTimes': FieldValue.arrayUnion([{
           'hour': time.hour,
           'minute': time.minute,
@@ -35,6 +35,38 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  Future<void> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser != null) {
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final AuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+        final User? firebaseUser = userCredential.user as User?;
+
+        if (firebaseUser != null) {
+          final userDoc = await _firestore.collection('users').doc(firebaseUser.uid).get();
+          if (!userDoc.exists) {
+            // Create a new user record in Firestore
+            await _firestore.collection('users').doc(firebaseUser.uid).set({
+              'email': firebaseUser.email,
+              'name': 'TBC',
+              'checkInTimes': [],
+            });
+          }
+
+          // Fetch user data from Firestore
+          await _fetchUserData(firebaseUser.uid);
+        }
+      }
+    } catch (error) {
+      print('Google sign-in failed: $error');
+    }
+  }
 
   void setCheckInStatus(TimeOfDay time, String status) async {
     if (_user != null) {
@@ -47,7 +79,7 @@ class UserProvider with ChangeNotifier {
         }
       }
             // Update Firestore
-      await _firestore.collection('users').doc(_user!.id).update({
+      await _firestore.collection('users').doc(_user!.uid).update({
         'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
           'hour': checkInTime.time.hour,
           'minute': checkInTime.time.minute,
@@ -61,12 +93,12 @@ class UserProvider with ChangeNotifier {
   Future<void> signUp(String email, String password, String phoneNumber) async {
     try {
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
-      _user = User(id: userCredential.user!.uid, email: email, name: 'Dummy', phoneNumber: phoneNumber, checkInTimes: []);
+      _user = User(uid: userCredential.user!.uid, email: email, name: 'Dummy', phoneNumber: phoneNumber, checkInTimes: []);
       
       // Add user to Firestore
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'email': email,
-        'name': 'Dummy',
+        'name': 'TBC',
         'phoneNumber': phoneNumber,
         'checkInTimes': [],
       });
@@ -74,18 +106,6 @@ class UserProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       throw Exception('Failed to sign up: $e');
-    }
-  }
-
-  Future<void> signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser != null) {
-        _user = User(id: googleUser.id, name: googleUser.displayName ?? googleUser.email, checkInTimes: [], email: googleUser.email, phoneNumber: null);
-        notifyListeners();
-      }
-    } catch (error) {
-      print('Google sign-in failed: $error');
     }
   }
 
@@ -120,7 +140,7 @@ class UserProvider with ChangeNotifier {
     // This is a placeholder implementation
     DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
     _user = User(
-      id: uid,
+      uid: uid,
       email: userDoc['email'],
       name: userDoc['name'],
       phoneNumber: userDoc['phoneNumber'],
@@ -138,10 +158,10 @@ class CheckInTime {
 }
 
 class User {
-  final String id;
+  final String uid;
   final String email;
   final String name;
   List<CheckInTime> checkInTimes;
 
-  User({required this.id, required this.email, required this.name, required this.checkInTimes, required phoneNumber});
+  User({required this.uid, required this.email, required this.name, required this.checkInTimes, required phoneNumber});
 }

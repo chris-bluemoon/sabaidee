@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/screens/settings/add_schedule_page.dart';
 import 'package:sabaidee/screens/settings/my_relatives_page.dart';
-import 'package:sabaidee/screens/settings/notifications_page.dart';
-import 'package:sabaidee/sign_in_page.dart';
 import 'package:sabaidee/user_provider.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -12,60 +10,85 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          _buildSettingsOption(
-            context,
-            'My Relatives',
-            Icons.people,
-            const MyRelativesPage(),
-          ),
-          const SizedBox(height: 10),
-          _buildSettingsOption(
-            context,
-            'Add Schedule',
-            Icons.schedule,
-            const AddSchedulePage(),
-          ),
-          const SizedBox(height: 10),
-          _buildSettingsOption(
-            context,
-            'Notifications',
-            Icons.notifications,
-            const NotificationsPage(),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton.icon(
-            onPressed: () async {
-              Provider.of<UserProvider>(context, listen: false).signOut();
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const SignInPage()),
-              );
-            },
-            icon: const Icon(Icons.logout),
-            label: const Text('Log Out'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFDF6D2D), // Set the button color to #DF6D2D
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20), // More rounded corners
+      backgroundColor: Colors.yellow,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 50.0), // Move the container down by 50 pixels
+          child: Column(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16.0), // Add rounded corners
+                ),
+                margin: const EdgeInsets.all(16.0),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.all(16.0),
+                  itemCount: 2, // Update this count based on the number of options
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return _buildSettingsOption(
+                        context,
+                        'My Relatives',
+                        Icons.people,
+                        const MyRelativesPage(),
+                      );
+                    } else if (index == 1) {
+                      return _buildSettingsOption(
+                        context,
+                        'Add Schedule',
+                        Icons.schedule,
+                        const AddSchedulePage(),
+                      );
+                    }
+                    return Container(); // Return an empty container for any other index
+                  },
+                  separatorBuilder: (context, index) => const Divider(
+                    color: Colors.grey,
+                    height: 1,
+                  ),
+                ),
               ),
-            ),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16.0), // Add rounded corners
+                ),
+                margin: const EdgeInsets.all(16.0),
+                child: ListView(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.all(16.0),
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.logout),
+                      title: const Text('Sign Out'),
+                      iconColor: Colors.red,
+                      textColor: Colors.red,
+                      onTap: () {
+                        Provider.of<UserProvider>(context, listen: false).signOut();
+                        Navigator.of(context).popUntil((route) => route.isFirst);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildSettingsOption(BuildContext context, String title, IconData icon, Widget page) {
     return ListTile(
-      leading: Icon(icon, color: Theme.of(context).primaryColor),
-      title: Text(title, style: TextStyle(color: Theme.of(context).primaryColor)),
+      leading: Icon(icon),
+      title: Text(title),
+      trailing: const Icon(Icons.chevron_right), // Add right chevron
       onTap: () {
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) => page));
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => page),
+        );
       },
     );
   }

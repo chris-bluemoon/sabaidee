@@ -17,31 +17,6 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  List<CheckInTime> get pendingCheckInTimes {
-    return _user?.checkInTimes.where((time) => time.status == 'pending').toList() ?? [];
-  }
-  
-  List<CheckInTime> get scheduleTimes {
-    return _user?.checkInTimes ?? [];
-  }
-
-  Future<void> deleteCheckInTime(TimeOfDay time) async {
-    if (_user != null) {
-      _user!.checkInTimes.removeWhere((checkInTime) => checkInTime.time == time);
-
-      // Update Firestore
-      await _firestore.collection('users').doc(_user!.uid).update({
-        'checkInTimes': FieldValue.arrayRemove([{
-          'hour': time.hour,
-          'minute': time.minute,
-          'status': 'pending',
-        }])
-      });
-
-      notifyListeners();
-    }
-  }
-  
   Future<void> addCheckInTime(TimeOfDay time) async {
     if (_user != null) {
       final checkInTime = CheckInTime(time: time, status: 'pending');
@@ -173,7 +148,35 @@ class UserProvider with ChangeNotifier {
     );
     notifyListeners();
   }
-}
+
+  List<CheckInTime> get scheduleTimes {
+      return _user?.checkInTimes ?? [];
+  }
+  
+  List<CheckInTime> get pendingCheckInTimes {
+    return _user?.checkInTimes.where((time) => time.status == 'pending').toList() ?? [];
+  }
+  
+  Future<void> deleteCheckInTime(TimeOfDay time) async {
+      if (_user != null) {
+        _user!.checkInTimes.removeWhere((checkInTime) => checkInTime.time == time);
+  
+        // Update Firestore
+        await _firestore.collection('users').doc(_user!.uid).update({
+          'checkInTimes': FieldValue.arrayRemove([{
+            'hour': time.hour,
+            'minute': time.minute,
+            'status': 'pending',
+          }])
+        });
+  
+        notifyListeners();
+      }
+    }
+  }
+
+  
+
 
 class CheckInTime {
   TimeOfDay time;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sabaidee/screens/settings/add_schedule_time_page.dart';
 
 class AddSchedulePage extends StatelessWidget {
   const AddSchedulePage({super.key});
@@ -31,7 +32,7 @@ class AddSchedulePage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Add your button action here
+          Navigator.push(context, MaterialPageRoute(builder: (context) => const AddScheduleTimePage()));
         },
         backgroundColor: Colors.black,
         child: const Icon(Icons.add, color: Colors.white),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/home_page.dart';
 import 'package:sabaidee/sign_in_page.dart';
+import 'package:sabaidee/theme.dart';
 import 'package:sabaidee/user_provider.dart';
 
 import 'firebase_options.dart'; // Add this line to import the firebase_options.dart file
@@ -22,8 +23,9 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => UserProvider(),
-      child: const MaterialApp(
-        home: AuthWrapper(),
+      child: MaterialApp(
+        home: const AuthWrapper(),
+        theme: appTheme,
       ),
     );
   }

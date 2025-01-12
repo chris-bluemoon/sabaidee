@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sabaidee/screens/next_check_in_page.dart';
 import 'package:sabaidee/screens/settings/add_schedule_page.dart';
 import 'package:sabaidee/screens/settings/my_relatives_page.dart';
 import 'package:sabaidee/screens/settings/notifications_page.dart';
@@ -38,13 +37,6 @@ class SettingsPage extends StatelessWidget {
               'Notifications',
               Icons.notifications,
               const NotificationsPage(),
-            ),
-            const SizedBox(height: 10),
-            _buildSettingsOption(
-              context,
-              'Next Check-In Time',
-              Icons.access_time,
-              const NextCheckInPage(),
             ),
             const SizedBox(height: 10),
             ElevatedButton.icon(

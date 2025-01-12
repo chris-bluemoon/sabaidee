@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 final ThemeData appTheme = ThemeData(
-  primaryColor: const Color(0xFF638C6D),
+  primaryColor: const Color(0xFF000000),
+  // primaryColor: const Color(0xFF638C6D),
   colorScheme: ColorScheme.fromSwatch(
     primarySwatch: const MaterialColor(
       0xFF638C6D,
@@ -18,7 +19,7 @@ final ThemeData appTheme = ThemeData(
         900: Color(0xFF2A4131),
       },
     ),
-    accentColor: const Color(0xFF638C6D),
+    // accentColor: const Color(0xFF638C6D),
   ),
   textTheme: const TextTheme(
     headlineLarge: TextStyle(fontSize: 32.0, fontWeight: FontWeight.bold, color: Color(0xFF2A4131)),
@@ -26,25 +27,37 @@ final ThemeData appTheme = ThemeData(
     bodyMedium: TextStyle(fontSize: 14.0, color: Color(0xFF2A4131)),
   ),
   buttonTheme: const ButtonThemeData(
-    buttonColor: Color(0xFF638C6D),
+    buttonColor: Color(0xFF667BC6),
     textTheme: ButtonTextTheme.primary,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(8)), // Less rounded corners
+      borderRadius: BorderRadius.all(Radius.circular(20)), // Less rounded corners
     ),
   ),
-  elevatedButtonTheme: ElevatedButtonThemeData(
+    elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      foregroundColor: Colors.white, backgroundColor: const Color(0xFF638C6D),
+      foregroundColor: Colors.white,
+      backgroundColor: const Color(0xFF667BC6),
       textStyle: const TextStyle(fontSize: 16.0),
-      elevation: 0, // Remove shadow from ElevatedButton
+      elevation: 5, // Add shadow to ElevatedButton
+      shadowColor: Colors.black.withOpacity(1), // Shadow color
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(8)), // Less rounded corners
+        borderRadius: BorderRadius.all(Radius.circular(20)), // Less rounded corners
       ),
     ),
   ),
+  // elevatedButtonTheme: ElevatedButtonThemeData(
+  //   style: ElevatedButton.styleFrom(
+  //     foregroundColor: Colors.white, backgroundColor: const Color(0xFF667BC6),
+  //     textStyle: const TextStyle(fontSize: 16.0),
+  //     elevation: 0, // Remove shadow from ElevatedButton
+  //     shape: const RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.all(Radius.circular(8)), // Less rounded corners
+  //     ),
+  //   ),
+  // ),
   bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-    backgroundColor: Color(0xFFE8F0EB),
-    selectedItemColor: Color(0xFF2A4131),
-    unselectedItemColor: Color(0xFF638C6D),
+    backgroundColor: Color(0xFFFFC0CB), // Compatible with pink
+    selectedItemColor: Color(0xFFFFFFFF),
+    unselectedItemColor: Color(0xFF808080)
   ),
 );

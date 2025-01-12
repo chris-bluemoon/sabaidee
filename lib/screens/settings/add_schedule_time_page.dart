@@ -35,6 +35,10 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final pendingCheckInTimes = userProvider.pendingCheckInTimes;
+    final pendingHours = pendingCheckInTimes.map((time) => time.time.hour).toSet();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Schedule Time'),
@@ -55,8 +59,10 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
               itemBuilder: (context, index) {
                 final hour = index;
                 final isSelected = _selectedHours.contains(hour);
+                final isPending = pendingHours.contains(hour);
+
                 return ElevatedButton(
-                  onPressed: () {
+                  onPressed: isPending ? null : () {
                     _toggleHour(hour);
                   },
                   style: ElevatedButton.styleFrom(

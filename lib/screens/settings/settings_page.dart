@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sabaidee/screens/settings/add_schedule_page.dart';
 import 'package:sabaidee/screens/settings/my_relatives_page.dart';
+import 'package:sabaidee/screens/settings/my_schedule_page.dart';
 import 'package:sabaidee/user_provider.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -37,9 +37,9 @@ class SettingsPage extends StatelessWidget {
                     } else if (index == 1) {
                       return _buildSettingsOption(
                         context,
-                        'Add Schedule',
+                        'My Schedule',
                         Icons.schedule,
-                        const AddSchedulePage(),
+                        const MySchedulePage(),
                       );
                     }
                     return Container(); // Return an empty container for any other index

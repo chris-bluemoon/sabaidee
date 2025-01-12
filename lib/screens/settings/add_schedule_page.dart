@@ -26,7 +26,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
 
   Future<void> _addCheckInTime() async {
     if (_selectedTime != null) {
-      await Provider.of<UserProvider>(context, listen: false).addCheckInTime(_selectedTime!);
+      Provider.of<UserProvider>(context, listen: false).addCheckInTime(_selectedTime!);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Check In time added')),
       );

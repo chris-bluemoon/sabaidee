@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sabaidee/screens/background_widget.dart';
 import 'package:sabaidee/screens/settings/add_schedule_page.dart';
 import 'package:sabaidee/screens/settings/my_relatives_page.dart';
 import 'package:sabaidee/screens/settings/notifications_page.dart';
@@ -12,8 +11,11 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BackgroundWidget(
-      child: ListView(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Settings'),
+      ),
+      body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
           _buildSettingsOption(
@@ -25,8 +27,8 @@ class SettingsPage extends StatelessWidget {
           const SizedBox(height: 10),
           _buildSettingsOption(
             context,
-            'Add A Schedule',
-            Icons.timer,
+            'Add Schedule',
+            Icons.schedule,
             const AddSchedulePage(),
           ),
           const SizedBox(height: 10),
@@ -39,7 +41,7 @@ class SettingsPage extends StatelessWidget {
           const SizedBox(height: 10),
           ElevatedButton.icon(
             onPressed: () async {
-              await Provider.of<UserProvider>(context, listen: false).signOut();
+              Provider.of<UserProvider>(context, listen: false).signOut();
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (context) => const SignInPage()),
               );
@@ -49,7 +51,7 @@ class SettingsPage extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFDF6D2D), // Set the button color to #DF6D2D
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8), // Less rounded corners
+                borderRadius: BorderRadius.circular(20), // More rounded corners
               ),
             ),
           ),

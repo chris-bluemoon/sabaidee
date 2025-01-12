@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/home_page.dart';
@@ -32,6 +34,7 @@ class _SignInPageState extends State<SignInPage> {
         );
       } catch (e) {
         if (mounted) {
+          log(e.toString());
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to sign in: $e')),
           );

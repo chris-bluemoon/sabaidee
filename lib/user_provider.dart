@@ -1,14 +1,21 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sabaidee/main.dart';
 
 class UserProvider with ChangeNotifier {
   User? _user;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  Timer? _timer;
+
+  UserProvider() {
+    _startTimer();
+  }
 
   User? get user => _user;
 
@@ -146,6 +153,7 @@ class UserProvider with ChangeNotifier {
       phoneNumber: userDoc['phoneNumber'],
       checkInTimes: (userDoc['checkInTimes'] as List).map((time) => CheckInTime(time: TimeOfDay(hour: time['hour'], minute: time['minute']), status: time['status'])).toList(),
     );
+    _startTimer();
     notifyListeners();
   }
 
@@ -173,10 +181,67 @@ class UserProvider with ChangeNotifier {
         notifyListeners();
       }
     }
+
+  void _startTimer() {
+    log('Starting timer');
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      _checkForMissedCheckInTimes();
+    });
   }
 
-  
+  Future<void> _checkForMissedCheckInTimes() async {
+    final now = TimeOfDay.now();
+    final nextPendingCheckInTime = this.nextPendingCheckInTime;
+    log('Checking time - now: ${now.hour}:${now.minute}, nextPendingCheckInTime: ${nextPendingCheckInTime?.time.hour}:${nextPendingCheckInTime?.time.minute}');
+    if (nextPendingCheckInTime != null) {
+      if (nextPendingCheckInTime.time.hour < now.hour || (nextPendingCheckInTime.time.hour == now.hour && nextPendingCheckInTime.time.minute < now.minute)) {
+        await _showAlert();
+      }
+    }
+  }
 
+  Future<void> _showAlert() async {
+    // Delay the execution to ensure the context is available
+    if (navigatorKey.currentContext != null) {
+        showDialog(
+          context: navigatorKey.currentContext!,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Missed Check-In'),
+              content: const Text('You have missed a check-in time!'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        log('Navigator context is null, cannot show alert');
+      }
+  }
+
+  CheckInTime? get nextPendingCheckInTime {
+    final pendingCheckInTimes = _user?.checkInTimes.where((time) => time.status == 'pending').toList() ?? [];
+    if (pendingCheckInTimes.isEmpty) return null;
+
+    final now = TimeOfDay.now();
+    final futureCheckInTimes = pendingCheckInTimes
+        .where((time) => time.time.hour > now.hour || (time.time.hour == now.hour && time.time.minute > now.minute))
+        .toList();
+
+    if (futureCheckInTimes.isNotEmpty) {
+      return futureCheckInTimes.reduce((a, b) => a.time.hour < b.time.hour || (a.time.hour == b.time.hour && a.time.minute < b.time.minute) ? a : b);
+    } else {
+      return pendingCheckInTimes.reduce((a, b) => a.time.hour < b.time.hour || (a.time.hour == b.time.hour && a.time.minute < b.time.minute) ? a : b);
+    }
+  }
+
+}
 
 class CheckInTime {
   TimeOfDay time;

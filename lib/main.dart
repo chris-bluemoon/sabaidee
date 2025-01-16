@@ -5,13 +5,18 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sabaidee/firebase_options.dart';
 import 'package:sabaidee/home_page.dart';
 import 'package:sabaidee/sign_in_page.dart';
 import 'package:sabaidee/user_provider.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -23,6 +28,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => UserProvider(),
       child: MaterialApp(
+        navigatorKey: navigatorKey,
         title: 'Sabaidee',
         theme: ThemeData(
           primarySwatch: Colors.blue,
@@ -70,7 +76,7 @@ class AuthWrapper extends StatelessWidget {
           return const Center(child: Text('Something went wrong'));
         } else if (snapshot.hasData) {
           // User is logged in
-          log('User is logge in');  
+          log('User is logged in');  
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             await _fetchAndSetUser(context, snapshot.data!.uid);
           });

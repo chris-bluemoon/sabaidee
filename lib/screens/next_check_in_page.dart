@@ -14,7 +14,8 @@ class NextCheckInPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Consumer<UserProvider>(
           builder: (context, userProvider, child) {
-            final checkInTimes = userProvider.user?.checkInTimes;
+            final checkInTimes = userProvider.user?.checkInTimes.where((time) => time.status == 'pending').toList();
+
             if (checkInTimes == null || checkInTimes.isEmpty) {
               return const Center(
                 child: Text('No check-in times available'),
@@ -41,7 +42,7 @@ class NextCheckInPage extends StatelessWidget {
                   const SizedBox(height: 150),
                   Container(
                     width: MediaQuery.of(context).size.width * 0.9, // 90% of the screen width
-                    height: MediaQuery.of(context).size.height * 0.3, // 30% of the screen height
+                    height: MediaQuery.of(context).size.height * 0.4, // 30% of the screen height
                     padding: const EdgeInsets.all(16.0),
                     decoration: BoxDecoration(
                       color: const Color(0xFFE8F0EB), // Light shade of the primary color

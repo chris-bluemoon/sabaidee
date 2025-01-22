@@ -45,6 +45,7 @@ class AuthWrapper extends StatelessWidget {
   Future<void> _fetchAndSetUser(BuildContext context, String uid) async {
     final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
     if (userDoc.exists) {
+      log('User found in Firestore with uid: $uid');
       final userData = userDoc.data()!;
       final checkInTimes = (userData['checkInTimes'] as List).map((time) {
         return CheckInTime(
@@ -60,9 +61,28 @@ class AuthWrapper extends StatelessWidget {
           name: userData['name'],
           phoneNumber: userData['phoneNumber'],
           checkInTimes: checkInTimes,
+          relatives: List<String>.from(userData['relatives']), 
         ),
       );
-    }
+    } else {
+      log('User not found in Firestore - redundant code, should be not reached');
+      final firebaseUser = auth.FirebaseAuth.instance.currentUser;
+      if (firebaseUser != null) {
+        final newUser = User(
+          uid: uid,
+          email: firebaseUser.email!,
+          name: 'New User',
+          phoneNumber: '',
+          checkInTimes: [],
+          relatives: [],
+        );
+
+        await FirebaseFirestore.instance.collection('users').doc(uid).set(newUser.toFirestore());
+
+        Provider.of<UserProvider>(context, listen: false).setUser(newUser);
+      }
+    } 
+
   }
 
   @override
@@ -76,7 +96,7 @@ class AuthWrapper extends StatelessWidget {
           return const Center(child: Text('Something went wrong'));
         } else if (snapshot.hasData) {
           // User is logged in
-          log('User is logged in');  
+          log('User is logged in as ${snapshot.data!.email}');  
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             await _fetchAndSetUser(context, snapshot.data!.uid);
           });

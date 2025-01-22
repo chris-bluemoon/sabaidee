@@ -63,6 +63,7 @@ class UserProvider with ChangeNotifier {
               'email': firebaseUser.email,
               'name': 'TBC',
               'checkInTimes': [],
+              'relatives': [],
             });
           }
 
@@ -100,7 +101,7 @@ class UserProvider with ChangeNotifier {
   Future<void> signUp(String email, String password, String phoneNumber) async {
     try {
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
-      _user = User(uid: userCredential.user!.uid, email: email, name: 'Dummy', phoneNumber: phoneNumber, checkInTimes: []);
+      _user = User(uid: userCredential.user!.uid, email: email, name: 'Dummy', phoneNumber: phoneNumber, checkInTimes: [], relatives: []);
       
       // Add user to Firestore
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
@@ -108,6 +109,7 @@ class UserProvider with ChangeNotifier {
         'name': 'TBC',
         'phoneNumber': phoneNumber,
         'checkInTimes': [],
+        'relatives': [],
       });
 
       notifyListeners();
@@ -152,6 +154,7 @@ class UserProvider with ChangeNotifier {
       name: userDoc['name'],
       phoneNumber: userDoc['phoneNumber'],
       checkInTimes: (userDoc['checkInTimes'] as List).map((time) => CheckInTime(time: TimeOfDay(hour: time['hour'], minute: time['minute']), status: time['status'])).toList(),
+      relatives: List<String>.from(userDoc['relatives'] ?? []),
     );
     _startTimer();
     notifyListeners();
@@ -195,6 +198,7 @@ class UserProvider with ChangeNotifier {
     log('Checking time - now: ${now.hour}:${now.minute}, nextPendingCheckInTime: ${nextPendingCheckInTime?.time.hour}:${nextPendingCheckInTime?.time.minute}');
     if (nextPendingCheckInTime != null) {
       if (nextPendingCheckInTime.time.hour < now.hour || (nextPendingCheckInTime.time.hour == now.hour && nextPendingCheckInTime.time.minute < now.minute)) {
+        setCheckInStatus(nextPendingCheckInTime.time, 'missed');
         await _showAlert();
       }
     }
@@ -241,6 +245,23 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+    List<String> get relatives {
+    return _user?.relatives ?? [];
+  }
+
+  Future<void> addRelative(String relativeUid) async {
+    if (_user != null) {
+      _user!.relatives.add(relativeUid);
+
+      // Update Firestore
+      await _firestore.collection('users').doc(_user!.uid).update({
+        'relatives': FieldValue.arrayUnion([relativeUid]),
+      });
+
+      notifyListeners();
+    }
+  }
+
 }
 
 class CheckInTime {
@@ -248,13 +269,60 @@ class CheckInTime {
   String status;
 
   CheckInTime({required this.time, required this.status});
+
+  factory CheckInTime.fromMap(Map<String, dynamic> map) {
+    return CheckInTime(
+      time: TimeOfDay(hour: map['hour'], minute: map['minute']),
+      status: map['status'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'hour': time.hour,
+      'minute': time.minute,
+      'status': status,
+    };
+  }
 }
 
 class User {
   final String uid;
   final String email;
   final String name;
-  List<CheckInTime> checkInTimes;
+  final String phoneNumber;
+  final List<CheckInTime> checkInTimes;
+  final List<String> relatives; // List of relative user IDs
 
-  User({required this.uid, required this.email, required this.name, required this.checkInTimes, required phoneNumber});
+  User({
+    required this.uid,
+    required this.email,
+    required this.name,
+    required this.phoneNumber,
+    required this.checkInTimes,
+    required this.relatives,
+  });
+
+    factory User.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return User(
+      uid: doc.id,
+      email: data['email'],
+      name: data['name'],
+      phoneNumber: data['phoneNumber'],
+      checkInTimes: (data['checkInTimes'] as List<dynamic>).map((e) => CheckInTime.fromMap(e)).toList(),
+      relatives: List<String>.from(data['relatives'] ?? []),
+    );
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      'email': email,
+      'name': name,
+      'phoneNumber': phoneNumber,
+      'checkInTimes': checkInTimes.map((e) => e.toMap()).toList(),
+      'relatives': relatives,
+    };
+  }
+
 }

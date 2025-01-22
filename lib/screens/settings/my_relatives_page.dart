@@ -35,8 +35,8 @@ class MyRelativesPage extends StatelessWidget {
         ),
         backgroundColor: Colors.yellow,
       ),
-      body: FutureBuilder<Map<String, String>>(
-        future: userProvider.fetchRelativeNames(),
+           body: FutureBuilder<Map<String, Map<String, String>>>(
+        future: userProvider.fetchRelativeNamesAndStatuses(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -45,14 +45,17 @@ class MyRelativesPage extends StatelessWidget {
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No relatives found'));
           } else {
-            final relativeNames = snapshot.data!;
+            final relativeNamesAndStatuses = snapshot.data!;
             return ListView.builder(
               itemCount: relatives.length,
               itemBuilder: (context, index) {
-                final relativeUid = relatives[index];
-                final relativeName = relativeNames[relativeUid] ?? 'Unknown';
+                final relative = relatives[index];
+                final relativeUid = relative['uid'];
+                final relativeName = relativeNamesAndStatuses[relativeUid]?['name'] ?? 'Unknown';
+                final relativeStatus = relativeNamesAndStatuses[relativeUid]?['status'] ?? 'Unknown';
                 return ListTile(
                   title: Text('Name: $relativeName'),
+                  subtitle: Text('Status: $relativeStatus'),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete),
                     onPressed: () {
@@ -82,9 +85,9 @@ class MyRelativesPage extends StatelessWidget {
                       itemBuilder: (context, index) {
                         final user = registeredUsers[index];
                         return ListTile(
-                          title: Text(user['email']),
+                          title: Text(user['name']),
                           onTap: () {
-                            userProvider.addRelative(user['uid']);
+                            userProvider.addRelative(user['uid'],'pending');
                             Navigator.of(context).pop();
                           },
                         );

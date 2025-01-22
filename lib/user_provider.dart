@@ -148,7 +148,8 @@ class UserProvider with ChangeNotifier {
   Future<Map<String, String>> fetchRelativeEmails() async {
     final Map<String, String> relativeEmails = {};
     if (_user != null) {
-      for (String relativeUid in _user!.relatives) {
+      for (Map<String, String> relative in _user!.relatives) {
+        String relativeUid = relative['uid']!;
         final userDoc = await _firestore.collection('users').doc(relativeUid).get();
         if (userDoc.exists) {
           final userData = userDoc.data()!;
@@ -158,18 +159,23 @@ class UserProvider with ChangeNotifier {
     }
     return relativeEmails;
   }
-  Future<Map<String, String>> fetchRelativeNames() async {
-    final Map<String, String> relativeNames = {};
+  Future<Map<String, Map<String, String>>> fetchRelativeNamesAndStatuses() async {
+    final Map<String, Map<String, String>> relativeNamesAndStatuses = {};
     if (_user != null) {
-      for (String relativeUid in _user!.relatives) {
+      for (var relative in _user!.relatives) {
+        final relativeUid = relative['uid'];
+        final status = relative['status'];
         final userDoc = await _firestore.collection('users').doc(relativeUid).get();
         if (userDoc.exists) {
           final userData = userDoc.data()!;
-          relativeNames[relativeUid] = userData['name'];
+          relativeNamesAndStatuses[relativeUid!] = {
+            'name': userData['name'],
+            'status': status!,
+          };
         }
       }
     }
-    return relativeNames;
+    return relativeNamesAndStatuses;
   }
 
   Future<void> _fetchUserData(String uid) async {
@@ -182,7 +188,7 @@ class UserProvider with ChangeNotifier {
       name: userDoc['name'],
       phoneNumber: userDoc['phoneNumber'],
       checkInTimes: (userDoc['checkInTimes'] as List).map((time) => CheckInTime(time: TimeOfDay(hour: time['hour'], minute: time['minute']), status: time['status'])).toList(),
-      relatives: List<String>.from(userDoc['relatives'] ?? []),
+      relatives: List<Map<String, String>>.from(userDoc['relatives'] ?? []),
     );
     _startTimer();
     notifyListeners();
@@ -217,8 +223,8 @@ class UserProvider with ChangeNotifier {
     log('Starting timer');
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) async {
       _checkForMissedCheckInTimes();
-        log('Raising notification');
-        await _showNotification();
+        // log('Raising notification');
+        // await _showNotification();
     });
   }
 
@@ -229,7 +235,7 @@ class UserProvider with ChangeNotifier {
     if (nextPendingCheckInTime != null) {
       if (nextPendingCheckInTime.time.hour < now.hour || (nextPendingCheckInTime.time.hour == now.hour && nextPendingCheckInTime.time.minute < now.minute)) {
         setCheckInStatus(nextPendingCheckInTime.time, 'missed');
-        await _showNotification();
+        // await _showNotification();
       }
     }
   }
@@ -243,7 +249,15 @@ class UserProvider with ChangeNotifier {
       priority: Priority.high,
       ticker: 'ticker',
     );
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+    const DarwinNotificationDetails iosPlatformChannelSpecifics = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+    const NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: iosPlatformChannelSpecifics,
+    );
     await flutterLocalNotificationsPlugin.show(
       0,
       'Missed Check-In',
@@ -294,17 +308,17 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-    List<String> get relatives {
+    List<Map<String, String>> get relatives {
     return _user?.relatives ?? [];
   }
 
-  Future<void> addRelative(String relativeUid) async {
+  Future<void> addRelative(String relativeUid, String status) async {
     if (_user != null) {
-      _user!.relatives.add(relativeUid);
+      _user!.relatives.add({'uid': relativeUid, 'status': status});
 
       // Update Firestore
       await _firestore.collection('users').doc(_user!.uid).update({
-        'relatives': FieldValue.arrayUnion([relativeUid]),
+        'relatives': FieldValue.arrayUnion([{'uid': relativeUid, 'status': status}]),
       });
 
       notifyListeners();
@@ -341,7 +355,7 @@ class User {
   final String name;
   final String phoneNumber;
   final List<CheckInTime> checkInTimes;
-  final List<String> relatives; // List of relative user IDs
+  final List<Map<String, String>> relatives; // Update to List<Map<String, String>>
 
   User({
     required this.uid,
@@ -352,7 +366,7 @@ class User {
     required this.relatives,
   });
 
-    factory User.fromFirestore(DocumentSnapshot doc) {
+  factory User.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return User(
       uid: doc.id,
@@ -360,7 +374,7 @@ class User {
       name: data['name'],
       phoneNumber: data['phoneNumber'],
       checkInTimes: (data['checkInTimes'] as List<dynamic>).map((e) => CheckInTime.fromMap(e)).toList(),
-      relatives: List<String>.from(data['relatives'] ?? []),
+      relatives: List<Map<String, String>>.from(data['relatives'] ?? []),
     );
   }
 
@@ -373,5 +387,4 @@ class User {
       'relatives': relatives,
     };
   }
-
 }

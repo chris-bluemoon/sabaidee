@@ -29,8 +29,8 @@ class _SignUpPageState extends State<SignUpPage> {
         await Provider.of<UserProvider>(context, listen: false).signUp(
           _emailController.text,
           _passwordController.text,
+          _nameController.text, 
           _phoneNumberController.text,
-          _nameController.text, // Add this line
         );
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const HomePage()),

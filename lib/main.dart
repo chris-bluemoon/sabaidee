@@ -20,7 +20,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
   const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings(
     requestAlertPermission: true,
     requestBadgePermission: true,
@@ -31,10 +31,6 @@ const AndroidInitializationSettings initializationSettingsAndroid = AndroidIniti
     iOS: initializationSettingsIOS,
   );
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-
-
-
-
 
   runApp(const MyApp());
 }
@@ -73,6 +69,10 @@ class AuthWrapper extends StatelessWidget {
         );
       }).toList();
 
+      final relatives = (userData['relatives'] as List).map((relative) {
+        return Map<String, String>.from(relative);
+      }).toList();
+
       Provider.of<UserProvider>(context, listen: false).setUser(
         User(
           uid: uid,
@@ -80,28 +80,27 @@ class AuthWrapper extends StatelessWidget {
           name: userData['name'],
           phoneNumber: userData['phoneNumber'],
           checkInTimes: checkInTimes,
-          relatives: List<String>.from(userData['relatives']), 
+          relatives: relatives,
         ),
       );
     } else {
-      log('User not found in Firestore - redundant code, should be not reached');
-      final firebaseUser = auth.FirebaseAuth.instance.currentUser;
-      if (firebaseUser != null) {
-        final newUser = User(
-          uid: uid,
-          email: firebaseUser.email!,
-          name: 'New User',
-          phoneNumber: '',
-          checkInTimes: [],
-          relatives: [],
-        );
+      log('User not found in Firestore - redundant code/mismatch with Firebase?, should be not reached');
+      // final firebaseUser = auth.FirebaseAuth.instance.currentUser;
+      // if (firebaseUser != null) {
+      //   final newUser = User(
+      //     uid: uid,
+      //     email: firebaseUser.email!,
+      //     name: 'New User',
+      //     phoneNumber: '',
+      //     checkInTimes: [],
+      //     relatives: [],
+      //   );
 
-        await FirebaseFirestore.instance.collection('users').doc(uid).set(newUser.toFirestore());
+      //   await FirebaseFirestore.instance.collection('users').doc(uid).set(newUser.toFirestore());
 
-        Provider.of<UserProvider>(context, listen: false).setUser(newUser);
-      }
-    } 
-
+      //   Provider.of<UserProvider>(context, listen: false).setUser(newUser);
+      // }
+    }
   }
 
   @override
@@ -115,7 +114,7 @@ class AuthWrapper extends StatelessWidget {
           return const Center(child: Text('Something went wrong'));
         } else if (snapshot.hasData) {
           // User is logged in
-          log('User is logged in as ${snapshot.data!.email}');  
+          log('User is logged in as ${snapshot.data!.uid}');
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             await _fetchAndSetUser(context, snapshot.data!.uid);
           });

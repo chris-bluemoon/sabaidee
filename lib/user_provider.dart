@@ -99,7 +99,7 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  Future<void> signUp(String email, String password, String phoneNumber) async {
+  Future<void> signUp(String email, String password, String name, String phoneNumber) async {
     try {
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
       _user = User(uid: userCredential.user!.uid, email: email, name: 'Dummy', phoneNumber: phoneNumber, checkInTimes: [], relatives: []);
@@ -107,7 +107,7 @@ class UserProvider with ChangeNotifier {
       // Add user to Firestore
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'email': email,
-        'name': 'TBC',
+        'name': name,
         'phoneNumber': phoneNumber,
         'checkInTimes': [],
         'relatives': [],
@@ -157,6 +157,19 @@ class UserProvider with ChangeNotifier {
       }
     }
     return relativeEmails;
+  }
+  Future<Map<String, String>> fetchRelativeNames() async {
+    final Map<String, String> relativeNames = {};
+    if (_user != null) {
+      for (String relativeUid in _user!.relatives) {
+        final userDoc = await _firestore.collection('users').doc(relativeUid).get();
+        if (userDoc.exists) {
+          final userData = userDoc.data()!;
+          relativeNames[relativeUid] = userData['name'];
+        }
+      }
+    }
+    return relativeNames;
   }
 
   Future<void> _fetchUserData(String uid) async {

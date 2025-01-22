@@ -36,7 +36,7 @@ class MyRelativesPage extends StatelessWidget {
         backgroundColor: Colors.yellow,
       ),
       body: FutureBuilder<Map<String, String>>(
-        future: userProvider.fetchRelativeEmails(),
+        future: userProvider.fetchRelativeNames(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -45,14 +45,14 @@ class MyRelativesPage extends StatelessWidget {
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No relatives found'));
           } else {
-            final relativeEmails = snapshot.data!;
+            final relativeNames = snapshot.data!;
             return ListView.builder(
               itemCount: relatives.length,
               itemBuilder: (context, index) {
                 final relativeUid = relatives[index];
-                final relativeEmail = relativeEmails[relativeUid] ?? 'Unknown';
+                final relativeName = relativeNames[relativeUid] ?? 'Unknown';
                 return ListTile(
-                  title: Text('Relative Email: $relativeEmail'),
+                  title: Text('Name: $relativeName'),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete),
                     onPressed: () {

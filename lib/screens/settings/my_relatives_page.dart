@@ -35,19 +35,34 @@ class MyRelativesPage extends StatelessWidget {
         ),
         backgroundColor: Colors.yellow,
       ),
-      body: ListView.builder(
-        itemCount: relatives.length,
-        itemBuilder: (context, index) {
-          final relativeUid = relatives[index];
-          return ListTile(
-            title: Text('Relative UID: $relativeUid'),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
-                // Handle delete relative
+      body: FutureBuilder<Map<String, String>>(
+        future: userProvider.fetchRelativeEmails(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return const Center(child: Text('Something went wrong'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No relatives found'));
+          } else {
+            final relativeEmails = snapshot.data!;
+            return ListView.builder(
+              itemCount: relatives.length,
+              itemBuilder: (context, index) {
+                final relativeUid = relatives[index];
+                final relativeEmail = relativeEmails[relativeUid] ?? 'Unknown';
+                return ListTile(
+                  title: Text('Relative Email: $relativeEmail'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () {
+                      // Handle delete relative
+                    },
+                  ),
+                );
               },
-            ),
-          );
+            );
+          }
         },
       ),
       floatingActionButton: FloatingActionButton(

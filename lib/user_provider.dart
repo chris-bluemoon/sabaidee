@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sabaidee/main.dart';
 
@@ -144,6 +145,20 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<Map<String, String>> fetchRelativeEmails() async {
+    final Map<String, String> relativeEmails = {};
+    if (_user != null) {
+      for (String relativeUid in _user!.relatives) {
+        final userDoc = await _firestore.collection('users').doc(relativeUid).get();
+        if (userDoc.exists) {
+          final userData = userDoc.data()!;
+          relativeEmails[relativeUid] = userData['email'];
+        }
+      }
+    }
+    return relativeEmails;
+  }
+
   Future<void> _fetchUserData(String uid) async {
     // Fetch user data from your database and set the _user object
     // This is a placeholder implementation
@@ -185,10 +200,12 @@ class UserProvider with ChangeNotifier {
       }
     }
 
-  void _startTimer() {
+  void _startTimer() async {
     log('Starting timer');
-    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) async {
       _checkForMissedCheckInTimes();
+        log('Raising notification');
+        await _showNotification();
     });
   }
 
@@ -199,9 +216,28 @@ class UserProvider with ChangeNotifier {
     if (nextPendingCheckInTime != null) {
       if (nextPendingCheckInTime.time.hour < now.hour || (nextPendingCheckInTime.time.hour == now.hour && nextPendingCheckInTime.time.minute < now.minute)) {
         setCheckInStatus(nextPendingCheckInTime.time, 'missed');
-        await _showAlert();
+        await _showNotification();
       }
     }
+  }
+  
+  Future<void> _showNotification() async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'missed_check_in_channel',
+      'Missed Check-In',
+      channelDescription: 'Notification for missed check-in times',
+      importance: Importance.max,
+      priority: Priority.high,
+      ticker: 'ticker',
+    );
+    const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Missed Check-In',
+      'You have missed a check-in time!',
+      platformChannelSpecifics,
+      payload: 'missed_check_in',
+    );
   }
 
   Future<void> _showAlert() async {

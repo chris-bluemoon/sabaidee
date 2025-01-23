@@ -65,6 +65,7 @@ class UserProvider with ChangeNotifier {
               'name': 'TBC',
               'checkInTimes': [],
               'relatives': [],
+              'watching': [],
             });
           }
 
@@ -102,7 +103,7 @@ class UserProvider with ChangeNotifier {
   Future<void> signUp(String email, String password, String name, String phoneNumber) async {
     try {
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
-      _user = User(uid: userCredential.user!.uid, email: email, name: 'Dummy', phoneNumber: phoneNumber, checkInTimes: [], relatives: []);
+      _user = User(uid: userCredential.user!.uid, email: email, name: 'Dummy', phoneNumber: phoneNumber, checkInTimes: [], relatives: [], watching: []);
       
       // Add user to Firestore
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
@@ -111,6 +112,7 @@ class UserProvider with ChangeNotifier {
         'phoneNumber': phoneNumber,
         'checkInTimes': [],
         'relatives': [],
+        'watching': [],
       });
 
       notifyListeners();
@@ -189,6 +191,7 @@ class UserProvider with ChangeNotifier {
       phoneNumber: userDoc['phoneNumber'],
       checkInTimes: (userDoc['checkInTimes'] as List).map((time) => CheckInTime(time: TimeOfDay(hour: time['hour'], minute: time['minute']), status: time['status'])).toList(),
       relatives: List<Map<String, String>>.from(userDoc['relatives'] ?? []),
+      watching: List<Map<String, String>>.from(userDoc['watching'] ?? []),
     );
     _startTimer();
     notifyListeners();
@@ -325,6 +328,19 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  Future<void> addWatching(String watchingUid, String status) async {
+    if (_user != null) {
+      _user!.watching.add({'uid': watchingUid, 'status': status});
+
+      // Update Firestore
+      await _firestore.collection('users').doc(_user!.uid).update({
+        'watching': FieldValue.arrayUnion([{'uid': watchingUid, 'status': status}]),
+      });
+
+      notifyListeners();
+    }
+  }
+
 }
 
 class CheckInTime {
@@ -356,6 +372,7 @@ class User {
   final String phoneNumber;
   final List<CheckInTime> checkInTimes;
   final List<Map<String, String>> relatives; // Update to List<Map<String, String>>
+  final List<Map<String, String>> watching;
 
   User({
     required this.uid,
@@ -364,6 +381,7 @@ class User {
     required this.phoneNumber,
     required this.checkInTimes,
     required this.relatives,
+    required this.watching,
   });
 
   factory User.fromFirestore(DocumentSnapshot doc) {
@@ -375,6 +393,7 @@ class User {
       phoneNumber: data['phoneNumber'],
       checkInTimes: (data['checkInTimes'] as List<dynamic>).map((e) => CheckInTime.fromMap(e)).toList(),
       relatives: List<Map<String, String>>.from(data['relatives'] ?? []),
+      watching: List<Map<String, String>>.from(data['watching'] ?? []),
     );
   }
 
@@ -385,6 +404,7 @@ class User {
       'phoneNumber': phoneNumber,
       'checkInTimes': checkInTimes.map((e) => e.toMap()).toList(),
       'relatives': relatives,
+      'watching': watching,
     };
   }
 }

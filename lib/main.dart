@@ -81,6 +81,7 @@ class AuthWrapper extends StatelessWidget {
           phoneNumber: userData['phoneNumber'],
           checkInTimes: checkInTimes,
           relatives: relatives,
+          watching: userData['watching'],
         ),
       );
     } else {

@@ -319,27 +319,57 @@ class UserProvider with ChangeNotifier {
     if (_user != null) {
       _user!.relatives.add({'uid': relativeUid, 'status': status});
 
-      // Update Firestore
+      // Update Firestore for the current user
       await _firestore.collection('users').doc(_user!.uid).update({
         'relatives': FieldValue.arrayUnion([{'uid': relativeUid, 'status': status}]),
       });
 
-      notifyListeners();
-    }
-  }
-
-  Future<void> addWatching(String watchingUid, String status) async {
-    if (_user != null) {
-      _user!.watching.add({'uid': watchingUid, 'status': status});
-
-      // Update Firestore
-      await _firestore.collection('users').doc(_user!.uid).update({
-        'watching': FieldValue.arrayUnion([{'uid': watchingUid, 'status': status}]),
+      // Update Firestore for the relative user
+      await _firestore.collection('users').doc(relativeUid).update({
+        'watching': FieldValue.arrayUnion([{'uid': _user!.uid, 'status': status}]),
       });
 
       notifyListeners();
     }
   }
+
+  Future<void> checkForMissedCheckInTimesFromWatching() async {
+    if (_user != null) {
+      for (var watching in _user!.watching) {
+        final watchingUid = watching['uid'];
+        if (watchingUid != null) {
+          final userDoc = await _firestore.collection('users').doc(watchingUid).get();
+          if (userDoc.exists) {
+            final userData = userDoc.data()!;
+            final checkInTimes = (userData['checkInTimes'] as List<dynamic>).map((e) => CheckInTime.fromMap(e)).toList();
+            final now = TimeOfDay.now();
+
+            for (var checkInTime in checkInTimes) {
+              if (checkInTime.status == 'pending' &&
+                  (checkInTime.time.hour < now.hour || (checkInTime.time.hour == now.hour && checkInTime.time.minute < now.minute))) {
+                // Missed check-in time found
+                log('User $watchingUid missed check-in time at ${checkInTime.time.hour}:${checkInTime.time.minute}');
+                // You can add additional actions here, like sending a notification
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Future<void> addWatching(String watchingUid, String status) async {
+  //   if (_user != null) {
+  //     _user!.watching.add({'uid': watchingUid, 'status': status});
+
+  //     // Update Firestore
+  //     await _firestore.collection('users').doc(_user!.uid).update({
+  //       'watching': FieldValue.arrayUnion([{'uid': watchingUid, 'status': status}]),
+  //     });
+
+  //     notifyListeners();
+  //   }
+  // }
 
 }
 

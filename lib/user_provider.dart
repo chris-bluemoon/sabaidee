@@ -226,15 +226,17 @@ class UserProvider with ChangeNotifier {
     log('Starting timer');
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) async {
       _checkForMissedCheckInTimes();
+      checkForMissedCheckInTimesFromWatching();
         // log('Raising notification');
         // await _showNotification();
     });
   }
 
   Future<void> _checkForMissedCheckInTimes() async {
+    log('Checking for missed check-in times');
     final now = TimeOfDay.now();
     final nextPendingCheckInTime = this.nextPendingCheckInTime;
-    log('Checking time - now: ${now.hour}:${now.minute}, nextPendingCheckInTime: ${nextPendingCheckInTime?.time.hour}:${nextPendingCheckInTime?.time.minute}');
+    // log('Checking time - now: ${now.hour}:${now.minute}, nextPendingCheckInTime: ${nextPendingCheckInTime?.time.hour}:${nextPendingCheckInTime?.time.minute}');
     if (nextPendingCheckInTime != null) {
       if (nextPendingCheckInTime.time.hour < now.hour || (nextPendingCheckInTime.time.hour == now.hour && nextPendingCheckInTime.time.minute < now.minute)) {
         setCheckInStatus(nextPendingCheckInTime.time, 'missed');
@@ -334,6 +336,7 @@ class UserProvider with ChangeNotifier {
   }
 
   Future<void> checkForMissedCheckInTimesFromWatching() async {
+    log('Checking for missed check-in times from watching');
     if (_user != null) {
       for (var watching in _user!.watching) {
         final watchingUid = watching['uid'];

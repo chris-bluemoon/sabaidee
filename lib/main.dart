@@ -72,6 +72,9 @@ class AuthWrapper extends StatelessWidget {
       final relatives = (userData['relatives'] as List).map((relative) {
         return Map<String, String>.from(relative);
       }).toList();
+      final watching = (userData['watching'] as List).map((watching) {
+        return Map<String, String>.from(watching);
+      }).toList();
 
       Provider.of<UserProvider>(context, listen: false).setUser(
         User(
@@ -81,7 +84,7 @@ class AuthWrapper extends StatelessWidget {
           phoneNumber: userData['phoneNumber'],
           checkInTimes: checkInTimes,
           relatives: relatives,
-          watching: userData['watching'],
+          watching: watching
         ),
       );
     } else {

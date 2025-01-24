@@ -161,6 +161,24 @@ class UserProvider with ChangeNotifier {
     }
     return relativeEmails;
   }
+  Future<Map<String, Map<String, String>>> fetchWatchingNamesAndStatuses() async {
+    final Map<String, Map<String, String>> watchingNamesAndStatuses = {};
+    if (_user != null) {
+      for (var watching in _user!.watching) {
+        final watchingUid = watching['uid'];
+        final status = watching['status'];
+        final userDoc = await _firestore.collection('users').doc(watchingUid).get();
+        if (userDoc.exists) {
+          final userData = userDoc.data()!;
+          watchingNamesAndStatuses[watchingUid!] = {
+            'name': userData['name'],
+            'status': status!,
+          };
+        }
+      }
+    }
+    return watchingNamesAndStatuses;
+  }
   Future<Map<String, Map<String, String>>> fetchRelativeNamesAndStatuses() async {
     final Map<String, Map<String, String>> relativeNamesAndStatuses = {};
     if (_user != null) {
@@ -314,7 +332,10 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-    List<Map<String, String>> get relatives {
+  List<Map<String, String>> get watching {
+    return _user?.watching ?? [];
+  }
+  List<Map<String, String>> get relatives {
     return _user?.relatives ?? [];
   }
 

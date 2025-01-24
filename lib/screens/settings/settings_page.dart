@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/screens/settings/my_relatives_page.dart';
 import 'package:sabaidee/screens/settings/my_schedule_page.dart';
+import 'package:sabaidee/screens/settings/my_watch_list.dart';
 import 'package:sabaidee/user_provider.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -25,7 +26,7 @@ class SettingsPage extends StatelessWidget {
                 child: ListView.separated(
                   shrinkWrap: true,
                   padding: const EdgeInsets.all(16.0),
-                  itemCount: 2, // Update this count based on the number of options
+                  itemCount: 3, // Update this count based on the number of options
                   itemBuilder: (context, index) {
                     if (index == 0) {
                       return _buildSettingsOption(
@@ -40,6 +41,13 @@ class SettingsPage extends StatelessWidget {
                         'My Schedule',
                         Icons.schedule,
                         const MySchedulePage(),
+                      );
+                    } else if (index == 2) {
+                      return _buildSettingsOption(
+                        context,
+                        'My Watch List',
+                        Icons.watch_later,
+                        const MyWatchList(),
                       );
                     }
                     return Container(); // Return an empty container for any other index

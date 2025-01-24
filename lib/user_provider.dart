@@ -226,7 +226,7 @@ class UserProvider with ChangeNotifier {
     log('Starting timer');
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) async {
       _checkForMissedCheckInTimes();
-      checkForMissedCheckInTimesFromWatching();
+      _checkForMissedCheckInTimesFromWatching();
         // log('Raising notification');
         // await _showNotification();
     });
@@ -240,16 +240,17 @@ class UserProvider with ChangeNotifier {
     if (nextPendingCheckInTime != null) {
       if (nextPendingCheckInTime.time.hour < now.hour || (nextPendingCheckInTime.time.hour == now.hour && nextPendingCheckInTime.time.minute < now.minute)) {
         setCheckInStatus(nextPendingCheckInTime.time, 'missed');
-        // await _showNotification();
+        // await _showNotification('Missed Check-In', 'You have missed a check-in time at ${nextPendingCheckInTime.time.hour}:${nextPendingCheckInTime.time.minute}');
+        _showAlert('You missed a Check-In!');
       }
     }
   }
   
-  Future<void> _showNotification() async {
+  Future<void> _showNotification(title, description) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'missed_check_in_channel',
       'Missed Check-In',
-      channelDescription: 'Notification for missed check-in times',
+      channelDescription: 'Generic notification for missed check-in times',
       importance: Importance.max,
       priority: Priority.high,
       ticker: 'ticker',
@@ -265,22 +266,22 @@ class UserProvider with ChangeNotifier {
     );
     await flutterLocalNotificationsPlugin.show(
       0,
-      'Missed Check-In',
-      'You have missed a check-in time!',
+      title,
+      description,
       platformChannelSpecifics,
       payload: 'missed_check_in',
     );
   }
 
-  Future<void> _showAlert() async {
+  Future<void> _showAlert(String title) async {
     // Delay the execution to ensure the context is available
     if (navigatorKey.currentContext != null) {
         showDialog(
           context: navigatorKey.currentContext!,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: const Text('Missed Check-In'),
-              content: const Text('You have missed a check-in time!'),
+              title: Text(title),
+              content: const Text('Missed a check-in time!'),
               actions: <Widget>[
                 TextButton(
                   child: const Text('OK'),
@@ -335,7 +336,7 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  Future<void> checkForMissedCheckInTimesFromWatching() async {
+  Future<void> _checkForMissedCheckInTimesFromWatching() async {
     log('Checking for missed check-in times from watching');
     if (_user != null) {
       for (var watching in _user!.watching) {
@@ -352,7 +353,8 @@ class UserProvider with ChangeNotifier {
                   (checkInTime.time.hour < now.hour || (checkInTime.time.hour == now.hour && checkInTime.time.minute < now.minute))) {
                 // Missed check-in time found
                 log('User $watchingUid missed check-in time at ${checkInTime.time.hour}:${checkInTime.time.minute}');
-                // You can add additional actions here, like sending a notification
+                // await _showNotification('Missed Check-In', 'User $watchingUid missed a check-in time at ${checkInTime.time.hour}:${checkInTime.time.minute}');
+                _showAlert('User $watchingUid missed check-in time');
               }
             }
           }

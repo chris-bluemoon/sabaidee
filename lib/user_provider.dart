@@ -78,6 +78,42 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+void _scheduleMidnightReset() {
+  final now = DateTime.now();
+  final midnight = DateTime(now.year, now.month, now.day + 1);
+  final initialDelay = midnight.difference(now);
+
+  Timer(initialDelay, () {
+    _resetCheckInStatuses();
+    Timer.periodic(Duration(days: 1), (timer) {
+      _resetCheckInStatuses();
+    });
+  });
+}
+
+  void _resetCheckInStatuses() async {
+    if (_user != null) {
+      for (var checkInTime in _user!.checkInTimes) {
+          checkInTime.status = 'pending';
+      await _firestore.collection('users').doc(_user!.uid).update({
+        'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
+          'hour': checkInTime.time.hour,
+          'minute': checkInTime.time.minute,
+          'status': checkInTime.status,
+        }).toList(),
+      });
+      }
+            // Update Firestore
+      await _firestore.collection('users').doc(_user!.uid).update({
+        'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
+          'hour': checkInTime.time.hour,
+          'minute': checkInTime.time.minute,
+          'status': checkInTime.status,
+        }).toList(),
+      });
+      notifyListeners();
+    }
+  }
   void setCheckInStatus(TimeOfDay time, String status) async {
     if (_user != null) {
       for (var checkInTime in _user!.checkInTimes) {

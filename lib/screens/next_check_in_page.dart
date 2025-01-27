@@ -16,11 +16,17 @@ class NextCheckInPage extends StatelessWidget {
           builder: (context, userProvider, child) {
             final checkInTimes = userProvider.user?.checkInTimes.where((time) => time.status == 'pending').toList();
 
+            if (userProvider.user?.checkInTimes.isEmpty ?? true) {
+              return const Center(
+                child: Text('No Check In Times Set Up Yet'),
+              );
+            }
+
             if (checkInTimes == null || checkInTimes.isEmpty) {
               return const Center(
                 child: Text('No check-in times available'),
               );
-            }
+            } 
 
             // Find the next check-in time
             final now = TimeOfDay.now();

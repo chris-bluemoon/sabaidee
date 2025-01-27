@@ -16,6 +16,7 @@ class UserProvider with ChangeNotifier {
 
   UserProvider() {
     _startTimer();
+    _scheduleMidnightReset();
   }
 
   User? get user => _user;
@@ -84,6 +85,7 @@ void _scheduleMidnightReset() {
   final initialDelay = midnight.difference(now);
 
   Timer(initialDelay, () {
+    log('Checking for a midnight reset in $initialDelay');
     _resetCheckInStatuses();
     Timer.periodic(Duration(days: 1), (timer) {
       _resetCheckInStatuses();

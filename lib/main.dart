@@ -64,7 +64,7 @@ class AuthWrapper extends StatelessWidget {
       final userData = userDoc.data()!;
       final checkInTimes = (userData['checkInTimes'] as List).map((time) {
         return CheckInTime(
-          time: TimeOfDay(hour: time['hour'], minute: time['minute']),
+          dateTime: DateTime.parse(time['dateTime']),
           status: time['status'],
         );
       }).toList();

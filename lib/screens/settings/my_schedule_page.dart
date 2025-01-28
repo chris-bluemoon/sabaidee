@@ -29,12 +29,12 @@ class MySchedulePage extends StatelessWidget {
         itemBuilder: (context, index) {
           final checkInTime = scheduleTimes[index];
           return Dismissible(
-            key: Key(checkInTime.time.toString()),
+            key: Key(checkInTime.dateTime.toString()),
             direction: DismissDirection.endToStart,
             onDismissed: (direction) async {
-              await userProvider.deleteCheckInTime(checkInTime.time);
+              // await userProvider.deleteCheckInTime(checkInTime.time);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Deleted ${checkInTime.time.format(context)}')),
+                const SnackBar(content: Text('Deleted  --'))
               );
             },
             background: Container(
@@ -44,7 +44,7 @@ class MySchedulePage extends StatelessWidget {
               child: const Icon(Icons.delete, color: Colors.white),
             ),
             child: ListTile(
-              title: Text(checkInTime.time.format(context)),
+              title: Text(checkInTime.dateTime.toString()),  
             ),
           );
         },

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sabaidee/flip_clock.dart';
 import 'package:sabaidee/user_provider.dart';
 
 class NextCheckInPage extends StatelessWidget {
@@ -31,14 +30,14 @@ class NextCheckInPage extends StatelessWidget {
             // Find the next check-in time
             final now = TimeOfDay.now();
             final futureCheckInTimes = checkInTimes
-                .where((time) => time.time.hour > now.hour || (time.time.hour == now.hour && time.time.minute > now.minute))
+                .where((checkInTime) => checkInTime.dateTime.hour > now.hour || (checkInTime.dateTime.hour == now.hour && checkInTime.dateTime.minute > now.minute))
                 .toList();
 
-            TimeOfDay nextCheckInTime;
+            CheckInTime nextCheckInTime;
             if (futureCheckInTimes.isNotEmpty) {
-              nextCheckInTime = futureCheckInTimes.reduce((a, b) => a.time.hour < b.time.hour || (a.time.hour == b.time.hour && a.time.minute < b.time.minute) ? a : b).time;
+              nextCheckInTime = futureCheckInTimes.reduce((a, b) => a.dateTime.hour < b.dateTime.hour || (a.dateTime.hour == b.dateTime.hour && a.dateTime.minute < b.dateTime.minute) ? a : b);
             } else {
-              nextCheckInTime = checkInTimes.reduce((a, b) => a.time.hour < b.time.hour || (a.time.hour == b.time.hour && a.time.minute < b.time.minute) ? a : b).time;
+              nextCheckInTime = checkInTimes.reduce((a, b) => a.dateTime.hour < b.dateTime.hour || (a.dateTime.hour == b.dateTime.hour && a.dateTime.minute < b.dateTime.minute) ? a : b);
             }
 
             return Center(
@@ -70,16 +69,16 @@ class NextCheckInPage extends StatelessWidget {
                           style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 10),
-                        // Expanded(
-                        //   child: Center(
-                        //     child: Text(
-                        //       nextCheckInTime.format(context),
-                        //       style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                        //       textAlign: TextAlign.center,
-                        //     ),
-                        //   ),
-                        // ),
-                      FlipClock(time: nextCheckInTime),
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              '${nextCheckInTime.dateTime.hour.toString().padLeft(2, '0')}:${nextCheckInTime.dateTime.minute.toString().padLeft(2, '0')}',
+                              style: const TextStyle(fontSize: 52, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      // FlipClock(time: nextCheckInTime),
                       ],
                     ),
                   ),
@@ -108,7 +107,7 @@ class NextCheckInPage extends StatelessWidget {
                         },
                       );
                       // Set the status of the check-in time to "checked in"
-                      userProvider.setCheckInStatus(nextCheckInTime, 'checked in');
+                      userProvider.setCheckInStatus(TimeOfDay(hour: nextCheckInTime.dateTime.hour, minute: nextCheckInTime.dateTime.minute), 'checked in');
                     },
                     icon: const Icon(Icons.check_box_outlined),
                     label: const Text('CHECK IN'),

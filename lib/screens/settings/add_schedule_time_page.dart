@@ -37,7 +37,7 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
     final pendingCheckInTimes = userProvider.pendingCheckInTimes;
-    final pendingHours = pendingCheckInTimes.map((time) => time.time.hour).toSet();
+    final pendingHours = pendingCheckInTimes.map((checkInTime) => checkInTime.dateTime).toSet();
 
     return Scaffold(
       appBar: AppBar(

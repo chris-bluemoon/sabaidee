@@ -16,7 +16,6 @@ class UserProvider with ChangeNotifier {
 
   UserProvider() {
     _startTimer();
-    _scheduleMidnightReset();
   }
 
   User? get user => _user;
@@ -28,14 +27,14 @@ class UserProvider with ChangeNotifier {
 
   Future<void> addCheckInTime(TimeOfDay time) async {
     if (_user != null) {
-      final checkInTime = CheckInTime(time: time, status: 'pending');
+      final now = DateTime.now();
+      final checkInTime = CheckInTime(dateTime: DateTime(now.year, now.month, now.day, time.hour, time.minute), status: 'pending');
       _user!.checkInTimes.add(checkInTime);
 
       // Update Firestore
       await _firestore.collection('users').doc(_user!.uid).update({
         'checkInTimes': FieldValue.arrayUnion([{
-          'hour': time.hour,
-          'minute': time.minute,
+          'dateTime' : checkInTime.dateTime.toIso8601String(),
           'status': 'pending',
         }])
       });
@@ -79,28 +78,14 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-void _scheduleMidnightReset() {
-  final now = DateTime.now();
-  final midnight = DateTime(now.year, now.month, now.day + 1);
-  final initialDelay = midnight.difference(now);
-
-  Timer(initialDelay, () {
-    log('Checking for a midnight reset in $initialDelay');
-    _resetCheckInStatuses();
-    Timer.periodic(Duration(days: 1), (timer) {
-      _resetCheckInStatuses();
-    });
-  });
-}
-
   void _resetCheckInStatuses() async {
     if (_user != null) {
       for (var checkInTime in _user!.checkInTimes) {
           checkInTime.status = 'pending';
       await _firestore.collection('users').doc(_user!.uid).update({
         'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
-          'hour': checkInTime.time.hour,
-          'minute': checkInTime.time.minute,
+          'hour': checkInTime.dateTime.hour,
+          'minute': checkInTime.dateTime.minute,
           'status': checkInTime.status,
         }).toList(),
       });
@@ -108,8 +93,8 @@ void _scheduleMidnightReset() {
             // Update Firestore
       await _firestore.collection('users').doc(_user!.uid).update({
         'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
-          'hour': checkInTime.time.hour,
-          'minute': checkInTime.time.minute,
+          'hour': checkInTime.dateTime.hour,
+          'minute': checkInTime.dateTime.minute,
           'status': checkInTime.status,
         }).toList(),
       });
@@ -119,9 +104,9 @@ void _scheduleMidnightReset() {
   void setCheckInStatus(TimeOfDay time, String status) async {
     if (_user != null) {
       for (var checkInTime in _user!.checkInTimes) {
-        log(checkInTime.time.toString());
+        log(checkInTime.dateTime.toString());
         log(time.toString());
-        if (checkInTime.time == time) {
+        if (checkInTime.dateTime.hour == time.hour && checkInTime.dateTime.minute == time.minute) {
           checkInTime.status = status;
           break;
         }
@@ -129,8 +114,8 @@ void _scheduleMidnightReset() {
             // Update Firestore
       await _firestore.collection('users').doc(_user!.uid).update({
         'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
-          'hour': checkInTime.time.hour,
-          'minute': checkInTime.time.minute,
+          'hour': checkInTime.dateTime.hour,
+          'minute': checkInTime.dateTime.minute,
           'status': checkInTime.status,
         }).toList(),
       });
@@ -240,12 +225,13 @@ void _scheduleMidnightReset() {
     // Fetch user data from your database and set the _user object
     // This is a placeholder implementation
     DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
+    final now = DateTime.now();
     _user = User(
       uid: uid,
       email: userDoc['email'],
       name: userDoc['name'],
       phoneNumber: userDoc['phoneNumber'],
-      checkInTimes: (userDoc['checkInTimes'] as List).map((time) => CheckInTime(time: TimeOfDay(hour: time['hour'], minute: time['minute']), status: time['status'])).toList(),
+      checkInTimes: (userDoc['checkInTimes'] as List).map((time) => CheckInTime(dateTime: DateTime(now.year, now.month, now.day, time['hour'], time['minute']), status: time['status'])).toList(),
       relatives: List<Map<String, String>>.from(userDoc['relatives'] ?? []),
       watching: List<Map<String, String>>.from(userDoc['watching'] ?? []),
     );
@@ -263,7 +249,7 @@ void _scheduleMidnightReset() {
   
   Future<void> deleteCheckInTime(TimeOfDay time) async {
       if (_user != null) {
-        _user!.checkInTimes.removeWhere((checkInTime) => checkInTime.time == time);
+        _user!.checkInTimes.removeWhere((checkInTime) => checkInTime.dateTime.hour == time.hour && checkInTime.dateTime.minute == time.minute);
   
         // Update Firestore
         await _firestore.collection('users').doc(_user!.uid).update({
@@ -292,10 +278,10 @@ void _scheduleMidnightReset() {
     log('Checking for missed check-in times');
     final now = TimeOfDay.now();
     final nextPendingCheckInTime = this.nextPendingCheckInTime;
-    // log('Checking time - now: ${now.hour}:${now.minute}, nextPendingCheckInTime: ${nextPendingCheckInTime?.time.hour}:${nextPendingCheckInTime?.time.minute}');
+    log('Checking time - now: ${now.hour}:${now.minute}, nextPendingCheckInTime: ${nextPendingCheckInTime?.dateTime.hour}:${nextPendingCheckInTime?.dateTime.minute}');
     if (nextPendingCheckInTime != null) {
-      if (nextPendingCheckInTime.time.hour < now.hour || (nextPendingCheckInTime.time.hour == now.hour && nextPendingCheckInTime.time.minute < now.minute)) {
-        setCheckInStatus(nextPendingCheckInTime.time, 'missed');
+      if (nextPendingCheckInTime.dateTime.hour < now.hour || (nextPendingCheckInTime.dateTime.hour == now.hour && nextPendingCheckInTime.dateTime.minute < now.minute)) {
+        setCheckInStatus(TimeOfDay(hour: nextPendingCheckInTime.dateTime.hour, minute: nextPendingCheckInTime.dateTime.minute), 'missed');
         // await _showNotification('Missed Check-In', 'You have missed a check-in time at ${nextPendingCheckInTime.time.hour}:${nextPendingCheckInTime.time.minute}');
         _showAlert('You missed a Check-In!');
       }
@@ -360,13 +346,13 @@ void _scheduleMidnightReset() {
 
     final now = TimeOfDay.now();
     final futureCheckInTimes = pendingCheckInTimes
-        .where((time) => time.time.hour > now.hour || (time.time.hour == now.hour && time.time.minute > now.minute))
+        .where((time) => time.dateTime.hour > now.hour || (time.dateTime.hour == now.hour && time.dateTime.minute > now.minute))
         .toList();
 
     if (futureCheckInTimes.isNotEmpty) {
-      return futureCheckInTimes.reduce((a, b) => a.time.hour < b.time.hour || (a.time.hour == b.time.hour && a.time.minute < b.time.minute) ? a : b);
+      return futureCheckInTimes.reduce((a, b) => a.dateTime.hour < b.dateTime.hour || (a.dateTime.hour == b.dateTime.hour && a.dateTime.minute < b.dateTime.minute) ? a : b);
     } else {
-      return pendingCheckInTimes.reduce((a, b) => a.time.hour < b.time.hour || (a.time.hour == b.time.hour && a.time.minute < b.time.minute) ? a : b);
+      return pendingCheckInTimes.reduce((a, b) => a.dateTime.hour < b.dateTime.hour || (a.dateTime.hour == b.dateTime.hour && a.dateTime.minute < b.dateTime.minute) ? a : b);
     }
   }
 
@@ -409,9 +395,9 @@ void _scheduleMidnightReset() {
 
             for (var checkInTime in checkInTimes) {
               if (checkInTime.status == 'pending' &&
-                  (checkInTime.time.hour < now.hour || (checkInTime.time.hour == now.hour && checkInTime.time.minute < now.minute))) {
+                  (checkInTime.dateTime.hour < now.hour || (checkInTime.dateTime.hour == now.hour && checkInTime.dateTime.minute < now.minute))) {
                 // Missed check-in time found
-                log('User $watchingUid missed check-in time at ${checkInTime.time.hour}:${checkInTime.time.minute}');
+                log('User $watchingUid missed check-in time at ${checkInTime.dateTime.hour}:${checkInTime.dateTime.minute}');
                 // await _showNotification('Missed Check-In', 'User $watchingUid missed a check-in time at ${checkInTime.time.hour}:${checkInTime.time.minute}');
                 _showAlert('User $watchingUid missed check-in time');
               }
@@ -438,22 +424,21 @@ void _scheduleMidnightReset() {
 }
 
 class CheckInTime {
-  TimeOfDay time;
+  final DateTime dateTime;
   String status;
 
-  CheckInTime({required this.time, required this.status});
+  CheckInTime({required this.dateTime, required this.status});
 
   factory CheckInTime.fromMap(Map<String, dynamic> map) {
     return CheckInTime(
-      time: TimeOfDay(hour: map['hour'], minute: map['minute']),
+      dateTime: DateTime(map['year'], map['month'], map['day'], map['hour'], map['minute']),
       status: map['status'],
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'hour': time.hour,
-      'minute': time.minute,
+      'dateTime': dateTime.toIso8601String(),
       'status': status,
     };
   }

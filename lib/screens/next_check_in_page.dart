@@ -1,10 +1,39 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/user_provider.dart';
 
-class NextCheckInPage extends StatelessWidget {
+class NextCheckInPage extends StatefulWidget {
   const NextCheckInPage({super.key});
 
+  @override
+  State<NextCheckInPage> createState() => _NextCheckInPageState();
+}
+
+class _NextCheckInPageState extends State<NextCheckInPage> {
+  Timer? _countdownTimer;
+  Duration _countdownDuration = const Duration(minutes: 15);
+
+  @override
+  void dispose() {
+    _countdownTimer?.cancel();
+    super.dispose();
+  }
+
+    void _startCountdown() {
+    _countdownTimer?.cancel();
+    _countdownDuration = const Duration(minutes: 15);
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_countdownDuration.inSeconds > 0) {
+          _countdownDuration -= const Duration(seconds: 1);
+        } else {
+          timer.cancel();
+        }
+      });
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -13,33 +42,51 @@ class NextCheckInPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Consumer<UserProvider>(
           builder: (context, userProvider, child) {
-            final checkInTimes = userProvider.user?.checkInTimes.where((time) => time.status == 'pending').toList();
+                      final checkInTimes = userProvider.user?.checkInTimes.where((time) => (time.status == 'pending' || time.status == 'missed')).toList();
 
-            if (userProvider.user?.checkInTimes.isEmpty ?? true) {
-              return const Center(
-                child: Text('No Check In Times Set Up Yet'),
-              );
-            }
+          if (userProvider.user?.checkInTimes.isEmpty ?? true) {
+            return const Center(
+              child: Text('No Check In Times Set Up Yet'),
+            );
+          }
 
-            if (checkInTimes == null || checkInTimes.isEmpty) {
-              return const Center(
-                child: Text('No check-in times available'),
-              );
-            } 
+          if (checkInTimes == null || checkInTimes.isEmpty) {
+            return const Center(
+              child: Text('No check-in times available'),
+            );
+          }
 
-            // Find the next check-in time
-            final now = TimeOfDay.now();
-            final futureCheckInTimes = checkInTimes
-                .where((checkInTime) => checkInTime.dateTime.hour > now.hour || (checkInTime.dateTime.hour == now.hour && checkInTime.dateTime.minute > now.minute))
-                .toList();
+          // Find the next check-in time
+          final now = DateTime.now();
+          final futureCheckInTimes = checkInTimes
+              .where((checkInTime) => checkInTime.dateTime.isAfter(now))
+              .toList();
 
-            CheckInTime nextCheckInTime;
-            if (futureCheckInTimes.isNotEmpty) {
-              nextCheckInTime = futureCheckInTimes.reduce((a, b) => a.dateTime.hour < b.dateTime.hour || (a.dateTime.hour == b.dateTime.hour && a.dateTime.minute < b.dateTime.minute) ? a : b);
-            } else {
-              nextCheckInTime = checkInTimes.reduce((a, b) => a.dateTime.hour < b.dateTime.hour || (a.dateTime.hour == b.dateTime.hour && a.dateTime.minute < b.dateTime.minute) ? a : b);
-            }
+          CheckInTime? nextCheckInTime;
+          if (futureCheckInTimes.isNotEmpty) {
+            nextCheckInTime = futureCheckInTimes.reduce((a, b) => a.dateTime.isBefore(b.dateTime) ? a : b);
+          }
 
+          // Check if there is a missed check-in time
+          final missedCheckInTimes = checkInTimes
+              .where((checkInTime) => checkInTime.dateTime.isBefore(now))
+              .toList();
+
+          if (missedCheckInTimes.isNotEmpty) {
+            _startCountdown();
+            return Center(
+              child: Text(
+                'Missed Check-In! Countdown: ${_countdownDuration.inMinutes}:${(_countdownDuration.inSeconds % 60).toString().padLeft(2, '0')}',
+                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              ),
+            );
+          }
+
+          if (nextCheckInTime == null) {
+            return const Center(
+              child: Text('No upcoming check-in times'),
+            );
+          }
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -107,7 +154,9 @@ class NextCheckInPage extends StatelessWidget {
                         },
                       );
                       // Set the status of the check-in time to "checked in"
-                      userProvider.setCheckInStatus(TimeOfDay(hour: nextCheckInTime.dateTime.hour, minute: nextCheckInTime.dateTime.minute), 'checked in');
+                      if (nextCheckInTime != null) {
+                        userProvider.setCheckInStatus(TimeOfDay(hour: nextCheckInTime.dateTime.hour, minute: nextCheckInTime.dateTime.minute), 'checked in');
+                      }
                     },
                     icon: const Icon(Icons.check_box_outlined),
                     label: const Text('CHECK IN'),

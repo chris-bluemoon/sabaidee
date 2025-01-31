@@ -25,17 +25,23 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  
   Future<void> addCheckInTime(TimeOfDay time) async {
     if (_user != null) {
       final now = DateTime.now();
-      final checkInTime = CheckInTime(dateTime: DateTime(now.year, now.month, now.day, time.hour, time.minute), status: 'pending');
+      final checkInTime = CheckInTime(
+        dateTime: DateTime(now.year, now.month, now.day, time.hour, time.minute),
+        status: 'pending',
+        duration: const Duration(minutes: 5), // Set default duration to 5 minutes
+      );
       _user!.checkInTimes.add(checkInTime);
 
       // Update Firestore
       await _firestore.collection('users').doc(_user!.uid).update({
         'checkInTimes': FieldValue.arrayUnion([{
-          'dateTime' : checkInTime.dateTime.toIso8601String(),
+          'dateTime': checkInTime.dateTime.toIso8601String(),
           'status': 'pending',
+          'duration': checkInTime.duration.inSeconds, // Store duration in seconds
         }])
       });
 
@@ -231,7 +237,7 @@ class UserProvider with ChangeNotifier {
       email: userDoc['email'],
       name: userDoc['name'],
       phoneNumber: userDoc['phoneNumber'],
-      checkInTimes: (userDoc['checkInTimes'] as List).map((time) => CheckInTime(dateTime: DateTime(now.year, now.month, now.day, time['hour'], time['minute']), status: time['status'])).toList(),
+      checkInTimes: (userDoc['checkInTimes'] as List).map((time) => CheckInTime(dateTime: DateTime(now.year, now.month, now.day, time['hour'], time['minute']), status: time['status'], duration: Duration(minutes: time['duration']))).toList(),
       relatives: List<Map<String, String>>.from(userDoc['relatives'] ?? []),
       watching: List<Map<String, String>>.from(userDoc['watching'] ?? []),
     );
@@ -426,13 +432,15 @@ class UserProvider with ChangeNotifier {
 class CheckInTime {
   final DateTime dateTime;
   String status;
+  final Duration duration; // Add duration field
 
-  CheckInTime({required this.dateTime, required this.status});
+  CheckInTime({required this.dateTime, required this.status, required this.duration});
 
   factory CheckInTime.fromMap(Map<String, dynamic> map) {
     return CheckInTime(
-      dateTime: DateTime(map['year'], map['month'], map['day'], map['hour'], map['minute']),
+      dateTime: DateTime.parse(map['dateTime']),
       status: map['status'],
+      duration: Duration(minutes: map['duration']), // Parse duration from minutes
     );
   }
 
@@ -440,17 +448,17 @@ class CheckInTime {
     return {
       'dateTime': dateTime.toIso8601String(),
       'status': status,
+      'duration': duration.inMinutes, // Store duration in minutes
     };
   }
 }
-
 class User {
   final String uid;
   final String email;
   final String name;
   final String phoneNumber;
   final List<CheckInTime> checkInTimes;
-  final List<Map<String, String>> relatives; // Update to List<Map<String, String>>
+  final List<Map<String, String>> relatives;
   final List<Map<String, String>> watching;
 
   User({
@@ -470,18 +478,20 @@ class User {
       email: data['email'],
       name: data['name'],
       phoneNumber: data['phoneNumber'],
-      checkInTimes: (data['checkInTimes'] as List<dynamic>).map((e) => CheckInTime.fromMap(e)).toList(),
-      relatives: List<Map<String, String>>.from(data['relatives'] ?? []),
-      watching: List<Map<String, String>>.from(data['watching'] ?? []),
+      checkInTimes: (data['checkInTimes'] as List)
+          .map((item) => CheckInTime.fromMap(item as Map<String, dynamic>))
+          .toList(),
+      relatives: List<Map<String, String>>.from(data['relatives']),
+      watching: List<Map<String, String>>.from(data['watching']),
     );
   }
 
-  Map<String, dynamic> toFirestore() {
+  Map<String, dynamic> toMap() {
     return {
       'email': email,
       'name': name,
       'phoneNumber': phoneNumber,
-      'checkInTimes': checkInTimes.map((e) => e.toMap()).toList(),
+      'checkInTimes': checkInTimes.map((checkInTime) => checkInTime.toMap()).toList(),
       'relatives': relatives,
       'watching': watching,
     };

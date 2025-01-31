@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/user_provider.dart';
@@ -10,7 +12,27 @@ class NextCheckInPage extends StatefulWidget {
 }
 
 class _NextCheckInPageState extends State<NextCheckInPage> {
+    Timer? _countdownTimer;
+  Duration _countdownDuration = const Duration(minutes: 15);
+  @override
+  void dispose() {
+    _countdownTimer?.cancel();
+    super.dispose();
+  }
 
+  void _startCountdown(Duration duration) {
+    _countdownTimer?.cancel();
+    _countdownDuration = duration;
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_countdownDuration.inSeconds > 0) {
+          _countdownDuration -= const Duration(seconds: 1);
+        } else {
+          timer.cancel();
+        }
+      });
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,10 +73,12 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
 
           if (missedCheckInTimes.isNotEmpty) {
             Provider.of<UserProvider>(context, listen: false).setCheckInStatus(TimeOfDay(hour: missedCheckInTimes.first.dateTime.hour, minute: missedCheckInTimes.first.dateTime.minute), 'missed');
-            return const Center(
+              _startCountdown(missedCheckInTimes.first.duration);
+
+            return Center(
               child: Text(
-                'Missed Check-In!',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                'Missed Check-In! Countdown: ${_countdownDuration.inMinutes}:${(_countdownDuration.inSeconds % 60).toString().padLeft(2, '0')}',
+                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
             );
           }

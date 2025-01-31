@@ -66,6 +66,7 @@ class AuthWrapper extends StatelessWidget {
         return CheckInTime(
           dateTime: DateTime.parse(time['dateTime']),
           status: time['status'],
+          duration: Duration(seconds: time['duration']),
         );
       }).toList();
 

@@ -41,7 +41,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
         padding: const EdgeInsets.all(16.0),
         child: Consumer<UserProvider>(
           builder: (context, userProvider, child) {
-                      final checkInTimes = userProvider.user?.checkInTimes.where((time) => (time.status == 'pending' || time.status == 'missed')).toList();
+                      final checkInTimes = userProvider.user?.checkInTimes.where((time) => (time.status == 'pending')).toList();
 
           if (userProvider.user?.checkInTimes.isEmpty ?? true) {
             return const Center(
@@ -64,23 +64,6 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
           CheckInTime? nextCheckInTime;
           if (futureCheckInTimes.isNotEmpty) {
             nextCheckInTime = futureCheckInTimes.reduce((a, b) => a.dateTime.isBefore(b.dateTime) ? a : b);
-          }
-
-          // Check if there is a missed check-in time
-          final missedCheckInTimes = checkInTimes
-              .where((checkInTime) => checkInTime.dateTime.isBefore(now))
-              .toList();
-
-          if (missedCheckInTimes.isNotEmpty) {
-            Provider.of<UserProvider>(context, listen: false).setCheckInStatus(TimeOfDay(hour: missedCheckInTimes.first.dateTime.hour, minute: missedCheckInTimes.first.dateTime.minute), 'missed');
-              _startCountdown(missedCheckInTimes.first.duration);
-
-            return Center(
-              child: Text(
-                'Missed Check-In! Countdown: ${_countdownDuration.inMinutes}:${(_countdownDuration.inSeconds % 60).toString().padLeft(2, '0')}',
-                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              ),
-            );
           }
 
           if (nextCheckInTime == null) {

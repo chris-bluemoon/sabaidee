@@ -110,8 +110,8 @@ class UserProvider with ChangeNotifier {
   void setCheckInStatus(TimeOfDay time, String status) async {
     if (_user != null) {
       for (var checkInTime in _user!.checkInTimes) {
-        log(checkInTime.dateTime.toString());
-        log(time.toString());
+        log('Setting status to $status for user stored checkInTime: ${checkInTime.dateTime.toString()}');
+        log('With time supplied by next_check_page: ${time.toString()}');
         if (checkInTime.dateTime.hour == time.hour && checkInTime.dateTime.minute == time.minute) {
           checkInTime.status = status;
           break;
@@ -120,8 +120,6 @@ class UserProvider with ChangeNotifier {
             // Update Firestore
       await _firestore.collection('users').doc(_user!.uid).update({
         'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
-          'hour': checkInTime.dateTime.hour,
-          'minute': checkInTime.dateTime.minute,
           'status': checkInTime.status,
         }).toList(),
       });
@@ -273,7 +271,7 @@ class UserProvider with ChangeNotifier {
   void _startTimer() async {
     log('Starting timer');
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) async {
-      _checkForMissedCheckInTimes();
+      // _checkForMissedCheckInTimes();
       _checkForMissedCheckInTimesFromWatching();
         // log('Raising notification');
         // await _showNotification();

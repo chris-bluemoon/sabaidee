@@ -9,10 +9,10 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sabaidee/main.dart';
 
 class UserProvider with ChangeNotifier {
+  Timer? _timer;
   User? _user;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  Timer? _timer;
 
   UserProvider() {
     _startTimer();
@@ -41,7 +41,7 @@ class UserProvider with ChangeNotifier {
         'checkInTimes': FieldValue.arrayUnion([{
           'dateTime': checkInTime.dateTime.toIso8601String(),
           'status': 'pending',
-          'duration': checkInTime.duration.inSeconds, // Store duration in seconds
+          'duration': checkInTime.duration.inMinutes, // Store duration in seconds
         }])
       });
 
@@ -84,29 +84,29 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  void _resetCheckInStatuses() async {
-    if (_user != null) {
-      for (var checkInTime in _user!.checkInTimes) {
-          checkInTime.status = 'pending';
-      await _firestore.collection('users').doc(_user!.uid).update({
-        'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
-          'hour': checkInTime.dateTime.hour,
-          'minute': checkInTime.dateTime.minute,
-          'status': checkInTime.status,
-        }).toList(),
-      });
-      }
-            // Update Firestore
-      await _firestore.collection('users').doc(_user!.uid).update({
-        'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
-          'hour': checkInTime.dateTime.hour,
-          'minute': checkInTime.dateTime.minute,
-          'status': checkInTime.status,
-        }).toList(),
-      });
-      notifyListeners();
-    }
-  }
+  // void _resetCheckInStatuses() async {
+  //   if (_user != null) {
+  //     for (var checkInTime in _user!.checkInTimes) {
+  //         checkInTime.status = 'pending';
+  //     await _firestore.collection('users').doc(_user!.uid).update({
+  //       'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
+  //         'hour': checkInTime.dateTime.hour,
+  //         'minute': checkInTime.dateTime.minute,
+  //         'status': checkInTime.status,
+  //       }).toList(),
+  //     });
+  //     }
+  //           // Update Firestore
+  //     await _firestore.collection('users').doc(_user!.uid).update({
+  //       'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
+  //         'hour': checkInTime.dateTime.hour,
+  //         'minute': checkInTime.dateTime.minute,
+  //         'status': checkInTime.status,
+  //       }).toList(),
+  //     });
+  //     notifyListeners();
+  //   }
+  // }
   void setCheckInStatus(TimeOfDay time, String status) async {
     if (_user != null) {
       for (var checkInTime in _user!.checkInTimes) {
@@ -117,12 +117,15 @@ class UserProvider with ChangeNotifier {
           break;
         }
       }
-            // Update Firestore
-      await _firestore.collection('users').doc(_user!.uid).update({
-        'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
-          'status': checkInTime.status,
-        }).toList(),
-      });
+      
+          // Update Firestore
+    await _firestore.collection('users').doc(_user!.uid).update({
+      'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
+        'dateTime': checkInTime.dateTime.toIso8601String(),
+        'status': checkInTime.status,
+        'duration': checkInTime.duration.inMinutes,
+      }).toList(),
+    });
       notifyListeners();
     }
   }
@@ -228,6 +231,7 @@ class UserProvider with ChangeNotifier {
   Future<void> _fetchUserData(String uid) async {
     // Fetch user data from your database and set the _user object
     // This is a placeholder implementation
+    log('Fetching user data for uid: $uid');
     DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
     final now = DateTime.now();
     _user = User(
@@ -239,7 +243,7 @@ class UserProvider with ChangeNotifier {
       relatives: List<Map<String, String>>.from(userDoc['relatives'] ?? []),
       watching: List<Map<String, String>>.from(userDoc['watching'] ?? []),
     );
-    _startTimer();
+    // _startTimer();
     notifyListeners();
   }
 
@@ -271,21 +275,19 @@ class UserProvider with ChangeNotifier {
   void _startTimer() async {
     log('Starting timer');
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) async {
-      // _checkForMissedCheckInTimes();
-      _checkForMissedCheckInTimesFromWatching();
-        // log('Raising notification');
-        // await _showNotification();
+      _checkForOpenCheckIn();
+      // _checkForMissedCheckInTimesFromWatching();
     });
   }
 
-  Future<void> _checkForMissedCheckInTimes() async {
-    log('Checking for missed check-in times');
+  Future<void> _checkForOpenCheckIn() async {
+    log('Checking for open check-in period');
     final now = TimeOfDay.now();
     final nextPendingCheckInTime = this.nextPendingCheckInTime;
     log('Checking time - now: ${now.hour}:${now.minute}, nextPendingCheckInTime: ${nextPendingCheckInTime?.dateTime.hour}:${nextPendingCheckInTime?.dateTime.minute}');
     if (nextPendingCheckInTime != null) {
       if (nextPendingCheckInTime.dateTime.hour < now.hour || (nextPendingCheckInTime.dateTime.hour == now.hour && nextPendingCheckInTime.dateTime.minute < now.minute)) {
-        setCheckInStatus(TimeOfDay(hour: nextPendingCheckInTime.dateTime.hour, minute: nextPendingCheckInTime.dateTime.minute), 'missed');
+        setCheckInStatus(TimeOfDay(hour: nextPendingCheckInTime.dateTime.hour, minute: nextPendingCheckInTime.dateTime.minute), 'open');
         // await _showNotification('Missed Check-In', 'You have missed a check-in time at ${nextPendingCheckInTime.time.hour}:${nextPendingCheckInTime.time.minute}');
         _showAlert('You missed a Check-In!');
       }
@@ -354,8 +356,10 @@ class UserProvider with ChangeNotifier {
         .toList();
 
     if (futureCheckInTimes.isNotEmpty) {
+      log('Future check-in times: ${futureCheckInTimes.map((time) => '${time.dateTime.hour}:${time.dateTime.minute}').toList()}');
       return futureCheckInTimes.reduce((a, b) => a.dateTime.hour < b.dateTime.hour || (a.dateTime.hour == b.dateTime.hour && a.dateTime.minute < b.dateTime.minute) ? a : b);
     } else {
+      log('Future check-in times: ${futureCheckInTimes.map((time) => '${time.dateTime.hour}:${time.dateTime.minute}').toList()}');
       return pendingCheckInTimes.reduce((a, b) => a.dateTime.hour < b.dateTime.hour || (a.dateTime.hour == b.dateTime.hour && a.dateTime.minute < b.dateTime.minute) ? a : b);
     }
   }

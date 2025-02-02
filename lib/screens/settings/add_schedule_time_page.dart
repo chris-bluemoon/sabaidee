@@ -24,15 +24,15 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
     });
   }
 
-  Future<void> _submitSchedule() async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    for (int hour in _selectedHours) {
-      final time = TimeOfDay(hour: hour, minute: 0);
-      await userProvider.addCheckInTime(time);
-    }
-    print('Schedule times added: $_selectedHours');
+Future<void> _submitSchedule() async {
+  final userProvider = Provider.of<UserProvider>(context, listen: false);
+  final now = DateTime.now();
+  for (int hour in _selectedHours) {
+    final dateTime = DateTime(now.year, now.month, now.day, hour, 0);
+    await userProvider.addCheckInTime(dateTime);
   }
-
+  print('Schedule times added: $_selectedHours');
+}
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);

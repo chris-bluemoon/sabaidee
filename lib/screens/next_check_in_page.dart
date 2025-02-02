@@ -139,7 +139,10 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                       );
                       // Set the status of the check-in time to "checked in"
                       if (nextCheckInTime != null) {
-                        userProvider.setCheckInStatus(TimeOfDay(hour: nextCheckInTime.dateTime.hour, minute: nextCheckInTime.dateTime.minute), 'checked in');
+                        userProvider.setCheckInStatus(nextCheckInTime.dateTime, 'checked in');
+                          // Calculate the new check-in time 24 hours in the future
+                        DateTime newCheckInTime = nextCheckInTime.dateTime.add(Duration(hours: 24));
+                        userProvider.addCheckInTime(newCheckInTime);
                       }
                     },
                     icon: const Icon(Icons.check_box_outlined),

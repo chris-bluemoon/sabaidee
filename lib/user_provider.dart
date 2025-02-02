@@ -26,11 +26,10 @@ class UserProvider with ChangeNotifier {
   }
 
   
-  Future<void> addCheckInTime(TimeOfDay time) async {
+  Future<void> addCheckInTime(DateTime dateTime) async {
     if (_user != null) {
-      final now = DateTime.now();
       final checkInTime = CheckInTime(
-        dateTime: DateTime(now.year, now.month, now.day, time.hour, time.minute),
+        dateTime: dateTime,
         status: 'pending',
         duration: const Duration(minutes: 5), // Set default duration to 5 minutes
       );
@@ -48,7 +47,6 @@ class UserProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-
   Future<void> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -107,25 +105,27 @@ class UserProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-  void setCheckInStatus(TimeOfDay time, String status) async {
-    if (_user != null) {
-      for (var checkInTime in _user!.checkInTimes) {
-        log('Setting status to $status for user stored checkInTime: ${checkInTime.dateTime.toString()}');
-        log('With time supplied by next_check_page: ${time.toString()}');
-        if (checkInTime.dateTime.hour == time.hour && checkInTime.dateTime.minute == time.minute) {
-          checkInTime.status = status;
-          break;
-        }
+void setCheckInStatus(DateTime dateTime, String status) async {
+  if (_user != null) {
+    for (var checkInTime in _user!.checkInTimes) {
+      log('Setting status to $status for user stored checkInTime: ${checkInTime.dateTime.toString()}');
+      log('With time supplied by next_check_page: ${dateTime.toString()}');
+      if (checkInTime.dateTime == dateTime) {
+        checkInTime.status = status;
+        break;
       }
-            // Update Firestore
-      await _firestore.collection('users').doc(_user!.uid).update({
-        'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
-          'status': checkInTime.status,
-        }).toList(),
-      });
-      notifyListeners();
     }
+    // Update Firestore
+    await _firestore.collection('users').doc(_user!.uid).update({
+      'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
+        'dateTime': checkInTime.dateTime.toIso8601String(),
+        'status': checkInTime.status,
+        'duration': checkInTime.duration.inSeconds, // Ensure duration is included
+      }).toList(),
+    });
+    notifyListeners();
   }
+}
 
   Future<void> signUp(String email, String password, String name, String phoneNumber) async {
     try {
@@ -271,8 +271,8 @@ class UserProvider with ChangeNotifier {
   void _startTimer() async {
     log('Starting timer');
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) async {
-      // _checkForMissedCheckInTimes();
-      _checkForMissedCheckInTimesFromWatching();
+        _checkForMissedCheckInTimes();
+        // _checkForMissedCheckInTimesFromWatching();
         // log('Raising notification');
         // await _showNotification();
     });
@@ -285,7 +285,7 @@ class UserProvider with ChangeNotifier {
     log('Checking time - now: ${now.hour}:${now.minute}, nextPendingCheckInTime: ${nextPendingCheckInTime?.dateTime.hour}:${nextPendingCheckInTime?.dateTime.minute}');
     if (nextPendingCheckInTime != null) {
       if (nextPendingCheckInTime.dateTime.hour < now.hour || (nextPendingCheckInTime.dateTime.hour == now.hour && nextPendingCheckInTime.dateTime.minute < now.minute)) {
-        setCheckInStatus(TimeOfDay(hour: nextPendingCheckInTime.dateTime.hour, minute: nextPendingCheckInTime.dateTime.minute), 'missed');
+        setCheckInStatus(nextPendingCheckInTime.dateTime, 'missed');
         // await _showNotification('Missed Check-In', 'You have missed a check-in time at ${nextPendingCheckInTime.time.hour}:${nextPendingCheckInTime.time.minute}');
         _showAlert('You missed a Check-In!');
       }
@@ -354,8 +354,10 @@ class UserProvider with ChangeNotifier {
         .toList();
 
     if (futureCheckInTimes.isNotEmpty) {
+      log('Returning future check-in time');
       return futureCheckInTimes.reduce((a, b) => a.dateTime.hour < b.dateTime.hour || (a.dateTime.hour == b.dateTime.hour && a.dateTime.minute < b.dateTime.minute) ? a : b);
     } else {
+      log('Returning pending check-in time');
       return pendingCheckInTimes.reduce((a, b) => a.dateTime.hour < b.dateTime.hour || (a.dateTime.hour == b.dateTime.hour && a.dateTime.minute < b.dateTime.minute) ? a : b);
     }
   }

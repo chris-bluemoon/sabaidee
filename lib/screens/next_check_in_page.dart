@@ -41,7 +41,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
         padding: const EdgeInsets.all(16.0),
         child: Consumer<UserProvider>(
           builder: (context, userProvider, child) {
-                      final checkInTimes = userProvider.user?.checkInTimes.where((time) => (time.status == 'pending')).toList();
+                      final checkInTimes = userProvider.user?.checkInTimes.where((time) => (time.status == 'open')).toList();
 
           if (userProvider.user?.checkInTimes.isEmpty ?? true) {
             return const Center(

@@ -271,26 +271,49 @@ void setCheckInStatus(DateTime dateTime, String status) async {
   void _startTimer() async {
     log('Starting timer');
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) async {
-        _checkForMissedCheckInTimes();
+        _checkForOpenCheckInTimes();
+        _checkForClosedCheckInTimes();
+
+        // _checkForMissedCheckInTimes();
         // _checkForMissedCheckInTimesFromWatching();
         // log('Raising notification');
         // await _showNotification();
     });
   }
-
-  Future<void> _checkForMissedCheckInTimes() async {
-    log('Checking for missed check-in times');
-    final now = TimeOfDay.now();
-    final nextPendingCheckInTime = this.nextPendingCheckInTime;
-    log('Checking time - now: ${now.hour}:${now.minute}, nextPendingCheckInTime: ${nextPendingCheckInTime?.dateTime.hour}:${nextPendingCheckInTime?.dateTime.minute}');
-    if (nextPendingCheckInTime != null) {
-      if (nextPendingCheckInTime.dateTime.hour < now.hour || (nextPendingCheckInTime.dateTime.hour == now.hour && nextPendingCheckInTime.dateTime.minute < now.minute)) {
-        setCheckInStatus(nextPendingCheckInTime.dateTime, 'missed');
-        // await _showNotification('Missed Check-In', 'You have missed a check-in time at ${nextPendingCheckInTime.time.hour}:${nextPendingCheckInTime.time.minute}');
-        _showAlert('You missed a Check-In!');
+void _checkForOpenCheckInTimes() async {
+  if (_user != null) {
+    final now = DateTime.now();
+    for (var checkInTime in _user!.checkInTimes) {
+      if (checkInTime.dateTime.isBefore(now) && checkInTime.status != 'open' && checkInTime.status != 'checked in') {
+        setCheckInStatus(checkInTime.dateTime, 'open');
       }
     }
   }
+}
+void _checkForClosedCheckInTimes() async {
+  if (_user != null) {
+    final now = DateTime.now();
+    for (var checkInTime in _user!.checkInTimes) {
+      if (checkInTime.status == 'open' && now.isAfter(checkInTime.dateTime.add(Duration(minutes: 15)))) {
+        setCheckInStatus(checkInTime.dateTime, 'closed');
+      }
+    }
+  }
+}
+
+  // Future<void> _checkForMissedCheckInTimes() async {
+  //   log('Checking for missed check-in times');
+  //   final now = TimeOfDay.now();
+  //   final nextPendingCheckInTime = this.nextPendingCheckInTime;
+  //   log('Checking time - now: ${now.hour}:${now.minute}, nextPendingCheckInTime: ${nextPendingCheckInTime?.dateTime.hour}:${nextPendingCheckInTime?.dateTime.minute}');
+  //   if (nextPendingCheckInTime != null) {
+  //     if (nextPendingCheckInTime.dateTime.hour < now.hour || (nextPendingCheckInTime.dateTime.hour == now.hour && nextPendingCheckInTime.dateTime.minute < now.minute)) {
+  //       setCheckInStatus(nextPendingCheckInTime.dateTime, 'missed');
+  //       // await _showNotification('Missed Check-In', 'You have missed a check-in time at ${nextPendingCheckInTime.time.hour}:${nextPendingCheckInTime.time.minute}');
+  //       _showAlert('You missed a Check-In!');
+  //     }
+  //   }
+  // }
   
   Future<void> _showNotification(title, description) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(

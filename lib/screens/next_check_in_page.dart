@@ -42,43 +42,35 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
         padding: const EdgeInsets.all(16.0),
         child: Consumer<UserProvider>(
           builder: (context, userProvider, child) {
-                      final checkInTimes = userProvider.user?.checkInTimes.where((time) => (time.status == 'pending')).toList();
-          // log('Building with checkInTimes: ${checkInTimes?.first.dateTime}');
+            final checkInTimes = userProvider.user?.checkInTimes.where((time) => (time.status == 'pending' || time.status == 'open')).toList();
           if (userProvider.user?.checkInTimes.isEmpty ?? true) {
             return const Center(
               child: Text('No Check In Times Set Up Yet'),
             );
           }
 
-          if (checkInTimes == null || checkInTimes.isEmpty) {
-            return const Center(
-              child: Text('No check-in times available'),
-            );
-          }
+          // if (checkInTimes == null || checkInTimes.isEmpty) {
+          //     log('No pending check-in times available');
+          // }
 
           // Find the next check-in time
           final now = DateTime.now();
-          final futureCheckInTimes = checkInTimes
-              .where((checkInTime) => checkInTime.dateTime.isAfter(now))
-              .toList();
+          final futureCheckInTimes = checkInTimes?.where((checkInTime) => checkInTime.dateTime.isAfter(now.subtract(const Duration(minutes: 15)))).toList() ?? [];
 
-          CheckInTime? nextCheckInTime;
+          CheckInTime? nextOrOpenCheckInTime;
           if (futureCheckInTimes.isNotEmpty) {
-            nextCheckInTime = futureCheckInTimes.reduce((a, b) => a.dateTime.isBefore(b.dateTime) ? a : b);
+            nextOrOpenCheckInTime = futureCheckInTimes.reduce((a, b) => a.dateTime.isBefore(b.dateTime) ? a : b);
           }
 
-          if (nextCheckInTime == null) {
-            return const Center(
-              child: Text('No upcoming check-in times'),
-            );
+          if (nextOrOpenCheckInTime == null) {
+              log('No upcoming check-in times');
           }
-            if (nextCheckInTime.status == 'open') {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   const SizedBox(height: 150),
-                  Container(
+                  nextOrOpenCheckInTime != null && nextOrOpenCheckInTime.status == 'open' ? Container(
                     width: MediaQuery.of(context).size.width * 0.9, // 90% of the screen width
                     height: MediaQuery.of(context).size.height * 0.4, // 30% of the screen height
                     padding: const EdgeInsets.all(16.0),
@@ -105,7 +97,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                         Expanded(
                           child: Center(
                             child: Text(
-                              '${nextCheckInTime.dateTime.hour.toString().padLeft(2, '0')}:${nextCheckInTime.dateTime.minute.toString().padLeft(2, '0')}',
+                              '${nextOrOpenCheckInTime.dateTime.hour.toString().padLeft(2, '0')}:${nextOrOpenCheckInTime.dateTime.minute.toString().padLeft(2, '0')}',
                               style: const TextStyle(fontSize: 52, fontWeight: FontWeight.bold),
                               textAlign: TextAlign.center,
                             ),
@@ -135,10 +127,10 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                         },
                       );
                       // Set the status of the check-in time to "checked in"
-                      if (nextCheckInTime != null) {
-                        userProvider.setCheckInStatus(nextCheckInTime.dateTime, 'checked in');
+                      if (nextOrOpenCheckInTime != null) {
+                        userProvider.setCheckInStatus(nextOrOpenCheckInTime.dateTime, 'checked in');
                           // Calculate the new check-in time 24 hours in the future
-                        DateTime newCheckInTime = nextCheckInTime.dateTime.add(Duration(hours: 24));
+                        DateTime newCheckInTime = nextOrOpenCheckInTime.dateTime.add(const Duration(hours: 24));
                         userProvider.addCheckInTime(newCheckInTime);
                       }
                     },
@@ -156,7 +148,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                       // FlipClock(time: nextCheckInTime),
                       ],
                     ),
-                  ),
+                  ) : Text('Next check-in time is ${nextOrOpenCheckInTime?.dateTime}'),
                   const SizedBox(height: 60),
        
                   const SizedBox(height: 20),
@@ -178,9 +170,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                   ),
                 ],
               ),
-            );} else {
-              log('Check in time is not open yet');
-              return Center(child: Text('Check in time is not open yet'));}
+            );
           },
         ),
       ),

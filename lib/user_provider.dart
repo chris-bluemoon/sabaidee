@@ -283,19 +283,31 @@ void setCheckInStatus(DateTime dateTime, String status) async {
 void _checkForOpenCheckInTimes() async {
   if (_user != null) {
     final now = DateTime.now();
-    for (var checkInTime in _user!.checkInTimes) {
-      if (checkInTime.dateTime.isBefore(now) && checkInTime.status != 'open' && checkInTime.status != 'checked in') {
+    // Create a copy of the list to avoid concurrent modification
+    final checkInTimesCopy = List.from(_user!.checkInTimes);
+    for (var checkInTime in checkInTimesCopy) {
+      log('Checking user stored checkInTime: ${checkInTime.dateTime.toString()}');
+      if (checkInTime.dateTime.isBefore(now) && checkInTime.status == 'pending') {
+        log('Setting status to open for user stored checkInTime: ${checkInTime.dateTime.toString()}');
         setCheckInStatus(checkInTime.dateTime, 'open');
+        notifyListeners(); // Notify listeners about the change
       }
     }
   }
 }
+
 void _checkForClosedCheckInTimes() async {
   if (_user != null) {
     final now = DateTime.now();
-    for (var checkInTime in _user!.checkInTimes) {
-      if (checkInTime.status == 'open' && now.isAfter(checkInTime.dateTime.add(Duration(minutes: 15)))) {
+    // Create a copy of the list to avoid concurrent modification
+    final checkInTimesCopy = List.from(_user!.checkInTimes);
+    for (var checkInTime in checkInTimesCopy) {
+      if (checkInTime.status == 'open' && now.isAfter(checkInTime.dateTime.add(const Duration(minutes: 15)))) {
+        log(checkInTime.status);
         setCheckInStatus(checkInTime.dateTime, 'closed');
+        DateTime newCheckInTime = checkInTime.dateTime.add(const Duration(hours: 24));
+        log('Adding new check-in time for user: ${newCheckInTime.toString()}');
+        addCheckInTime(newCheckInTime);
       }
     }
   }

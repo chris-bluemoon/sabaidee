@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -41,8 +42,8 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
         padding: const EdgeInsets.all(16.0),
         child: Consumer<UserProvider>(
           builder: (context, userProvider, child) {
-                      final checkInTimes = userProvider.user?.checkInTimes.where((time) => (time.status == 'open')).toList();
-
+                      final checkInTimes = userProvider.user?.checkInTimes.where((time) => (time.status == 'pending')).toList();
+          // log('Building with checkInTimes: ${checkInTimes?.first.dateTime}');
           if (userProvider.user?.checkInTimes.isEmpty ?? true) {
             return const Center(
               child: Text('No Check In Times Set Up Yet'),
@@ -71,6 +72,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
               child: Text('No upcoming check-in times'),
             );
           }
+            if (nextCheckInTime.status == 'open') {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -96,7 +98,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
-                          'Next Check-In Time',
+                          'Check In Now',
                           style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 10),
@@ -109,12 +111,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                             ),
                           ),
                         ),
-                      // FlipClock(time: nextCheckInTime),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 60),
-                  ElevatedButton.icon(
+                                   ElevatedButton.icon(
                     onPressed: () async {
                       // Provider.of<UserProvider>(context, listen: false).addCheckInTime(nextCheckInTime);
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -156,6 +153,12 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                   ),
                 ),
                   ),
+                      // FlipClock(time: nextCheckInTime),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 60),
+       
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
                     onPressed: () {
@@ -175,7 +178,9 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                   ),
                 ],
               ),
-            );
+            );} else {
+              log('Check in time is not open yet');
+              return Center(child: Text('Check in time is not open yet'));}
           },
         ),
       ),

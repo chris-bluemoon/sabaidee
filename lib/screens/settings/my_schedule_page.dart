@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/user_provider.dart';
 
@@ -28,25 +29,58 @@ class MySchedulePage extends StatelessWidget {
         itemCount: scheduleTimes.length,
         itemBuilder: (context, index) {
           final checkInTime = scheduleTimes[index];
-          return Dismissible(
-            key: Key(checkInTime.dateTime.toString()),
-            direction: DismissDirection.endToStart,
-            onDismissed: (direction) async {
-              // await userProvider.deleteCheckInTime(checkInTime.time);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Deleted  --'))
-              );
-            },
-            background: Container(
-              color: Colors.red,
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: const Icon(Icons.delete, color: Colors.white),
+          final formattedStartTime = DateFormat('HH:mm').format(checkInTime.dateTime); // Format the time
+          final formattedEndTime = DateFormat('HH:mm').format(checkInTime.dateTime.add(const Duration(minutes: 15))); // Format the time
+            return Dismissible(
+    key: Key(checkInTime.dateTime.toString()),
+    direction: DismissDirection.endToStart,
+    onDismissed: (direction) async {
+      await userProvider.deleteCheckInTime(checkInTime);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Deleted  --'))
+      );
+    },
+    background: Container(
+      color: Colors.red,
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: const Icon(Icons.delete, color: Colors.white),
+    ),
+    child: ListTile(
+      title: Container(
+        padding: const EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(0, 3), // changes position of shadow
             ),
-            child: ListTile(
-              title: Text(checkInTime.dateTime.toString()),  
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('$formattedStartTime to $formattedEndTime'),
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.black),
+              onPressed: () async{
+                // Handle delete action
+                await userProvider.deleteCheckInTime(checkInTime);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Deleted  --'))
+                );
+              },
             ),
-          );
+          ],
+        ),
+      ),
+    ),
+  );
+
         },
       ),
       floatingActionButton: FloatingActionButton(

@@ -1,7 +1,7 @@
-import 'dart:async';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/user_provider.dart';
 
@@ -13,27 +13,16 @@ class NextCheckInPage extends StatefulWidget {
 }
 
 class _NextCheckInPageState extends State<NextCheckInPage> {
-    Timer? _countdownTimer;
-  Duration _countdownDuration = const Duration(minutes: 15);
+
+  late final String formattedDate;
+
   @override
-  void dispose() {
-    _countdownTimer?.cancel();
-    super.dispose();
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    formattedDate = DateFormat('E, d MMMM yyyy').format(now).toUpperCase(); // Format the date
   }
 
-  void _startCountdown(Duration duration) {
-    _countdownTimer?.cancel();
-    _countdownDuration = duration;
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        if (_countdownDuration.inSeconds > 0) {
-          _countdownDuration -= const Duration(seconds: 1);
-        } else {
-          timer.cancel();
-        }
-      });
-    });
-  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,7 +58,13 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 150),
+                  const SizedBox(height: 50),
+                  Row(
+                    children: [
+                      Text(formattedDate, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  const SizedBox(height: 50),
                   nextOrOpenCheckInTime != null && nextOrOpenCheckInTime.status == 'open' ? Container(
                     width: MediaQuery.of(context).size.width * 0.9, // 90% of the screen width
                     height: MediaQuery.of(context).size.height * 0.4, // 30% of the screen height
@@ -98,7 +93,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                           child: Center(
                             child: Text(
                               '${nextOrOpenCheckInTime.dateTime.hour.toString().padLeft(2, '0')}:${nextOrOpenCheckInTime.dateTime.minute.toString().padLeft(2, '0')}',
-                              style: const TextStyle(fontSize: 52, fontWeight: FontWeight.bold),
+                              style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -148,7 +143,44 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                       // FlipClock(time: nextCheckInTime),
                       ],
                     ),
-                  ) : Text('Next check-in time is ${nextOrOpenCheckInTime?.dateTime}'),
+                  ) : 
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.9, // 90% of the screen width
+                    height: MediaQuery.of(context).size.height * 0.3, // 30% of the screen height
+                    padding: const EdgeInsets.all(16.0),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F0EB), // Light shade of the primary color
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: const Offset(0, 3), // changes position of shadow
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Next Check In',
+                          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 10),
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              '${nextOrOpenCheckInTime?.dateTime.hour.toString().padLeft(2, '0')}:${nextOrOpenCheckInTime?.dateTime.minute.toString().padLeft(2, '0')} - ${nextOrOpenCheckInTime?.dateTime.add(const Duration(minutes: 15)).hour.toString().padLeft(2, '0')}:${nextOrOpenCheckInTime?.dateTime.add(const Duration(minutes: 15)).minute.toString().padLeft(2, '0')}', 
+                              style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      // FlipClock(time: nextCheckInTime),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 60),
        
                   const SizedBox(height: 20),

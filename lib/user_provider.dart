@@ -251,22 +251,28 @@ void setCheckInStatus(DateTime dateTime, String status) async {
     return _user?.checkInTimes.where((time) => time.status == 'pending').toList() ?? [];
   }
   
-  Future<void> deleteCheckInTime(TimeOfDay time) async {
-      if (_user != null) {
-        _user!.checkInTimes.removeWhere((checkInTime) => checkInTime.dateTime.hour == time.hour && checkInTime.dateTime.minute == time.minute);
-  
-        // Update Firestore
-        await _firestore.collection('users').doc(_user!.uid).update({
-          'checkInTimes': FieldValue.arrayRemove([{
-            'hour': time.hour,
-            'minute': time.minute,
-            'status': 'pending',
-          }])
-        });
-  
-        notifyListeners();
-      }
-    }
+Future<void> deleteCheckInTime(CheckInTime checkInTime) async {
+  if (_user != null) {
+    // Remove the check-in time from the local list
+    _user!.checkInTimes.removeWhere((existingCheckInTime) => existingCheckInTime.dateTime == checkInTime.dateTime);
+
+    // Update Firestore
+    log('About to delete check-in time for user: ${checkInTime.dateTime.toIso8601String()}');
+    log(checkInTime.dateTime.toIso8601String());
+    log(checkInTime.status);
+    log(checkInTime.duration.inSeconds.toString());
+    log('Deleting check-in time for user: ${checkInTime.dateTime.toIso8601String()}');
+    await _firestore.collection('users').doc(_user!.uid).update({
+      'checkInTimes': FieldValue.arrayRemove([{
+        'dateTime': checkInTime.dateTime.toIso8601String(),
+        'status': checkInTime.status, // Use the status from the CheckInTime object
+        'duration': checkInTime.duration.inSeconds // Use the duration from the CheckInTime object
+      }])
+    });
+
+    notifyListeners();
+  }
+}
 
   void _startTimer() async {
     log('Starting timer');

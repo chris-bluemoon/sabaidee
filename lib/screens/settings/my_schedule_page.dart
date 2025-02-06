@@ -36,9 +36,6 @@ class MySchedulePage extends StatelessWidget {
     direction: DismissDirection.endToStart,
     onDismissed: (direction) async {
       await userProvider.deleteCheckInTime(checkInTime);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Deleted  --'))
-      );
     },
     background: Container(
       color: Colors.red,
@@ -70,9 +67,6 @@ class MySchedulePage extends StatelessWidget {
               onPressed: () async{
                 // Handle delete action
                 await userProvider.deleteCheckInTime(checkInTime);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Deleted  --'))
-                );
               },
             ),
           ],
@@ -83,14 +77,18 @@ class MySchedulePage extends StatelessWidget {
 
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => const AddScheduleTimePage()));
-        },
-        backgroundColor: Colors.black,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+          floatingActionButton: scheduleTimes.length < 4
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const AddScheduleTimePage(),
+                  ),
+                );
+              },
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 }

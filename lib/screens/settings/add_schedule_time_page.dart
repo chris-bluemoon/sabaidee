@@ -32,6 +32,7 @@ Future<void> _submitSchedule() async {
     await userProvider.addCheckInTime(dateTime);
   }
   print('Schedule times added: $_selectedHours');
+  Navigator.of(context).pop();
 }
   @override
   Widget build(BuildContext context) {

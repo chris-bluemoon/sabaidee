@@ -33,6 +33,7 @@ class UserProvider with ChangeNotifier {
         status: 'pending',
         duration: const Duration(minutes: 15), // Set default duration to 5 minutes
       );
+      log('Adding check-in time for user: ${checkInTime.dateTime.toIso8601String()}');
       _user!.checkInTimes.add(checkInTime);
 
       // Update Firestore

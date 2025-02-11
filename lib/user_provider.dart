@@ -31,7 +31,7 @@ class UserProvider with ChangeNotifier {
       final checkInTime = CheckInTime(
         dateTime: dateTime,
         status: 'pending',
-        duration: const Duration(minutes: 15), // Set default duration to 5 minutes
+        duration: const Duration(minutes: 5), // Set default duration to 5 minutes
       );
       log('Adding check-in time for user: ${checkInTime.dateTime.toIso8601String()}');
       _user!.checkInTimes.add(checkInTime);
@@ -282,7 +282,7 @@ Future<void> deleteCheckInTime(CheckInTime checkInTime) async {
         _checkForMissedCheckInTimes();
 
         // _checkForMissedCheckInTimes();
-        // _checkForMissedCheckInTimesFromWatching();
+        _checkForMissedCheckInTimesFromWatching();
         // log('Raising notification');
         // await _showNotification();
     });
@@ -296,7 +296,7 @@ void _checkForOpenCheckInTimes() async {
 
     for (var checkInTime in checkInTimesCopy) {
       log('Checking user stored pending only checkInTime: ${checkInTime.dateTime.toString()}');
-      if (checkInTime.dateTime.isBefore(now) && !checkInTime.dateTime.isAfter(now.add(const Duration(minutes:15))) && checkInTime.status == 'pending') {
+      if (checkInTime.dateTime.isBefore(now) && !checkInTime.dateTime.isAfter(now.add(const Duration(minutes:5))) && checkInTime.status == 'pending') {
         log('Setting status to open for user stored checkInTime: ${checkInTime.dateTime.toString()}');
         setCheckInStatus(checkInTime.dateTime, 'open');
         notifyListeners(); // Notify listeners about the change
@@ -311,7 +311,7 @@ void _checkForMissedCheckInTimes() async {
     // Create a copy of the list to avoid concurrent modification
     final checkInTimesCopy = List.from(_user!.checkInTimes);
     for (var checkInTime in checkInTimesCopy) {
-      if ((checkInTime.status == 'open' || checkInTime.status == 'pending') && now.isAfter(checkInTime.dateTime.add(const Duration(minutes: 15)))) {
+      if ((checkInTime.status == 'open' || checkInTime.status == 'pending') && now.isAfter(checkInTime.dateTime.add(const Duration(minutes: 5)))) {
         setCheckInStatus(checkInTime.dateTime, 'missed');
         DateTime newCheckInTime = checkInTime.dateTime.add(const Duration(hours: 24));
         addCheckInTime(newCheckInTime);

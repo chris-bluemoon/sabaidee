@@ -30,7 +30,7 @@ class MySchedulePage extends StatelessWidget {
         itemBuilder: (context, index) {
           final checkInTime = pendiningOrOpenScheduleTimes[index];
           final formattedStartTime = DateFormat('HH:mm').format(checkInTime.dateTime); // Format the time
-          final formattedEndTime = DateFormat('HH:mm').format(checkInTime.dateTime.add(const Duration(minutes: 15))); // Format the time
+          final formattedEndTime = DateFormat('HH:mm').format(checkInTime.dateTime.add(const Duration(minutes: 5))); // Format the time
             return Dismissible(
     key: Key(checkInTime.dateTime.toString()),
     direction: DismissDirection.endToStart,

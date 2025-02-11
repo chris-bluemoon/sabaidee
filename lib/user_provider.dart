@@ -384,30 +384,49 @@ void _checkForMissedCheckInTimes() async {
     );
   }
 
-  Future<void> _showAlert(String title) async {
-    // Delay the execution to ensure the context is available
-    if (navigatorKey.currentContext != null) {
-        showDialog(
-          context: navigatorKey.currentContext!,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text(title),
-              content: const Text('Missed a check-in time!'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
+Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTime) async {
+  // Delay the execution to ensure the context is available
+  if (navigatorKey.currentContext != null) {
+    showDialog(
+      context: navigatorKey.currentContext!,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: const Text('Missed a check-in time!'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () async {
+                // Update the status of the checkInTime to "acknowledgedByWatcher"
+                final userDoc = await _firestore.collection('users').doc(watchingUid).get();
+                if (userDoc.exists) {
+                  final userData = userDoc.data()!;
+                  final checkInTimes = (userData['checkInTimes'] as List<dynamic>).map((e) => CheckInTime.fromMap(e)).toList();
+
+                  for (var time in checkInTimes) {
+                    if (time.dateTime == checkInTime.dateTime) {
+                      time.status = 'acknowledgedByWatcher';
+                      break;
+                    }
+                  }
+
+                  // Update Firestore
+                  await _firestore.collection('users').doc(watchingUid).update({
+                    'checkInTimes': checkInTimes.map((time) => time.toMap()).toList(),
+                  });
+                }
+
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
         );
-      } else {
-        log('Navigator context is null, cannot show alert');
-      }
+      },
+    );
+  } else {
+    log('Navigator context is null, cannot show alert');
   }
+}
 
   CheckInTime? get nextPendingCheckInTime {
     final pendingCheckInTimes = _user?.checkInTimes.where((time) => time.status == 'pending').toList() ?? [];
@@ -469,7 +488,8 @@ void _checkForMissedCheckInTimes() async {
                 // Missed check-in time found
                 log('User $watchingUid missed check-in time at ${checkInTime.dateTime.hour}:${checkInTime.dateTime.minute}');
                 // await _showNotification('Missed Check-In', 'User $watchingUid missed a check-in time at ${checkInTime.time.hour}:${checkInTime.time.minute}');
-                _showAlert('User $watchingUid missed check-in time');
+                log('User $watchingUid missed check-in time at ${checkInTime.dateTime.hour}:${checkInTime.dateTime.minute}');
+                _showAlert('User $watchingUid missed check-in time', watchingUid, checkInTime);
               }
             }
           }

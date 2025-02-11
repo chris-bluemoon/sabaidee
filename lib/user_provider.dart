@@ -291,9 +291,11 @@ void _checkForOpenCheckInTimes() async {
   if (_user != null) {
     final now = DateTime.now();
     // Create a copy of the list to avoid concurrent modification
-    final checkInTimesCopy = List.from(_user!.checkInTimes);
+    // final checkInTimesCopy = List.from(_user!.checkInTimes);
+    final checkInTimesCopy = List.from(_user!.checkInTimes.where((checkInTime) => checkInTime.status == 'pending'));
+
     for (var checkInTime in checkInTimesCopy) {
-      log('Checking user stored checkInTime: ${checkInTime.dateTime.toString()}');
+      log('Checking user stored pending only checkInTime: ${checkInTime.dateTime.toString()}');
       if (checkInTime.dateTime.isBefore(now) && !checkInTime.dateTime.isAfter(now.add(const Duration(minutes:15))) && checkInTime.status == 'pending') {
         log('Setting status to open for user stored checkInTime: ${checkInTime.dateTime.toString()}');
         setCheckInStatus(checkInTime.dateTime, 'open');

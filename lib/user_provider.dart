@@ -248,8 +248,8 @@ void setCheckInStatus(DateTime dateTime, String status) async {
       return _user?.checkInTimes ?? [];
   }
   
-  List<CheckInTime> get pendingCheckInTimes {
-    return _user?.checkInTimes.where((time) => time.status == 'pending').toList() ?? [];
+  List<CheckInTime> get pendingOrOpenCheckInTimes {
+    return _user?.checkInTimes.where((time) => time.status == 'pending' || time.status == 'open').toList() ?? [];
   }
   
 Future<void> deleteCheckInTime(CheckInTime checkInTime) async {
@@ -317,6 +317,7 @@ void _checkForMissedCheckInTimes() async {
         addCheckInTime(newCheckInTime);
                if (navigatorKey.currentContext != null) {
           showDialog(
+            barrierDismissible: false,
             context: navigatorKey.currentContext!,
             builder: (BuildContext context) {
               return AlertDialog(

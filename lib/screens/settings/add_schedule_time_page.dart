@@ -37,7 +37,7 @@ Future<void> _submitSchedule() async {
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
-    final pendingCheckInTimes = userProvider.pendingCheckInTimes;
+    final pendingCheckInTimes = userProvider.pendingOrOpenCheckInTimes;
     final pendingHours = pendingCheckInTimes.map((checkInTime) => checkInTime.dateTime).toSet();
 
     return Scaffold(

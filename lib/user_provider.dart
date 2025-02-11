@@ -453,20 +453,19 @@ void _checkForMissedCheckInTimes() async {
   }
 
   Future<void> _checkForMissedCheckInTimesFromWatching() async {
-    log('Checking for missed check-in times from watching');
+    log('Checking for missed check-in times from watching ${_user?.watching.length} users');
     if (_user != null) {
       for (var watching in _user!.watching) {
+        log('Checking for user $watching'); 
         final watchingUid = watching['uid'];
         if (watchingUid != null) {
           final userDoc = await _firestore.collection('users').doc(watchingUid).get();
           if (userDoc.exists) {
             final userData = userDoc.data()!;
             final checkInTimes = (userData['checkInTimes'] as List<dynamic>).map((e) => CheckInTime.fromMap(e)).toList();
-            final now = TimeOfDay.now();
 
             for (var checkInTime in checkInTimes) {
-              if (checkInTime.status == 'pending' &&
-                  (checkInTime.dateTime.hour < now.hour || (checkInTime.dateTime.hour == now.hour && checkInTime.dateTime.minute < now.minute))) {
+              if (checkInTime.status == 'missed') {
                 // Missed check-in time found
                 log('User $watchingUid missed check-in time at ${checkInTime.dateTime.hour}:${checkInTime.dateTime.minute}');
                 // await _showNotification('Missed Check-In', 'User $watchingUid missed a check-in time at ${checkInTime.time.hour}:${checkInTime.time.minute}');

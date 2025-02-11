@@ -92,7 +92,8 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                         Expanded(
                           child: Center(
                             child: Text(
-                              '${nextOrOpenCheckInTime.dateTime.hour.toString().padLeft(2, '0')}:${nextOrOpenCheckInTime.dateTime.minute.toString().padLeft(2, '0')}',
+                              '${nextOrOpenCheckInTime.dateTime.hour.toString().padLeft(2, '0')}:${nextOrOpenCheckInTime.dateTime.minute.toString().padLeft(2, '0')} - ${nextOrOpenCheckInTime.dateTime.add(const Duration(minutes: 15)).hour.toString().padLeft(2, '0')}:${nextOrOpenCheckInTime.dateTime.add(const Duration(minutes: 15)).minute.toString().padLeft(2, '0')}', 
+                              // '${nextOrOpenCheckInTime.dateTime.hour.toString().padLeft(2, '0')}:${nextOrOpenCheckInTime.dateTime.minute.toString().padLeft(2, '0')}',
                               style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
                               textAlign: TextAlign.center,
                             ),
@@ -177,6 +178,11 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                             ),
                           ),
                         ),
+                        if (nextOrOpenCheckInTime != null && nextOrOpenCheckInTime.dateTime.day == DateTime.now().add(const Duration(days: 1)).day) 
+          const Text(
+            '(tomorrow)',
+            style: TextStyle(fontSize: 32, fontWeight: FontWeight.normal),
+          ),
                       // FlipClock(time: nextCheckInTime),
                       ],
                     ),

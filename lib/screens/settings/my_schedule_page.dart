@@ -11,7 +11,7 @@ class MySchedulePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
-    final scheduleTimes = userProvider.scheduleTimes;
+    final pendingScheduleTimes = userProvider.pendingCheckInTimes;
 
     return Scaffold(
       backgroundColor: Colors.yellow,
@@ -26,9 +26,9 @@ class MySchedulePage extends StatelessWidget {
         backgroundColor: Colors.yellow,
       ),
       body: ListView.builder(
-        itemCount: scheduleTimes.length,
+        itemCount: pendingScheduleTimes.length,
         itemBuilder: (context, index) {
-          final checkInTime = scheduleTimes[index];
+          final checkInTime = pendingScheduleTimes[index];
           final formattedStartTime = DateFormat('HH:mm').format(checkInTime.dateTime); // Format the time
           final formattedEndTime = DateFormat('HH:mm').format(checkInTime.dateTime.add(const Duration(minutes: 15))); // Format the time
             return Dismissible(
@@ -77,7 +77,7 @@ class MySchedulePage extends StatelessWidget {
 
         },
       ),
-          floatingActionButton: scheduleTimes.length < 4
+          floatingActionButton: pendingScheduleTimes.length < 4
           ? FloatingActionButton(
               onPressed: () {
                 Navigator.of(context).push(

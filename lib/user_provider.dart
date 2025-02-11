@@ -294,7 +294,6 @@ void _checkForOpenCheckInTimes() async {
     final checkInTimesCopy = List.from(_user!.checkInTimes);
     for (var checkInTime in checkInTimesCopy) {
       log('Checking user stored checkInTime: ${checkInTime.dateTime.toString()}');
-      // Not working as expected and missed is not creating new check-in time
       if (checkInTime.dateTime.isBefore(now) && !checkInTime.dateTime.isAfter(now.add(const Duration(minutes:15))) && checkInTime.status == 'pending') {
         log('Setting status to open for user stored checkInTime: ${checkInTime.dateTime.toString()}');
         setCheckInStatus(checkInTime.dateTime, 'open');
@@ -314,6 +313,28 @@ void _checkForMissedCheckInTimes() async {
         setCheckInStatus(checkInTime.dateTime, 'missed');
         DateTime newCheckInTime = checkInTime.dateTime.add(const Duration(hours: 24));
         addCheckInTime(newCheckInTime);
+               if (navigatorKey.currentContext != null) {
+          showDialog(
+            context: navigatorKey.currentContext!,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Missed Check-In'),
+                content: Text('You have missed a check-in time at ${checkInTime.dateTime.hour.toString().padLeft(2, '0')}:${checkInTime.dateTime.minute.toString().padLeft(2, '0')}.'),
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text('OK'),
+                    onPressed: () {
+                      setCheckInStatus(checkInTime.dateTime, 'acknowledged');
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        } else {
+          log('Navigator context is null, cannot show alert');
+        }
       }
     }
   }

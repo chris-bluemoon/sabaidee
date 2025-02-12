@@ -311,11 +311,11 @@ void _checkForMissedCheckInTimes() async {
     // Create a copy of the list to avoid concurrent modification
     final checkInTimesCopy = List.from(_user!.checkInTimes);
     for (var checkInTime in checkInTimesCopy) {
-      if ((checkInTime.status == 'open' || checkInTime.status == 'pending') && now.isAfter(checkInTime.dateTime.add(const Duration(minutes: 5)))) {
+      if ((checkInTime.status == 'open' || checkInTime.status == 'pending' || checkInTime.status == 'missed') && now.isAfter(checkInTime.dateTime.add(const Duration(minutes: 5)))) {
         setCheckInStatus(checkInTime.dateTime, 'missed');
         DateTime newCheckInTime = checkInTime.dateTime.add(const Duration(hours: 24));
-        addCheckInTime(newCheckInTime);
-               if (navigatorKey.currentContext != null) {
+        if (checkInTime.status != 'missed') addCheckInTime(newCheckInTime);
+          if (navigatorKey.currentContext != null) {
           showDialog(
             barrierDismissible: false,
             context: navigatorKey.currentContext!,
@@ -397,7 +397,6 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
             TextButton(
               child: const Text('OK'),
               onPressed: () async {
-                // Update the status of the checkInTime to "acknowledgedByWatcher"
                 final userDoc = await _firestore.collection('users').doc(watchingUid).get();
                 if (userDoc.exists) {
                   final userData = userDoc.data()!;

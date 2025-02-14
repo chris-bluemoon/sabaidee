@@ -312,11 +312,11 @@ void _checkForMissedCheckInTimes() async {
     final checkInTimesCopy = List.from(_user!.checkInTimes);
     for (var checkInTime in checkInTimesCopy) {
       if ((checkInTime.status == 'open' || checkInTime.status == 'pending' || checkInTime.status == 'missed') && now.isAfter(checkInTime.dateTime.add(const Duration(minutes: 5)))) {
-        if (checkInTime.status != 'missed') {
-          setCheckInStatus(checkInTime.dateTime, 'missed');
-          DateTime newCheckInTime = checkInTime.dateTime.add(const Duration(hours: 24));
-          addCheckInTime(newCheckInTime);
-        }
+        // if (checkInTime.status != 'missed') {
+        //   setCheckInStatus(checkInTime.dateTime, 'missed');
+        //   DateTime newCheckInTime = checkInTime.dateTime.add(const Duration(hours: 24));
+        //   addCheckInTime(newCheckInTime);
+        // }
           if (navigatorKey.currentContext != null) {
           showDialog(
             barrierDismissible: false,

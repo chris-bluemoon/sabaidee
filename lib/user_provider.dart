@@ -28,8 +28,9 @@ class UserProvider with ChangeNotifier {
   
   Future<void> addCheckInTime(DateTime dateTime) async {
     if (_user != null) {
+      final utcDateTime = dateTime.toUtc(); // Convert to UTC
       final checkInTime = CheckInTime(
-        dateTime: dateTime,
+        dateTime: utcDateTime,
         status: 'pending',
         duration: const Duration(minutes: 5), // Set default duration to 5 minutes
       );
@@ -324,19 +325,15 @@ void _checkForMissedCheckInTimes() async {
             builder: (BuildContext context) {
               return AlertDialog(
                 title: const Text('Missed Check-In'),
-                content: Text('You have missed a check-in time at ${checkInTime.dateTime.hour.toString().padLeft(2, '0')}:${checkInTime.dateTime.minute.toString().padLeft(2, '0')}.'),
-                actions: <Widget>[
-                  TextButton(
-                    child: const Text('OK'),
-                    onPressed: () {
-                      setCheckInStatus(checkInTime.dateTime, 'acknowledged');
-                      Navigator.of(context).pop();
-                    },
+                content: Text('You have missed a check-in time at ${checkInTime.dateTime.hour.toString().padLeft(2, '0')}:${checkInTime.dateTime.minute.toString().padLeft(2, '0')}.'), actions: <Widget>[ TextButton( child: const Text('OK'), onPressed: () { 
+                  setCheckInStatus(checkInTime.dateTime, 'acknowledged'); 
+                  addCheckInTime(checkInTime.dateTime.add(const Duration(hours: 24)));
+                  Navigator.of(context).pop();
+                  },
                   ),
                 ],
               );
-            },
-          );
+            },);
         } else {
           log('Navigator context is null, cannot show alert');
         }

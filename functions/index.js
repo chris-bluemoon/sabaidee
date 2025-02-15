@@ -12,8 +12,12 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
 
     const updatedCheckInTimes = checkInTimes.map(checkInTime => {
       const checkInDateTime = new Date(checkInTime.dateTime);
-      if ((checkInTime.status === 'open' || checkInTime.status === 'pending') && now > checkInDateTime) {
+      const missedDateTime = new Date(checkInDateTime.getTime() + 5*60000);
+      if ((checkInTime.status === 'open' || checkInTime.status === 'pending') && now > missedDateTime) {
         checkInTime.status = 'missed';
+      }
+      if (checkInTime.status === 'pending' && now <= missedDateTime && now >= checkInDateTime) {
+        checkInTime.status = 'open';
       }
       return checkInTime;
     });

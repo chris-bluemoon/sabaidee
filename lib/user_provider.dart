@@ -15,7 +15,7 @@ class UserProvider with ChangeNotifier {
   Timer? _timer;
 
   UserProvider() {
-    _startTimer();
+    // _startTimer();
   }
 
   User? get user => _user;

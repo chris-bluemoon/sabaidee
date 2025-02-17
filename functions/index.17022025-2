@@ -27,12 +27,11 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
               title: 'Check-In Status Update',
               body: 'Your check-in status has been updated to open.',
             },
-            token: userData.fcmToken,
             data: {
               status: 'open',
             },
           };
-          admin.messaging().send(payload)
+          admin.messaging().sendToDevice(userData.fcmToken, payload)
             .then(response => {
               console.log('Notification sent successfully:', response);
             })

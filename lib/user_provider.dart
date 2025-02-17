@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -118,13 +119,13 @@ void setCheckInStatus(DateTime dateTime, String status) async {
       }
     }
     // Update Firestore
-    // await _firestore.collection('users').doc(_user!.uid).update({
-    //   'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
-    //     'dateTime': checkInTime.dateTime.toIso8601String(),
-    //     'status': checkInTime.status,
-    //     'duration': checkInTime.duration.inSeconds, // Ensure duration is included
-    //   }).toList(),
-    // });
+    await _firestore.collection('users').doc(_user!.uid).update({
+      'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
+        'dateTime': checkInTime.dateTime.toIso8601String(),
+        'status': checkInTime.status,
+        'duration': checkInTime.duration.inSeconds, // Ensure duration is included
+      }).toList(),
+    });
     notifyListeners();
   }
 }
@@ -227,23 +228,35 @@ void setCheckInStatus(DateTime dateTime, String status) async {
     return relativeNamesAndStatuses;
   }
 
-  Future<void> _fetchUserData(String uid) async {
-    // Fetch user data from your database and set the _user object
-    // This is a placeholder implementation
-    DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
-    final now = DateTime.now();
-    _user = User(
-      uid: uid,
-      email: userDoc['email'],
-      name: userDoc['name'],
-      phoneNumber: userDoc['phoneNumber'],
-      checkInTimes: (userDoc['checkInTimes'] as List).map((time) => CheckInTime(dateTime: DateTime(now.year, now.month, now.day, time['hour'], time['minute']), status: time['status'], duration: Duration(minutes: time['duration']))).toList(),
-      relatives: List<Map<String, String>>.from(userDoc['relatives'] ?? []),
-      watching: List<Map<String, String>>.from(userDoc['watching'] ?? []),
-    );
-    // _startTimer();
-    notifyListeners();
-  }
+Future<void> _fetchUserData(String uid) async {
+  // Fetch user data from your database and set the _user object
+  DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
+  log(userDoc.data().toString());
+  // final now = DateTime.now();
+  _user = User(
+    uid: uid,
+    email: userDoc['email'],
+    name: userDoc['name'],
+    phoneNumber: userDoc['phoneNumber'],
+    checkInTimes: (userDoc['checkInTimes'] as List).map((time) {
+      log(time.toString());
+      return CheckInTime(
+        dateTime: DateTime.parse(time['dateTime']),
+        // dateTime: time['dateTime'].toDate(),
+        // dateTime: DateTime(now.year, now.month, now.day, 
+          // time['hour'], 
+          // time['minute']),
+        status: time['status'],
+        duration: Duration(minutes: time['duration'] ?? 0), // Provide a default value if duration is null
+      );
+    }).toList(),
+    relatives: (userDoc['relatives'] as List).map((relative) => Map<String, String>.from(relative)).toList(),
+    watching: (userDoc['watching'] as List).map((watching) => Map<String, String>.from(watching)).toList(),
+    // relatives: List<Map<String, String>>.from(userDoc['relatives'] ?? []),
+    // watching: List<Map<String, String>>.from(userDoc['watching'] ?? []),
+  );
+  notifyListeners();
+}
 
   List<CheckInTime> get scheduleTimes {
       return _user?.checkInTimes ?? [];
@@ -551,7 +564,11 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
   //     notifyListeners();
   //   }
   // }
-
+    void handleNotification(RemoteMessage message) {
+    // Handle the notification and update the state
+    // For example, you can fetch new data from Firestore and update the user
+    _fetchUserData(_user!.uid);
+  }
 }
 
 class CheckInTime {

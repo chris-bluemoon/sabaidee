@@ -15,11 +15,42 @@ import 'package:sabaidee/user_provider.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  log('Handling a background message: ${message.messageId}');
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  RemoteNotification? notification = message.notification;
+  AndroidNotification? android = message.notification?.android;
+
+  if (notification != null && android != null) {
+    flutterLocalNotificationsPlugin.show(
+      notification.hashCode,
+      notification.title,
+      notification.body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'your_channel_id',
+          'your_channel_name',
+          channelDescription: 'your_channel_description',
+          icon: '@mipmap/ic_launcher',
+        ),
+      ),
+    );
+    final userProvider = navigatorKey.currentContext?.read<UserProvider>();
+    if (userProvider != null) {
+      userProvider.handleNotification(message);
+    }
+  }
+});
+
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
   const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings(
@@ -90,28 +121,13 @@ class AuthWrapper extends StatelessWidget {
           fcmToken: userData['fcmToken'],
         ),
       );
-            // Get FCM token and update it
+      // Get FCM token and update it
       final fcmToken = await FirebaseMessaging.instance.getToken();
       if (fcmToken != null) {
         Provider.of<UserProvider>(context, listen: false).updateFcmToken(fcmToken);
       }
     } else {
       log('User not found in Firestore - redundant code/mismatch with Firebase?, should be not reached');
-      // final firebaseUser = auth.FirebaseAuth.instance.currentUser;
-      // if (firebaseUser != null) {
-      //   final newUser = User(
-      //     uid: uid,
-      //     email: firebaseUser.email!,
-      //     name: 'New User',
-      //     phoneNumber: '',
-      //     checkInTimes: [],
-      //     relatives: [],
-      //   );
-
-      //   await FirebaseFirestore.instance.collection('users').doc(uid).set(newUser.toFirestore());
-
-      //   Provider.of<UserProvider>(context, listen: false).setUser(newUser);
-      // }
     }
   }
 

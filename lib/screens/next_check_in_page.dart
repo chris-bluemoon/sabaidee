@@ -100,7 +100,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                             ),
                           ),
                         ),
-                                   ElevatedButton.icon(
+                    ElevatedButton.icon(
                     onPressed: () async {
                       // Provider.of<UserProvider>(context, listen: false).addCheckInTime(nextCheckInTime);
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -126,6 +126,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                       // Set the status of the check-in time to "checked in"
                       if (nextOrOpenCheckInTime != null) {
                         userProvider.setCheckInStatus(nextOrOpenCheckInTime.dateTime, 'checked in');
+                          log('Check-in time status updated to "checked in"');
                           // Calculate the new check-in time 24 hours in the future
                         DateTime newCheckInTime = nextOrOpenCheckInTime.dateTime.add(const Duration(hours: 24));
                         userProvider.addCheckInTime(newCheckInTime);

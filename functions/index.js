@@ -16,6 +16,26 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
       const missedDateTime = new Date(checkInDateTime.getTime() + 5 * 60000);
       if ((checkInTime.status === 'open' || checkInTime.status === 'pending') && now > missedDateTime) {
         checkInTime.status = 'missed';
+
+                if (userData.fcmToken) {
+          const payload = {
+            notification: {
+              title: 'Check-In Status Update',
+              body: 'Your check-in status has been updated to MISSED.',
+            },
+            token: userData.fcmToken,
+            data: {
+              status: 'missed',
+            },
+          };
+          admin.messaging().send(payload)
+            .then(response => {
+              console.log('Notification sent successfully:', response);
+            })
+            .catch(error => {
+              console.log('Error sending notification:', error);
+            });
+        }
       }
       if (checkInTime.status === 'pending' && now <= missedDateTime && now >= checkInDateTime) {
         checkInTime.status = 'open';

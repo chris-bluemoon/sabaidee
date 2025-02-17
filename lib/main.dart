@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
@@ -85,9 +86,15 @@ class AuthWrapper extends StatelessWidget {
           phoneNumber: userData['phoneNumber'],
           checkInTimes: checkInTimes,
           relatives: relatives,
-          watching: watching
+          watching: watching,
+          fcmToken: userData['fcmToken'],
         ),
       );
+            // Get FCM token and update it
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+      if (fcmToken != null) {
+        Provider.of<UserProvider>(context, listen: false).updateFcmToken(fcmToken);
+      }
     } else {
       log('User not found in Firestore - redundant code/mismatch with Firebase?, should be not reached');
       // final firebaseUser = auth.FirebaseAuth.instance.currentUser;

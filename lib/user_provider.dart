@@ -118,13 +118,13 @@ void setCheckInStatus(DateTime dateTime, String status) async {
       }
     }
     // Update Firestore
-    await _firestore.collection('users').doc(_user!.uid).update({
-      'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
-        'dateTime': checkInTime.dateTime.toIso8601String(),
-        'status': checkInTime.status,
-        'duration': checkInTime.duration.inSeconds, // Ensure duration is included
-      }).toList(),
-    });
+    // await _firestore.collection('users').doc(_user!.uid).update({
+    //   'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
+    //     'dateTime': checkInTime.dateTime.toIso8601String(),
+    //     'status': checkInTime.status,
+    //     'duration': checkInTime.duration.inSeconds, // Ensure duration is included
+    //   }).toList(),
+    // });
     notifyListeners();
   }
 }
@@ -241,7 +241,7 @@ void setCheckInStatus(DateTime dateTime, String status) async {
       relatives: List<Map<String, String>>.from(userDoc['relatives'] ?? []),
       watching: List<Map<String, String>>.from(userDoc['watching'] ?? []),
     );
-    _startTimer();
+    // _startTimer();
     notifyListeners();
   }
 
@@ -283,28 +283,52 @@ Future<void> deleteCheckInTime(CheckInTime checkInTime) async {
         _checkForMissedCheckInTimes();
 
         // _checkForMissedCheckInTimes();
-        _checkForMissedCheckInTimesFromWatching();
+        // _checkForMissedCheckInTimesFromWatching();
         // log('Raising notification');
         // await _showNotification();
     });
   }
 void _checkForOpenCheckInTimes() async {
   if (_user != null) {
-    final now = DateTime.now();
-    // Create a copy of the list to avoid concurrent modification
-    // final checkInTimesCopy = List.from(_user!.checkInTimes);
-    final checkInTimesCopy = List.from(_user!.checkInTimes.where((checkInTime) => checkInTime.status == 'pending'));
+    final now = DateTime.now().toUtc();
+    final userDoc = await _firestore.collection('users').doc(_user!.uid).get();
+    if (userDoc.exists) {
+      final userData = userDoc.data()!;
+      final checkInTimes = (userData['checkInTimes'] as List).map((time) {
+        return CheckInTime(
+          dateTime: DateTime.parse(time['dateTime']),
+          status: time['status'],
+          duration: Duration(seconds: time['duration']),
+        );
+      }).toList();
 
-    for (var checkInTime in checkInTimesCopy) {
-      log('Checking user stored pending only checkInTime: ${checkInTime.dateTime.toString()}');
-      if (checkInTime.dateTime.isBefore(now) && !checkInTime.dateTime.isAfter(now.add(const Duration(minutes:5))) && checkInTime.status == 'pending') {
-        log('Setting status to open for user stored checkInTime: ${checkInTime.dateTime.toString()}');
-        setCheckInStatus(checkInTime.dateTime, 'open');
-        notifyListeners(); // Notify listeners about the change
+      for (var checkInTime in checkInTimes) {
+        if (checkInTime.dateTime.isBefore(now) && !checkInTime.dateTime.isAfter(now.add(const Duration(minutes: 5))) && checkInTime.status == 'pending') {
+          log('Setting status to open for user stored checkInTime: ${checkInTime.dateTime.toString()}');
+          setCheckInStatus(checkInTime.dateTime, 'open');
+          notifyListeners(); // Notify listeners about the change
+        }
       }
     }
   }
 }
+// void _checkForOpenCheckInTimes() async {
+//   if (_user != null) {
+//     final now = DateTime.now();
+//     // Create a copy of the list to avoid concurrent modification
+//     // final checkInTimesCopy = List.from(_user!.checkInTimes);
+//     final checkInTimesCopy = List.from(_user!.checkInTimes.where((checkInTime) => checkInTime.status == 'pending'));
+
+//     for (var checkInTime in checkInTimesCopy) {
+//       log('Checking user stored pending only checkInTime: ${checkInTime.dateTime.toString()}');
+//       if (checkInTime.dateTime.isBefore(now) && !checkInTime.dateTime.isAfter(now.add(const Duration(minutes:5))) && checkInTime.status == 'pending') {
+//         log('Setting status to open for user stored checkInTime: ${checkInTime.dateTime.toString()}');
+//         setCheckInStatus(checkInTime.dateTime, 'open');
+//         notifyListeners(); // Notify listeners about the change
+//       }
+//     }
+//   }
+// }
 
 void _checkForMissedCheckInTimes() async {
   if (_user != null) {
@@ -324,7 +348,7 @@ void _checkForMissedCheckInTimes() async {
             context: navigatorKey.currentContext!,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: const Text('Missed Check-In'),
+                title: Text('Missed Check-In ${checkInTime.status}'),
                 content: Text('You have missed a check-in time at ${checkInTime.dateTime.hour.toString().padLeft(2, '0')}:${checkInTime.dateTime.minute.toString().padLeft(2, '0')}.'), actions: <Widget>[ TextButton( child: const Text('OK'), onPressed: () { 
                   setCheckInStatus(checkInTime.dateTime, 'acknowledged'); 
                   addCheckInTime(checkInTime.dateTime.add(const Duration(hours: 24)));
@@ -469,6 +493,25 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
     }
   }
 
+  Future<void> updateFcmToken(String token) async {
+    if (_user != null) {
+      _user = User(
+        uid: _user!.uid,
+        email: _user!.email,
+        name: _user!.name,
+        phoneNumber: _user!.phoneNumber,
+        checkInTimes: _user!.checkInTimes,
+        relatives: _user!.relatives,
+        watching: _user!.watching,
+        fcmToken: token,
+      );
+      await _firestore.collection('users').doc(_user!.uid).update({
+        'fcmToken': token,
+      });
+      notifyListeners();
+    }
+  }
+
   Future<void> _checkForMissedCheckInTimesFromWatching() async {
     log('Checking for missed check-in times from watching ${_user?.watching.length} users');
     if (_user != null) {
@@ -542,6 +585,7 @@ class User {
   final List<CheckInTime> checkInTimes;
   final List<Map<String, String>> relatives;
   final List<Map<String, String>> watching;
+  final String? fcmToken;
 
   User({
     required this.uid,
@@ -551,6 +595,7 @@ class User {
     required this.checkInTimes,
     required this.relatives,
     required this.watching,
+    this.fcmToken,
   });
 
   factory User.fromFirestore(DocumentSnapshot doc) {
@@ -565,6 +610,7 @@ class User {
           .toList(),
       relatives: List<Map<String, String>>.from(data['relatives']),
       watching: List<Map<String, String>>.from(data['watching']),
+      fcmToken: data['fcmToken'],
     );
   }
 
@@ -576,6 +622,7 @@ class User {
       'checkInTimes': checkInTimes.map((checkInTime) => checkInTime.toMap()).toList(),
       'relatives': relatives,
       'watching': watching,
+      'fcmToken': fcmToken,
     };
   }
 }

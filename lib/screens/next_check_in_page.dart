@@ -43,7 +43,8 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
           // }
 
           // Find the next check-in time
-          final now = DateTime.now();
+          final now = DateTime.now().toUtc();
+          log(now.toString());
           final futureCheckInTimes = checkInTimes?.where((checkInTime) => checkInTime.dateTime.isAfter(now.subtract(const Duration(minutes: 5)))).toList() ?? [];
 
           CheckInTime? nextOrOpenCheckInTime;

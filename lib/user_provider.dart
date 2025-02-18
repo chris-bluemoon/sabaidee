@@ -231,7 +231,6 @@ void setCheckInStatus(DateTime dateTime, String status) async {
 Future<void> _fetchUserData(String uid) async {
   // Fetch user data from your database and set the _user object
   DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
-  log(userDoc.data().toString());
   // final now = DateTime.now();
   _user = User(
     uid: uid,
@@ -239,7 +238,6 @@ Future<void> _fetchUserData(String uid) async {
     name: userDoc['name'],
     phoneNumber: userDoc['phoneNumber'],
     checkInTimes: (userDoc['checkInTimes'] as List).map((time) {
-      log(time.toString());
       return CheckInTime(
         dateTime: DateTime.parse(time['dateTime']),
         // dateTime: time['dateTime'].toDate(),

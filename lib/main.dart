@@ -25,30 +25,58 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-  RemoteNotification? notification = message.notification;
-  AndroidNotification? android = message.notification?.android;
 
-  if (notification != null && android != null) {
-    flutterLocalNotificationsPlugin.show(
-      notification.hashCode,
-      notification.title,
-      notification.body,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'your_channel_id',
-          'your_channel_name',
-          channelDescription: 'your_channel_description',
-          icon: '@mipmap/ic_launcher',
-        ),
-      ),
-    );
-    final userProvider = navigatorKey.currentContext?.read<UserProvider>();
-    if (userProvider != null) {
-      userProvider.handleNotification(message);
-    }
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
+  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+    log('User granted permission');
+  } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
+    log('User granted provisional permission');
+  } else {
+    log('User declined or has not accepted permission');
   }
-});
+  
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    RemoteNotification? notification = message.notification;
+    AndroidNotification? android = message.notification?.android;
+    AppleNotification? apple = message.notification?.apple;
+
+    if (notification != null) {
+      flutterLocalNotificationsPlugin.show(
+        notification.hashCode,
+        notification.title,
+        notification.body,
+        NotificationDetails(
+          android: android != null
+              ? const AndroidNotificationDetails(
+                  'your_channel_id',
+                  'your_channel_name',
+                  channelDescription: 'your_channel_description',
+                  icon: '@mipmap/ic_launcher',
+                )
+              : null,
+          iOS: apple != null
+              ? const DarwinNotificationDetails(
+                  presentAlert: true,
+                  presentBadge: true,
+                  presentSound: true,
+                )
+              : null,
+        ),
+      );
+      final userProvider = navigatorKey.currentContext?.read<UserProvider>();
+      if (userProvider != null) {
+        log('Notification received: ${message.data}');
+        userProvider.handleNotification(message);
+      }
+    }
+  });
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 

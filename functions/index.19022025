@@ -36,51 +36,11 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
               console.log('Error sending notification:', error);
             });
         }
-
-        // Notify relatives
-        if (userData.relatives && Array.isArray(userData.relatives)) {
-          userData.relatives.forEach(async (relative) => {
-            const relativeUid = relative.uid; // Access the UID field within the relative object
-            if (relativeUid && typeof relativeUid === 'string' && relativeUid.trim() !== '') {
-              const relativeDoc = await firestore().collection('users').doc(relativeUid).get();
-              if (relativeDoc.exists) {
-                const relativeData = relativeDoc.data();
-                if (relativeData.fcmToken) {
-                  const relativePayload = {
-                    notification: {
-                      title: 'Relative Check-In Status Update',
-                      body: `Your relative's check-in status has been updated to MISSED.`,
-                    },
-                    token: relativeData.fcmToken,
-                    data: {
-                      status: 'missed',
-                    },
-                  };
-                  admin.messaging().send(relativePayload)
-                    .then(response => {
-                      console.log('Relative notification sent successfully:', response);
-                    })
-                    .catch(error => {
-                      console.log('Error sending relative notification:', error);
-                    });
-                } else {
-                  console.log(`No FCM token for relative: ${relativeUid}`);
-                }
-              } else {
-                console.log(`No user document found for relative: ${relativeUid}`);
-              }
-            } else {
-              console.log(`Invalid relative UID: ${relativeUid}`);
-            }
-          });
-        } else {
-          console.log('No relatives found or relatives is not an array');
-        }
       }
       if (checkInTime.status === 'pending' && now <= missedDateTime && now >= checkInDateTime) {
         checkInTime.status = 'open';
 
-        // Send FCM notification to update user status
+        // Send FCM notification to update _user status
         if (userData.fcmToken) {
           const payload = {
             notification: {

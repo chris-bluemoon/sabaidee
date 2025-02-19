@@ -39,8 +39,7 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
 
         // Notify relatives
         if (userData.relatives && Array.isArray(userData.relatives)) {
-          userData.relatives.forEach(async (relative) => {
-            const relativeUid = relative.uid; // Access the UID field within the relative object
+          userData.relatives.forEach(async (relativeUid) => {
             if (relativeUid && typeof relativeUid === 'string' && relativeUid.trim() !== '') {
               const relativeDoc = await firestore().collection('users').doc(relativeUid).get();
               if (relativeDoc.exists) {

@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>857762147173-lk72m5cvc5hb56tnvbspam3rigjt4r6v.apps.googleusercontent.com</string>
+	<string>857762147173-sp14a6ro83ch21hhvn4cunhr9v48jndn.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.857762147173-lk72m5cvc5hb56tnvbspam3rigjt4r6v</string>
+	<string>com.googleusercontent.apps.857762147173-sp14a6ro83ch21hhvn4cunhr9v48jndn</string>
 	<key>ANDROID_CLIENT_ID</key>
 	<string>857762147173-hssekg4tf60pq89fnv0st1dqvug7v5b0.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
@@ -15,7 +15,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.sabaidee</string>
+	<string>sg.bluemoon.sabaidee</string>
 	<key>PROJECT_ID</key>
 	<string>sabaidee-fe340</string>
 	<key>STORAGE_BUCKET</key>
@@ -31,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:857762147173:ios:f457ece4d3dfbeb9a94f8c</string>
+	<string>1:857762147173:ios:87145f7cb38d64cea94f8c</string>
 </dict>
 </plist>

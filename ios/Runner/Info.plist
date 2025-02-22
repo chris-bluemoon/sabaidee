@@ -29,10 +29,25 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
-	<array>
-		<string>fetch</string>
-		<string>remote-notification</string>
-	</array>
+<array>
+  <string>fetch</string>
+  <string>remote-notification</string>
+</array>
+<key>FirebaseAppDelegateProxyEnabled</key>
+<false/>
+<key>NSAppTransportSecurity</key>
+<dict>
+  <key>NSAllowsArbitraryLoads</key>
+  <true/>
+</dict>
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>$(PRODUCT_NAME) location usage description</string>
+<key>NSCameraUsageDescription</key>
+<string>$(PRODUCT_NAME) camera usage description</string>
+<key>NSMicrophoneUsageDescription</key>
+<string>$(PRODUCT_NAME) microphone usage description</string>
+<key>NSUserTrackingUsageDescription</key>
+<string>$(PRODUCT_NAME) user tracking usage description</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

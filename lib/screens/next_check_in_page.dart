@@ -62,7 +62,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                   const SizedBox(height: 50),
                   Row(
                     children: [
-                      Text('$formattedDate - ${userProvider.user?.name ?? ''}',),
+                      Text('$formattedDate - ${userProvider.user?.name ?? ''}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                     ],
                   ),
                   const SizedBox(height: 50),

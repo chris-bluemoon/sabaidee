@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sabaidee/main.dart';
 
@@ -123,7 +122,7 @@ void setCheckInStatus(DateTime dateTime, String status) async {
       'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
         'dateTime': checkInTime.dateTime.toIso8601String(),
         'status': checkInTime.status,
-        'duration': checkInTime.duration.inSeconds, // Ensure duration is included
+        'duration': checkInTime.duration.inMinutes, // Ensure duration is included
       }).toList(),
     });
     notifyListeners();
@@ -149,6 +148,12 @@ void setCheckInStatus(DateTime dateTime, String status) async {
     } catch (e) {
       throw Exception('Failed to sign up: $e');
     }
+  }
+
+  Future<void> fetchUserData(String uid) async {
+    DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
+    _user = User.fromFirestore(userDoc);
+    notifyListeners();
   }
 
   Future<void> signIn(String email, String password) async {
@@ -346,6 +351,7 @@ void _checkForMissedCheckInTimes() async {
     final now = DateTime.now();
     // Create a copy of the list to avoid concurrent modification
     final checkInTimesCopy = List.from(_user!.checkInTimes);
+    log('Missed Check In');
     for (var checkInTime in checkInTimesCopy) {
       if ((checkInTime.status == 'open' || checkInTime.status == 'pending' || checkInTime.status == 'missed') && now.isAfter(checkInTime.dateTime.add(const Duration(minutes: 5)))) {
         // if (checkInTime.status != 'missed') {
@@ -391,32 +397,32 @@ void _checkForMissedCheckInTimes() async {
   //   }
   // }
   
-  Future<void> _showNotification(title, description) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'missed_check_in_channel',
-      'Missed Check-In',
-      channelDescription: 'Generic notification for missed check-in times',
-      importance: Importance.max,
-      priority: Priority.high,
-      ticker: 'ticker',
-    );
-    const DarwinNotificationDetails iosPlatformChannelSpecifics = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-      iOS: iosPlatformChannelSpecifics,
-    );
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      title,
-      description,
-      platformChannelSpecifics,
-      payload: 'missed_check_in',
-    );
-  }
+  // Future<void> _showNotification(title, description) async {
+  //   const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+  //     'missed_check_in_channel',
+  //     'Missed Check-In',
+  //     channelDescription: 'Generic notification for missed check-in times',
+  //     importance: Importance.max,
+  //     priority: Priority.high,
+  //     ticker: 'ticker',
+  //   );
+  //   const DarwinNotificationDetails iosPlatformChannelSpecifics = DarwinNotificationDetails(
+  //     presentAlert: true,
+  //     presentBadge: true,
+  //     presentSound: true,
+  //   );
+  //   const NotificationDetails platformChannelSpecifics = NotificationDetails(
+  //     android: androidPlatformChannelSpecifics,
+  //     iOS: iosPlatformChannelSpecifics,
+  //   );
+  //   await flutterLocalNotificationsPlugin.show(
+  //     0,
+  //     title,
+  //     description,
+  //     platformChannelSpecifics,
+  //     payload: 'missed_check_in',
+  //   );
+  // }
 
 Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTime) async {
   // Delay the execution to ensure the context is available
@@ -566,6 +572,46 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
     // Handle the notification and update the state
     // For example, you can fetch new data from Firestore and update the user
     _fetchUserData(_user!.uid);
+    log(message.data.toString());
+    if (message.data['status'] == 'missed') {
+    final now = DateTime.now();
+    // Create a copy of the list to avoid concurrent modification
+    final checkInTimesCopy = List.from(_user!.checkInTimes);
+    log('Missed Check In');
+    for (var checkInTime in checkInTimesCopy) {
+      log('Checking user stored checkInTime: ${checkInTime.dateTime.toString()}');
+      log('Checking now time: ${now.toString()}');
+      log('Checking status: ${checkInTime.status}');
+      if (checkInTime.status == 'open' || checkInTime.status == 'pending' || checkInTime.status == 'missed') {
+        log('Showing DIALOG for user stored checkInTime: ${checkInTime.dateTime.toString()}');
+        // if (checkInTime.status != 'missed') {
+        //   setCheckInStatus(checkInTime.dateTime, 'missed');
+        //   DateTime newCheckInTime = checkInTime.dateTime.add(const Duration(hours: 24));
+        //   addCheckInTime(newCheckInTime);
+        // }
+          addCheckInTime(checkInTime.dateTime.add(const Duration(hours: 24)));
+          if (navigatorKey.currentContext != null) {
+          showDialog(
+            barrierDismissible: false,
+            context: navigatorKey.currentContext!,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Missed Check-In ${checkInTime.status}'),
+                content: Text('You have missed a check-in time at ${checkInTime.dateTime.hour.toString().padLeft(2, '0')}:${checkInTime.dateTime.minute.toString().padLeft(2, '0')}.'), actions: <Widget>[ TextButton( child: const Text('OK'), onPressed: () { 
+                  setCheckInStatus(checkInTime.dateTime, 'acknowledged'); 
+                  Navigator.of(context).pop();
+                  },
+                  ),
+                ],
+              );
+            },);
+        } else {
+          log('Navigator context is null, cannot show alert');
+        }
+      }
+    }
+  }
+  notifyListeners();
   }
 }
 

@@ -572,46 +572,7 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
     // Handle the notification and update the state
     // For example, you can fetch new data from Firestore and update the user
     _fetchUserData(_user!.uid);
-    log(message.data.toString());
-    if (message.data['status'] == 'missed') {
-    final now = DateTime.now();
-    // Create a copy of the list to avoid concurrent modification
-    final checkInTimesCopy = List.from(_user!.checkInTimes);
-    log('Missed Check In');
-    for (var checkInTime in checkInTimesCopy) {
-      log('Checking user stored checkInTime: ${checkInTime.dateTime.toString()}');
-      log('Checking now time: ${now.toString()}');
-      log('Checking status: ${checkInTime.status}');
-      if (checkInTime.status == 'open' || checkInTime.status == 'pending' || checkInTime.status == 'missed') {
-        log('Showing DIALOG for user stored checkInTime: ${checkInTime.dateTime.toString()}');
-        // if (checkInTime.status != 'missed') {
-        //   setCheckInStatus(checkInTime.dateTime, 'missed');
-        //   DateTime newCheckInTime = checkInTime.dateTime.add(const Duration(hours: 24));
-        //   addCheckInTime(newCheckInTime);
-        // }
-          addCheckInTime(checkInTime.dateTime.add(const Duration(hours: 24)));
-          if (navigatorKey.currentContext != null) {
-          showDialog(
-            barrierDismissible: false,
-            context: navigatorKey.currentContext!,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('Missed Check-In ${checkInTime.status}'),
-                content: Text('You have missed a check-in time at ${checkInTime.dateTime.hour.toString().padLeft(2, '0')}:${checkInTime.dateTime.minute.toString().padLeft(2, '0')}.'), actions: <Widget>[ TextButton( child: const Text('OK'), onPressed: () { 
-                  setCheckInStatus(checkInTime.dateTime, 'acknowledged'); 
-                  Navigator.of(context).pop();
-                  },
-                  ),
-                ],
-              );
-            },);
-        } else {
-          log('Navigator context is null, cannot show alert');
-        }
-      }
-    }
-  }
-  notifyListeners();
+  // notifyListeners();
   }
 }
 

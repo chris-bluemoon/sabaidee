@@ -44,39 +44,6 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
               console.log('Error sending notification:', error);
             });
         }
-
-        // Notify relatives
-        if (userData.relatives && Array.isArray(userData.relatives)) {
-          userData.relatives.forEach(async relative => {
-            if (relative.uid && typeof relative.uid === 'string' && relative.uid.trim() !== '') {
-              const relativeDoc = await firestore().collection('users').doc(relative.uid).get();
-              if (relativeDoc.exists) {
-                const relativeData = relativeDoc.data();
-                if (relativeData.fcmToken) {
-                  const relativePayload = {
-                    notification: {
-                      title: 'Relative Check-In Status Update',
-                      body: `The check-in status for ${userData.name} has been updated to MISSED.`,
-                    },
-                    token: relativeData.fcmToken,
-                    data: {
-                      status: 'missed',
-                    },
-                  };
-                  admin.messaging().send(relativePayload)
-                    .then(response => {
-                      console.log('Relative notification sent successfully:', response);
-                    })
-                    .catch(error => {
-                      console.log('Error sending relative notification:', error);
-                    });
-                }
-              }
-            } else {
-              console.log('Invalid relative ID:', relative.uid);
-            }
-          });
-        }
       }
       if (checkInTime.status === 'pending' && now <= missedDateTime && now >= checkInDateTime) {
         checkInTime.status = 'open';

@@ -1,3 +1,6 @@
+import 'dart:math';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server/gmail.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,91 +19,56 @@ class MyRelativesPage extends StatelessWidget {
         .where((user) => user['uid'] != currentUserUid) // Filter out the current user
         .toList();
   }
+Future<void> sendEmailWithInstructions(String code) async {
+  final smtpServer = gmail('your_email@gmail.com', 'your_password');
+  final message = Message()
+    ..from = Address('your_email@gmail.com', 'Your Name')
+    ..recipients.add('recipient_email@gmail.com')
+    ..subject = 'Instructions to Install the App'
+    ..text = 'Please install the app and use the following code to register: $code';
 
-  @override
-  Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
-    final relatives = userProvider.relatives;
-    final currentUserUid = userProvider.user?.uid;
-
-    return Scaffold(
-      backgroundColor: Colors.yellow,
-      appBar: AppBar(
-        title: const Text('My Relatives'),
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        backgroundColor: Colors.yellow,
-      ),
-           body: FutureBuilder<Map<String, Map<String, String>>>(
-        future: userProvider.fetchRelativeNamesAndStatuses(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return const Center(child: Text('Something went wrong'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No relatives found'));
-          } else {
-            final relativeNamesAndStatuses = snapshot.data!;
-            return ListView.builder(
-              itemCount: relatives.length,
-              itemBuilder: (context, index) {
-                final relative = relatives[index];
-                final relativeUid = relative['uid'];
-                final relativeName = relativeNamesAndStatuses[relativeUid]?['name'] ?? 'Unknown';
-                final relativeStatus = relativeNamesAndStatuses[relativeUid]?['status'] ?? 'Unknown';
-                return ListTile(
-                  title: Text('Name: $relativeName'),
-                  subtitle: Text('Status: $relativeStatus'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () {
-                      // Handle delete relative
-                    },
-                  ),
-                );
-              },
-            );
-          }
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          if (currentUserUid != null) {
-            final registeredUsers = await _fetchRegisteredUsers(currentUserUid);
-            showDialog(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  title: const Text('Add Relative'),
-                  content: SizedBox(
-                    width: double.maxFinite,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: registeredUsers.length,
-                      itemBuilder: (context, index) {
-                        final user = registeredUsers[index];
-                        return ListTile(
-                          title: Text(user['name']),
-                          onTap: () {
-                            userProvider.addRelative(user['uid'],'pending');
-                            Navigator.of(context).pop();
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                );
-              },
-            );
-          }
-        },
-        child: const Icon(Icons.add),
-      ),
-    );
+  try {
+    final sendReport = await send(message, smtpServer);
+    print('Message sent: ${sendReport.toString()}');
+  } on MailerException catch (e) {
+    print('Message not sent. ${e.toString()}');
   }
+}
+String _generateRandomCode() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  final random = Random();
+  return List.generate(6, (index) => chars[random.nextInt(chars.length)]).join();
+}
+Widget build(BuildContext context) {
+  final userProvider = Provider.of<UserProvider>(context);
+  final relatives = userProvider.relatives;
+  final currentUserUid = userProvider.user?.uid;
+
+  return Scaffold(
+    backgroundColor: Colors.yellow,
+    appBar: AppBar(
+      title: const Text('My Relatives'),
+      leading: IconButton(
+        icon: const Icon(Icons.chevron_left),
+        onPressed: () {
+          Navigator.of(context).pop();
+        },
+      ),
+    ),
+    body: Column(
+      children: [
+        // Existing code to display relatives
+        ElevatedButton(
+          onPressed: () async {
+            final code = _generateRandomCode();
+            await sendEmailWithInstructions(code);
+          },
+          child: const Text('Receive Email'),
+        ),
+      ],
+    ),
+  );
+}
+
+
 }

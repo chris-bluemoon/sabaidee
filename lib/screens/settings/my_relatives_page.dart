@@ -1,8 +1,9 @@
 import 'dart:math';
-import 'package:mailer/mailer.dart';
-import 'package:mailer/smtp_server/gmail.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server/gmail.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/user_provider.dart';
 
@@ -20,10 +21,10 @@ class MyRelativesPage extends StatelessWidget {
         .toList();
   }
 Future<void> sendEmailWithInstructions(String code) async {
-  final smtpServer = gmail('your_email@gmail.com', 'your_password');
+  final smtpServer = gmail('chris@unearthedcollections.com', 'your_password');
   final message = Message()
-    ..from = Address('your_email@gmail.com', 'Your Name')
-    ..recipients.add('recipient_email@gmail.com')
+    ..from = const Address('your_email@gmail.com', 'Your Name')
+    ..recipients.add('chris.milner@gmail.com')
     ..subject = 'Instructions to Install the App'
     ..text = 'Please install the app and use the following code to register: $code';
 
@@ -39,7 +40,8 @@ String _generateRandomCode() {
   final random = Random();
   return List.generate(6, (index) => chars[random.nextInt(chars.length)]).join();
 }
-Widget build(BuildContext context) {
+@override
+  Widget build(BuildContext context) {
   final userProvider = Provider.of<UserProvider>(context);
   final relatives = userProvider.relatives;
   final currentUserUid = userProvider.user?.uid;

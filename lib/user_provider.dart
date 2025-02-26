@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:math' as mymath;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -129,10 +130,16 @@ void setCheckInStatus(DateTime dateTime, String status) async {
   }
 }
 
+  String _generateRandomCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final random = mymath.Random();
+    return List.generate(6, (index) => chars[random.nextInt(chars.length)]).join();
+  }
+
   Future<void> signUp(String email, String password, String name, String phoneNumber) async {
     try {
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
-      _user = User(uid: userCredential.user!.uid, email: email, name: 'Dummy', phoneNumber: phoneNumber, checkInTimes: [], relatives: [], watching: []);
+      _user = User(uid: userCredential.user!.uid, email: email, name: 'Dummy', phoneNumber: phoneNumber, checkInTimes: [], relatives: [], watching: [], referralCode: _generateRandomCode());
       
       // Add user to Firestore
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
@@ -142,6 +149,7 @@ void setCheckInStatus(DateTime dateTime, String status) async {
         'checkInTimes': [],
         'relatives': [],
         'watching': [],
+        'referralCode': _generateRandomCode(),
       });
 
       notifyListeners();
@@ -253,6 +261,8 @@ Future<void> _fetchUserData(String uid) async {
         duration: Duration(minutes: time['duration'] ?? 0), // Provide a default value if duration is null
       );
     }).toList(),
+    fcmToken: userDoc['fcmToken'],
+    referralCode: userDoc['referralCode'],
     relatives: (userDoc['relatives'] as List).map((relative) => Map<String, String>.from(relative)).toList(),
     watching: (userDoc['watching'] as List).map((watching) => Map<String, String>.from(watching)).toList(),
     // relatives: List<Map<String, String>>.from(userDoc['relatives'] ?? []),
@@ -521,6 +531,7 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
         relatives: _user!.relatives,
         watching: _user!.watching,
         fcmToken: token,
+        referralCode: _user!.referralCode,
       );
       await _firestore.collection('users').doc(_user!.uid).update({
         'fcmToken': token,
@@ -608,6 +619,7 @@ class User {
   final List<Map<String, String>> relatives;
   final List<Map<String, String>> watching;
   final String? fcmToken;
+  final String referralCode;
 
   User({
     required this.uid,
@@ -618,6 +630,7 @@ class User {
     required this.relatives,
     required this.watching,
     this.fcmToken,
+    required this.referralCode,
   });
 
   factory User.fromFirestore(DocumentSnapshot doc) {
@@ -633,6 +646,7 @@ class User {
       relatives: List<Map<String, String>>.from(data['relatives']),
       watching: List<Map<String, String>>.from(data['watching']),
       fcmToken: data['fcmToken'],
+      referralCode: data['referalCode'],
     );
   }
 
@@ -645,6 +659,7 @@ class User {
       'relatives': relatives,
       'watching': watching,
       'fcmToken': fcmToken,
+      'referralCode': referralCode,
     };
   }
 }

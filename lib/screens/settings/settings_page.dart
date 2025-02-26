@@ -33,7 +33,7 @@ class SettingsPage extends StatelessWidget {
                         context,
                         'My Relatives',
                         Icons.people,
-                        const MyRelativesPage(),
+                        MyRelativesPage(),
                       );
                     } else if (index == 1) {
                       return _buildSettingsOption(

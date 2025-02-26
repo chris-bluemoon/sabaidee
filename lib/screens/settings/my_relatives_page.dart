@@ -8,9 +8,14 @@ import 'package:mailer/smtp_server/gmail.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/user_provider.dart';
 
-class MyRelativesPage extends StatelessWidget {
-  MyRelativesPage({super.key});
+class MyRelativesPage extends StatefulWidget {
+  const MyRelativesPage({super.key});
 
+  @override
+  _MyRelativesPageState createState() => _MyRelativesPageState();
+}
+
+class _MyRelativesPageState extends State<MyRelativesPage> {
   final TextEditingController _referralCodeController = TextEditingController();
 
   Future<List<Map<String, dynamic>>> _fetchRegisteredUsers(String currentUserUid) async {
@@ -92,6 +97,7 @@ class MyRelativesPage extends StatelessWidget {
             },
           );
         } else {
+          final userName = await _getUserNameFromUid(user['uid']);
           userProvider.addRelative(user['uid'], 'pending');
           print('User added as a relative.');
           showDialog(
@@ -149,11 +155,37 @@ class MyRelativesPage extends StatelessWidget {
     return relativesWithNames;
   }
 
+  Future<void> _removeRelative(BuildContext context, String relativeUid) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final currentUserUid = userProvider.user?.uid;
+
+    if (currentUserUid == null) {
+      print('Current user is not logged in.');
+      return;
+    }
+
+    // Remove the relative from the user's relatives list
+    userProvider.relatives.removeWhere((relative) => relative['uid'] == relativeUid);
+    // userProvider.updateRelatives(userProvider.relatives);
+
+    // Update Firestore for the current user
+    await FirebaseFirestore.instance.collection('users').doc(currentUserUid).update({
+      'relatives': FieldValue.arrayRemove([{'uid': relativeUid}]),
+    });
+
+    // Update Firestore for the relative user
+    await FirebaseFirestore.instance.collection('users').doc(relativeUid).update({
+      'watching': FieldValue.arrayRemove([{'uid': currentUserUid}]),
+    });
+
+    print('Relative removed.');
+    setState(() {}); // Refresh the screen
+  }
+
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
     final relatives = userProvider.relatives;
-    final currentUserUid = userProvider.user?.uid;
 
     return Scaffold(
       backgroundColor: Colors.yellow,
@@ -184,7 +216,18 @@ class MyRelativesPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: relativesWithNames.map((relative) {
-                      return Text('Relative Name: ${relative['name']}');
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('${relative['name']}'),
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () async {
+                              await _removeRelative(context, relative['uid']!);
+                            },
+                          ),
+                        ],
+                      );
                     }).toList(),
                   ),
                 ),

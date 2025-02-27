@@ -220,6 +220,7 @@ void setCheckInStatus(DateTime dateTime, String status) async {
         }
       }
     }
+    log('Number of watching names and statuses: ${watchingNamesAndStatuses.length}');
     return watchingNamesAndStatuses;
   }
   Future<Map<String, Map<String, String>>> fetchRelativeNamesAndStatuses() async {
@@ -512,6 +513,10 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
     // Update Firestore for the relative user
     await _firestore.collection('users').doc(uid).update({
       'relatives': FieldValue.arrayRemove([{'uid': _user!.uid, 'status': 'pending'}]),
+    });
+    // Update Firestore for the watcher user
+    await _firestore.collection('users').doc(uid).update({
+      'watching': FieldValue.arrayRemove([{'uid': _user!.uid, 'status': 'pending'}]),
     });
 
     notifyListeners();

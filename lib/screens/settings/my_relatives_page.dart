@@ -165,17 +165,16 @@ class _MyRelativesPageState extends State<MyRelativesPage> {
     }
 
     // Remove the relative from the user's relatives list
-    userProvider.relatives.removeWhere((relative) => relative['uid'] == relativeUid);
-    // userProvider.updateRelatives(userProvider.relatives);
+    await userProvider.removeRelative(relativeUid);
 
     // Update Firestore for the current user
     await FirebaseFirestore.instance.collection('users').doc(currentUserUid).update({
-      'relatives': FieldValue.arrayRemove([{'uid': relativeUid}]),
+      'relatives': FieldValue.arrayRemove([{'uid': relativeUid, 'name': await _getUserNameFromUid(relativeUid)}]),
     });
 
     // Update Firestore for the relative user
     await FirebaseFirestore.instance.collection('users').doc(relativeUid).update({
-      'watching': FieldValue.arrayRemove([{'uid': currentUserUid}]),
+      'watching': FieldValue.arrayRemove([{'uid': currentUserUid, 'name': await _getUserNameFromUid(currentUserUid)}]),
     });
 
     print('Relative removed.');
@@ -198,23 +197,22 @@ class _MyRelativesPageState extends State<MyRelativesPage> {
           },
         ),
       ),
-      body: FutureBuilder<List<Map<String, String>>>(
-        future: _fetchRelativesWithNames(relatives),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return const Center(child: Text('Error loading relatives'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No current relatives'));
-          } else {
-            final relativesWithNames = snapshot.data!;
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+      body: Column(
+        children: [
+          Expanded(
+            child: FutureBuilder<List<Map<String, String>>>(
+              future: _fetchRelativesWithNames(relatives),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return const Center(child: Text('Error loading relatives'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('No current relatives'));
+                } else {
+                  final relativesWithNames = snapshot.data!;
+                  return ListView(
+                    padding: const EdgeInsets.all(16.0),
                     children: relativesWithNames.map((relative) {
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -229,35 +227,35 @@ class _MyRelativesPageState extends State<MyRelativesPage> {
                         ],
                       );
                     }).toList(),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    final code = _generateRandomCode();
-                    await sendEmailWithInstructions(code);
-                  },
-                  child: const Text('Receive Email'),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: TextField(
-                    controller: _referralCodeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Enter Referral Code',
-                    ),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    final code = _referralCodeController.text;
-                    await _submitReferralCode(context, code);
-                  },
-                  child: const Text('Submit Referral Code'),
-                ),
-              ],
-            );
-          }
-        },
+                  );
+                }
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: _referralCodeController,
+              decoration: const InputDecoration(
+                labelText: 'Enter Referral Code',
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final code = _referralCodeController.text;
+              await _submitReferralCode(context, code);
+            },
+            child: const Text('Submit Referral Code'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final code = _generateRandomCode();
+              await sendEmailWithInstructions(code);
+            },
+            child: const Text('Receive Email'),
+          ),
+        ],
       ),
     );
   }

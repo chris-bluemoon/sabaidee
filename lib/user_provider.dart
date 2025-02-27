@@ -501,6 +501,11 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
   List<Map<String, String>> get relatives {
     return _user?.relatives ?? [];
   }
+  
+  Future<void> removeRelative(String uid) async {
+    _user?.relatives.removeWhere((relative) => relative['uid'] == uid);
+    notifyListeners();
+  }
 
   Future<void> addRelative(String relativeUid, String status) async {
     if (_user != null) {

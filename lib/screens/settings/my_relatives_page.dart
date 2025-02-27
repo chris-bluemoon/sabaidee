@@ -167,15 +167,15 @@ class _MyRelativesPageState extends State<MyRelativesPage> {
     // Remove the relative from the user's relatives list
     await userProvider.removeRelative(relativeUid);
 
-    // Update Firestore for the current user
-    await FirebaseFirestore.instance.collection('users').doc(currentUserUid).update({
-      'relatives': FieldValue.arrayRemove([{'uid': relativeUid, 'name': await _getUserNameFromUid(relativeUid)}]),
-    });
+    // // Update Firestore for the current user
+    // await FirebaseFirestore.instance.collection('users').doc(currentUserUid).update({
+    //   'relatives': FieldValue.arrayRemove([{'uid': relativeUid, 'status': 'pending'}]),
+    // });
 
-    // Update Firestore for the relative user
-    await FirebaseFirestore.instance.collection('users').doc(relativeUid).update({
-      'watching': FieldValue.arrayRemove([{'uid': currentUserUid, 'name': await _getUserNameFromUid(currentUserUid)}]),
-    });
+    // // Update Firestore for the relative user
+    // await FirebaseFirestore.instance.collection('users').doc(relativeUid).update({
+    //   'watching': FieldValue.arrayRemove([{'uid': currentUserUid, 'status': 'pending'}]),
+    // });
 
     print('Relative removed.');
     setState(() {}); // Refresh the screen

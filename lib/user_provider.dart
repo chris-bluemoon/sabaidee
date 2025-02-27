@@ -504,6 +504,16 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
   
   Future<void> removeRelative(String uid) async {
     _user?.relatives.removeWhere((relative) => relative['uid'] == uid);
+          // Update Firestore for the current user
+      await _firestore.collection('users').doc(_user!.uid).update({
+        'relatives': FieldValue.arrayRemove([{'uid': uid, 'status': 'pending'}]),
+      });
+
+    // Update Firestore for the relative user
+    await _firestore.collection('users').doc(uid).update({
+      'relatives': FieldValue.arrayRemove([{'uid': _user!.uid, 'status': 'pending'}]),
+    });
+
     notifyListeners();
   }
 

@@ -8,14 +8,14 @@ import 'package:mailer/smtp_server/gmail.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/user_provider.dart';
 
-class MyRelativesPage extends StatefulWidget {
-  const MyRelativesPage({super.key});
+class MyFollowersPage extends StatefulWidget {
+  const MyFollowersPage({super.key});
 
   @override
-  _MyRelativesPageState createState() => _MyRelativesPageState();
+  _MyFollowersPageState createState() => _MyFollowersPageState();
 }
 
-class _MyRelativesPageState extends State<MyRelativesPage> {
+class _MyFollowersPageState extends State<MyFollowersPage> {
   final TextEditingController _referralCodeController = TextEditingController();
 
   Future<List<Map<String, dynamic>>> _fetchRegisteredUsers(String currentUserUid) async {
@@ -74,19 +74,22 @@ class _MyRelativesPageState extends State<MyRelativesPage> {
       if (user['referralCode'] == code) {
         userFound = true;
         print('User found with referral code: $code');
-        final existingRelatives = userProvider.relatives;
-        final relativeAlreadyExists = existingRelatives.any((relative) => relative['uid'] == user['uid']);
+        final existingFollowers = userProvider.followers;
+        final followerAlreadyExists = existingFollowers.any((follower) => follower['uid'] == user['uid']);
 
-        if (relativeAlreadyExists) {
+        if (followerAlreadyExists) {
           showDialog(
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: const Text('Relative Already Exists'),
-                content: const Text('This user is already added as a relative.'),
+                title: const Text('Follower Already Exists'),
+                content: const Text('This user is already added as a follower.'),
                 actions: <Widget>[
                   TextButton(
-                    child: const Text('OK'),
+                    child: const Text(
+                      'CANCEL',
+                      style: TextStyle(color: Colors.black),
+                    ),
                     onPressed: () {
                       Navigator.of(context).pop();
                       _referralCodeController.clear();
@@ -98,17 +101,20 @@ class _MyRelativesPageState extends State<MyRelativesPage> {
           );
         } else {
           final userName = await _getUserNameFromUid(user['uid']);
-          userProvider.addRelative(user['uid'], 'pending');
-          print('User added as a relative.');
+          userProvider.createRelationship(user['uid'], 'pending');
+          print('User added as a follower.');
           showDialog(
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: const Text('Relative Added'),
-                content: const Text('The user has been added as a relative.'),
+                title: const Text('Follower Added'),
+                content: const Text('The user has been added as a follower.'),
                 actions: <Widget>[
                   TextButton(
-                    child: const Text('OK'),
+                    child: const Text(
+                      'OK',
+                      style: TextStyle(color: Colors.black),
+                    ),
                     onPressed: () {
                       Navigator.of(context).pop(); // Close the dialog
                       Navigator.of(context).pop(); // Pop back to the previous screen
@@ -133,7 +139,10 @@ class _MyRelativesPageState extends State<MyRelativesPage> {
             content: const Text('The referral code you entered is invalid.'),
             actions: <Widget>[
               TextButton(
-                child: const Text('OK'),
+                child: const Text(
+                  'OK',
+                  style: TextStyle(color: Colors.black),
+                ),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -146,16 +155,16 @@ class _MyRelativesPageState extends State<MyRelativesPage> {
     }
   }
 
-  Future<List<Map<String, String>>> _fetchRelativesWithNames(List<Map<String, String>> relatives) async {
-    List<Map<String, String>> relativesWithNames = [];
-    for (var relative in relatives) {
-      final name = await _getUserNameFromUid(relative['uid']!);
-      relativesWithNames.add({'uid': relative['uid']!, 'name': name ?? 'Unknown'});
+  Future<List<Map<String, String>>> _fetchFollowersWithNames(List<Map<String, String>> followers) async {
+    List<Map<String, String>> followersWithNames = [];
+    for (var follower in followers) {
+      final name = await _getUserNameFromUid(follower['uid']!);
+      followersWithNames.add({'uid': follower['uid']!, 'name': name ?? 'Unknown'});
     }
-    return relativesWithNames;
+    return followersWithNames;
   }
 
-  Future<void> _removeRelative(BuildContext context, String relativeUid) async {
+  Future<void> _removeFollower(BuildContext context, String followerUid) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final currentUserUid = userProvider.user?.uid;
 
@@ -164,34 +173,43 @@ class _MyRelativesPageState extends State<MyRelativesPage> {
       return;
     }
 
-    // Remove the relative from the user's relatives list
-    await userProvider.removeRelative(relativeUid);
+    // Remove the follower from the user's followers list
+    await userProvider.removeFollower(followerUid);
 
     // // Update Firestore for the current user
     // await FirebaseFirestore.instance.collection('users').doc(currentUserUid).update({
-    //   'relatives': FieldValue.arrayRemove([{'uid': relativeUid, 'status': 'pending'}]),
+    //   'followers': FieldValue.arrayRemove([{'uid': followerUid, 'status': 'pending'}]),
     // });
 
-    // // Update Firestore for the relative user
-    // await FirebaseFirestore.instance.collection('users').doc(relativeUid).update({
+    // // Update Firestore for the follower user
+    // await FirebaseFirestore.instance.collection('users').doc(followerUid).update({
     //   'watching': FieldValue.arrayRemove([{'uid': currentUserUid, 'status': 'pending'}]),
     // });
 
-    print('Relative removed.');
+    print('Follower removed.');
     setState(() {}); // Refresh the screen
   }
 
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
-    final relatives = userProvider.relatives;
+    final followers = userProvider.followers;
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       backgroundColor: Colors.yellow,
       appBar: AppBar(
-        title: const Text('My Relatives'),
+        title: const Text(
+          'MY FOLLOWERS',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.yellow,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left),
+          icon: Icon(
+            Icons.chevron_left,
+            size: screenWidth * 0.08, // Set the size follower to the screen width
+          ),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -201,30 +219,66 @@ class _MyRelativesPageState extends State<MyRelativesPage> {
         children: [
           Expanded(
             child: FutureBuilder<List<Map<String, String>>>(
-              future: _fetchRelativesWithNames(relatives),
+              future: _fetchFollowersWithNames(followers),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
-                  return const Center(child: Text('Error loading relatives'));
+                  return const Center(child: Text('Error loading followers'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No current relatives'));
+                  return const Center(child: Text('No current followers'));
                 } else {
-                  final relativesWithNames = snapshot.data!;
+                  final followersWithNames = snapshot.data!;
                   return ListView(
                     padding: const EdgeInsets.all(16.0),
-                    children: relativesWithNames.map((relative) {
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('${relative['name']}'),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () async {
-                              await _removeRelative(context, relative['uid']!);
-                            },
+                    children: followersWithNames.map((follower) {
+                      return Dismissible(
+                        key: Key(follower['uid']!),
+                        direction: DismissDirection.endToStart,
+                        onDismissed: (direction) async {
+                          await _removeFollower(context, follower['uid']!);
+                        },
+                        background: Container(
+                          color: Colors.red,
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: const Icon(Icons.delete_outline, color: Colors.white),
+                        ),
+                        child: ListTile(
+                          title: Container(
+                            padding: const EdgeInsets.fromLTRB(12.0, 6.0, 6.0, 6.0), // Increase the left padding slightly
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  spreadRadius: 2,
+                                  blurRadius: 5,
+                                  offset: const Offset(0, 3), // changes position of shadow
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  follower['name']!,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: screenWidth * 0.05, // Set the font size follower to the screen width
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline, color: Colors.black),
+                                  onPressed: () async {
+                                    await _removeFollower(context, follower['uid']!);
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
+                        ),
                       );
                     }).toList(),
                   );
@@ -234,26 +288,19 @@ class _MyRelativesPageState extends State<MyRelativesPage> {
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _referralCodeController,
-              decoration: const InputDecoration(
-                labelText: 'Enter Referral Code',
+            child: GestureDetector(
+              onTap: () async {
+                final code = _generateRandomCode();
+                await sendEmailWithInstructions(code);
+              },
+              child: const Text(
+                "Don't have a code yet? Receive an email",
+                style: TextStyle(
+                  color: Colors.black,
+                  decoration: TextDecoration.underline,
+                ),
               ),
             ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final code = _referralCodeController.text;
-              await _submitReferralCode(context, code);
-            },
-            child: const Text('Submit Referral Code'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final code = _generateRandomCode();
-              await sendEmailWithInstructions(code);
-            },
-            child: const Text('Receive Email'),
           ),
         ],
       ),

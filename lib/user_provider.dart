@@ -71,7 +71,7 @@ class UserProvider with ChangeNotifier {
               'email': firebaseUser.email,
               'name': 'TBC',
               'checkInTimes': [],
-              'relatives': [],
+              'followers': [],
               'watching': [],
             });
           }
@@ -139,7 +139,7 @@ void setCheckInStatus(DateTime dateTime, String status) async {
   Future<void> signUp(String email, String password, String name, String phoneNumber) async {
     try {
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
-      _user = User(uid: userCredential.user!.uid, email: email, name: 'Dummy', phoneNumber: phoneNumber, checkInTimes: [], relatives: [], watching: [], referralCode: _generateRandomCode());
+      _user = User(uid: userCredential.user!.uid, email: email, name: 'Dummy', phoneNumber: phoneNumber, checkInTimes: [], followers: [], watching: [], referralCode: _generateRandomCode());
       
       // Add user to Firestore
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
@@ -147,7 +147,7 @@ void setCheckInStatus(DateTime dateTime, String status) async {
         'name': name,
         'phoneNumber': phoneNumber,
         'checkInTimes': [],
-        'relatives': [],
+        'followers': [],
         'watching': [],
         'referralCode': _generateRandomCode(),
       });
@@ -190,19 +190,19 @@ void setCheckInStatus(DateTime dateTime, String status) async {
     notifyListeners();
   }
 
-  Future<Map<String, String>> fetchRelativeEmails() async {
-    final Map<String, String> relativeEmails = {};
+  Future<Map<String, String>> fetchFollowerEmails() async {
+    final Map<String, String> followerEmails = {};
     if (_user != null) {
-      for (Map<String, String> relative in _user!.relatives) {
-        String relativeUid = relative['uid']!;
-        final userDoc = await _firestore.collection('users').doc(relativeUid).get();
+      for (Map<String, String> follower in _user!.followers) {
+        String followerUid = follower['uid']!;
+        final userDoc = await _firestore.collection('users').doc(followerUid).get();
         if (userDoc.exists) {
           final userData = userDoc.data()!;
-          relativeEmails[relativeUid] = userData['email'];
+          followerEmails[followerUid] = userData['email'];
         }
       }
     }
-    return relativeEmails;
+    return followerEmails;
   }
   Future<Map<String, Map<String, String>>> fetchWatchingNamesAndStatuses() async {
     final Map<String, Map<String, String>> watchingNamesAndStatuses = {};
@@ -223,23 +223,23 @@ void setCheckInStatus(DateTime dateTime, String status) async {
     log('Number of watching names and statuses: ${watchingNamesAndStatuses.length}');
     return watchingNamesAndStatuses;
   }
-  Future<Map<String, Map<String, String>>> fetchRelativeNamesAndStatuses() async {
-    final Map<String, Map<String, String>> relativeNamesAndStatuses = {};
+  Future<Map<String, Map<String, String>>> fetchFollowerNamesAndStatuses() async {
+    final Map<String, Map<String, String>> followerNamesAndStatuses = {};
     if (_user != null) {
-      for (var relative in _user!.relatives) {
-        final relativeUid = relative['uid'];
-        final status = relative['status'];
-        final userDoc = await _firestore.collection('users').doc(relativeUid).get();
+      for (var follower in _user!.followers) {
+        final followerUid = follower['uid'];
+        final status = follower['status'];
+        final userDoc = await _firestore.collection('users').doc(followerUid).get();
         if (userDoc.exists) {
           final userData = userDoc.data()!;
-          relativeNamesAndStatuses[relativeUid!] = {
+          followerNamesAndStatuses[followerUid!] = {
             'name': userData['name'],
             'status': status!,
           };
         }
       }
     }
-    return relativeNamesAndStatuses;
+    return followerNamesAndStatuses;
   }
 
 Future<void> _fetchUserData(String uid) async {
@@ -264,9 +264,9 @@ Future<void> _fetchUserData(String uid) async {
     }).toList(),
     fcmToken: userDoc['fcmToken'],
     referralCode: userDoc['referralCode'],
-    relatives: (userDoc['relatives'] as List).map((relative) => Map<String, String>.from(relative)).toList(),
+    followers: (userDoc['followers'] as List).map((follower) => Map<String, String>.from(follower)).toList(),
     watching: (userDoc['watching'] as List).map((watching) => Map<String, String>.from(watching)).toList(),
-    // relatives: List<Map<String, String>>.from(userDoc['relatives'] ?? []),
+    // followers: List<Map<String, String>>.from(userDoc['followers'] ?? []),
     // watching: List<Map<String, String>>.from(userDoc['watching'] ?? []),
   );
   notifyListeners();
@@ -499,20 +499,20 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
   List<Map<String, String>> get watching {
     return _user?.watching ?? [];
   }
-  List<Map<String, String>> get relatives {
-    return _user?.relatives ?? [];
+  List<Map<String, String>> get followers {
+    return _user?.followers ?? [];
   }
   
-  Future<void> removeRelative(String uid) async {
-    _user?.relatives.removeWhere((relative) => relative['uid'] == uid);
+  Future<void> removeFollower(String uid) async {
+    _user?.followers.removeWhere((follower) => follower['uid'] == uid);
           // Update Firestore for the current user
       await _firestore.collection('users').doc(_user!.uid).update({
-        'relatives': FieldValue.arrayRemove([{'uid': uid, 'status': 'pending'}]),
+        'followers': FieldValue.arrayRemove([{'uid': uid, 'status': 'pending'}]),
       });
 
-    // Update Firestore for the relative user
+    // Update Firestore for the follower user
     await _firestore.collection('users').doc(uid).update({
-      'relatives': FieldValue.arrayRemove([{'uid': _user!.uid, 'status': 'pending'}]),
+      'followers': FieldValue.arrayRemove([{'uid': _user!.uid, 'status': 'pending'}]),
     });
     // Update Firestore for the watcher user
     await _firestore.collection('users').doc(uid).update({
@@ -522,17 +522,17 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
     notifyListeners();
   }
 
-  Future<void> addRelative(String relativeUid, String status) async {
+  Future<void> createRelationship(String followerUid, String status) async {
     if (_user != null) {
-      _user!.relatives.add({'uid': relativeUid, 'status': status});
+      _user!.followers.add({'uid': followerUid, 'status': status});
 
       // Update Firestore for the current user
       await _firestore.collection('users').doc(_user!.uid).update({
-        'relatives': FieldValue.arrayUnion([{'uid': relativeUid, 'status': status}]),
+        'followers': FieldValue.arrayUnion([{'uid': followerUid, 'status': status}]),
       });
 
-      // Update Firestore for the relative user
-      await _firestore.collection('users').doc(relativeUid).update({
+      // Update Firestore for the follower user
+      await _firestore.collection('users').doc(followerUid).update({
         'watching': FieldValue.arrayUnion([{'uid': _user!.uid, 'status': status}]),
       });
 
@@ -548,7 +548,7 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
         name: _user!.name,
         phoneNumber: _user!.phoneNumber,
         checkInTimes: _user!.checkInTimes,
-        relatives: _user!.relatives,
+        followers: _user!.followers,
         watching: _user!.watching,
         fcmToken: token,
         referralCode: _user!.referralCode,
@@ -636,7 +636,7 @@ class User {
   final String name;
   final String phoneNumber;
   final List<CheckInTime> checkInTimes;
-  final List<Map<String, String>> relatives;
+  final List<Map<String, String>> followers;
   final List<Map<String, String>> watching;
   final String? fcmToken;
   final String referralCode;
@@ -647,7 +647,7 @@ class User {
     required this.name,
     required this.phoneNumber,
     required this.checkInTimes,
-    required this.relatives,
+    required this.followers,
     required this.watching,
     this.fcmToken,
     required this.referralCode,
@@ -663,7 +663,7 @@ class User {
       checkInTimes: (data['checkInTimes'] as List)
           .map((item) => CheckInTime.fromMap(item as Map<String, dynamic>))
           .toList(),
-      relatives: List<Map<String, String>>.from(data['relatives']),
+      followers: List<Map<String, String>>.from(data['followers']),
       watching: List<Map<String, String>>.from(data['watching']),
       fcmToken: data['fcmToken'],
       referralCode: data['referalCode'],
@@ -676,7 +676,7 @@ class User {
       'name': name,
       'phoneNumber': phoneNumber,
       'checkInTimes': checkInTimes.map((checkInTime) => checkInTime.toMap()).toList(),
-      'relatives': relatives,
+      'followers': followers,
       'watching': watching,
       'fcmToken': fcmToken,
       'referralCode': referralCode,

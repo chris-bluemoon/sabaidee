@@ -132,7 +132,7 @@ class AuthWrapper extends StatelessWidget {
         );
       }).toList();
 
-      final relatives = (userData['relatives'] as List).map((relative) {
+      final followers = (userData['followers'] as List).map((relative) {
         return Map<String, String>.from(relative);
       }).toList();
       final watching = (userData['watching'] as List).map((watching) {
@@ -146,7 +146,7 @@ class AuthWrapper extends StatelessWidget {
           name: userData['name'],
           phoneNumber: userData['phoneNumber'],
           checkInTimes: checkInTimes,
-          relatives: relatives,
+          followers: followers,
           watching: watching,
           fcmToken: userData['fcmToken'],
           referralCode: userData['referralCode'],

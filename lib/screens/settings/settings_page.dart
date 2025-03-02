@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sabaidee/screens/settings/my_relatives_page.dart';
+import 'package:sabaidee/screens/settings/my_followers_page.dart';
 import 'package:sabaidee/screens/settings/my_schedule_page.dart';
 import 'package:sabaidee/screens/settings/my_watch_list.dart';
 import 'package:sabaidee/user_provider.dart';
@@ -10,30 +10,33 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final watchings = userProvider.watching;
+
     return Scaffold(
       backgroundColor: Colors.yellow,
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.only(top: 50.0), // Move the container down by 50 pixels
+          padding: const EdgeInsets.only(top: 10.0), // Move the container down by 50 pixels
           child: Column(
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Colors.yellow, // Set the background color to yellow
                   borderRadius: BorderRadius.circular(16.0), // Add rounded corners
                 ),
                 margin: const EdgeInsets.all(16.0),
                 child: ListView.separated(
                   shrinkWrap: true,
                   padding: const EdgeInsets.all(16.0),
-                  itemCount: 3, // Update this count based on the number of options
+                  itemCount: 3, // Always show 3 items
                   itemBuilder: (context, index) {
                     if (index == 0) {
                       return _buildSettingsOption(
                         context,
-                        'My Relatives',
+                        'My Followers',
                         Icons.people,
-                        MyRelativesPage(),
+                        const MyFollowersPage(),
                       );
                     } else if (index == 1) {
                       return _buildSettingsOption(
@@ -45,7 +48,7 @@ class SettingsPage extends StatelessWidget {
                     } else if (index == 2) {
                       return _buildSettingsOption(
                         context,
-                        'My Watch List',
+                        'Who Am I Following?',
                         Icons.watch_later,
                         const MyWatchList(),
                       );
@@ -58,9 +61,10 @@ class SettingsPage extends StatelessWidget {
                   ),
                 ),
               ),
+              const Spacer(), // Add a spacer to push the Sign Out option to the bottom
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Colors.yellow, // Set the background color to yellow
                   borderRadius: BorderRadius.circular(16.0), // Add rounded corners
                 ),
                 margin: const EdgeInsets.all(16.0),
@@ -71,8 +75,8 @@ class SettingsPage extends StatelessWidget {
                     ListTile(
                       leading: const Icon(Icons.logout),
                       title: const Text('Sign Out'),
-                      iconColor: Colors.red,
-                      textColor: Colors.red,
+                      iconColor: Colors.black,
+                      textColor: Colors.black,
                       onTap: () {
                         Provider.of<UserProvider>(context, listen: false).signOut();
                         Navigator.of(context).popUntil((route) => route.isFirst);

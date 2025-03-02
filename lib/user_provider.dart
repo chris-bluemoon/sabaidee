@@ -524,16 +524,16 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
 
   Future<void> createRelationship(String followerUid, String status) async {
     if (_user != null) {
-      _user!.followers.add({'uid': followerUid, 'status': status});
+      _user!.watching.add({'uid': followerUid, 'status': status});
 
       // Update Firestore for the current user
       await _firestore.collection('users').doc(_user!.uid).update({
-        'followers': FieldValue.arrayUnion([{'uid': followerUid, 'status': status}]),
+        'watching': FieldValue.arrayUnion([{'uid': followerUid, 'status': status}]),
       });
 
       // Update Firestore for the follower user
       await _firestore.collection('users').doc(followerUid).update({
-        'watching': FieldValue.arrayUnion([{'uid': _user!.uid, 'status': status}]),
+        'followers': FieldValue.arrayUnion([{'uid': _user!.uid, 'status': status}]),
       });
 
       notifyListeners();

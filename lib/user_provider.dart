@@ -136,13 +136,23 @@ void setCheckInStatus(DateTime dateTime, String status) async {
     return List.generate(6, (index) => chars[random.nextInt(chars.length)]).join();
   }
 
-  Future<void> signUp(String email, String password, String name, String phoneNumber, String country) async {
+  Future<void> signUp(String email, String password, String name, String phoneNumber, Map<String, String> country) async {
     try {
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
-      _user = User(uid: userCredential.user!.uid, email: email, name: 'Dummy', phoneNumber: phoneNumber, country: country, checkInTimes: [], followers: [], watching: [], referralCode: _generateRandomCode());
-      
+      _user = User(
+        uid: userCredential.user!.uid,
+        email: email,
+        name: name,
+        phoneNumber: phoneNumber,
+        country: country,
+        checkInTimes: [],
+        followers: [],
+        watching: [],
+        referralCode: _generateRandomCode(),
+      );
+
       // Add user to Firestore
-      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+      await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
         'email': email,
         'name': name,
         'phoneNumber': phoneNumber,
@@ -160,7 +170,7 @@ void setCheckInStatus(DateTime dateTime, String status) async {
   }
 
   Future<void> fetchUserData(String uid) async {
-    DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
     _user = User.fromFirestore(userDoc);
     notifyListeners();
   }
@@ -252,7 +262,7 @@ Future<void> _fetchUserData(String uid) async {
     email: userDoc['email'],
     name: userDoc['name'],
     phoneNumber: userDoc['phoneNumber'],
-    country: userDoc['country'],
+    country: userDoc['country'] is String ? {'name': userDoc['country']} : Map<String, String>.from(userDoc['country']),
     checkInTimes: (userDoc['checkInTimes'] as List).map((time) {
       return CheckInTime(
         dateTime: DateTime.parse(time['dateTime']),
@@ -524,7 +534,7 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
     notifyListeners();
   }
   // Add the updateUser method
-  Future<void> updateUser({required String name, required String phoneNumber, required String country}) async {
+  Future<void> updateUser({required String name, required String phoneNumber, required Map<String, String> country}) async {
     if (_user == null) return;
 
     // Update the user information in the provider
@@ -653,7 +663,7 @@ class User {
   final String email;
   String name;
   String phoneNumber;
-  String country;
+  Map<String, String> country; // Change country to a map with timezone
   final List<CheckInTime> checkInTimes;
   final List<Map<String, String>> followers;
   final List<Map<String, String>> watching;
@@ -680,14 +690,14 @@ class User {
       email: data['email'],
       name: data['name'],
       phoneNumber: data['phoneNumber'],
-      country: data['country'],
+      country: Map<String, String>.from(data['country']),
       checkInTimes: (data['checkInTimes'] as List)
           .map((item) => CheckInTime.fromMap(item as Map<String, dynamic>))
           .toList(),
       followers: List<Map<String, String>>.from(data['followers']),
       watching: List<Map<String, String>>.from(data['watching']),
       fcmToken: data['fcmToken'],
-      referralCode: data['referalCode'],
+      referralCode: data['referralCode'],
     );
   }
 

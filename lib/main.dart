@@ -1,6 +1,5 @@
 import 'dart:developer';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -120,46 +119,10 @@ class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
   Future<void> _fetchAndSetUser(BuildContext context, String uid) async {
-    final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    if (userDoc.exists) {
-      log('User found in Firestore with uid: $uid');
-      final userData = userDoc.data()!;
-      final checkInTimes = (userData['checkInTimes'] as List).map((time) {
-        return CheckInTime(
-          dateTime: DateTime.parse(time['dateTime']),
-          status: time['status'],
-          duration: Duration(seconds: time['duration']),
-        );
-      }).toList();
-
-      final followers = (userData['followers'] as List).map((relative) {
-        return Map<String, String>.from(relative);
-      }).toList();
-      final watching = (userData['watching'] as List).map((watching) {
-        return Map<String, String>.from(watching);
-      }).toList();
-
-      Provider.of<UserProvider>(context, listen: false).setUser(
-        User(
-          uid: uid,
-          email: userData['email'],
-          name: userData['name'],
-          phoneNumber: userData['phoneNumber'],
-          country: userData['country'],
-          checkInTimes: checkInTimes,
-          followers: followers,
-          watching: watching,
-          fcmToken: userData['fcmToken'],
-          referralCode: userData['referralCode'],
-        ),
-      );
-      // Get FCM token and update it
-      final fcmToken = await FirebaseMessaging.instance.getToken();
-      if (fcmToken != null) {
-        Provider.of<UserProvider>(context, listen: false).updateFcmToken(fcmToken);
-      }
-    } else {
-      log('User not found in Firestore - redundant code/mismatch with Firebase?, should be not reached');
+    try {
+      await Provider.of<UserProvider>(context, listen: false).fetchUserData(uid);
+    } catch (e) {
+      log('Failed to fetch and set user: $e');
     }
   }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:sabaidee/screens/next_check_in_page.dart';
-import 'package:sabaidee/screens/settings/settings_page.dart';
+import 'package:sabaidee/utils/next_check_in_page.dart';
+import 'package:sabaidee/utils/settings/settings_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

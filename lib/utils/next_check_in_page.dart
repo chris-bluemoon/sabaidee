@@ -31,11 +31,11 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
         child: Consumer<UserProvider>(
           builder: (context, userProvider, child) {
             final checkInTimes = userProvider.user?.checkInTimes.where((time) => (time.status == 'pending' || time.status == 'open')).toList();
-            // if (userProvider.user?.checkInTimes.isEmpty ?? true) {
-            //   return const Center(
-            //     child: Text('No Check In Times Set Up Yet'),
-            //   );
-            // }
+            if (userProvider.user?.checkInTimes.isEmpty ?? true) {
+              return const Center(
+                child: Text('No Check In Times Set Up Yet'),
+              );
+            }
 
             // Find the next check-in time
             final now = DateTime.now().toUtc();
@@ -49,6 +49,11 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
             if (nextOrOpenCheckInTime == null) {
               log('No upcoming check-in times');
             }
+
+            final localStartTime = nextOrOpenCheckInTime?.dateTime.toLocal();
+            final localEndTime = nextOrOpenCheckInTime?.dateTime.add(const Duration(minutes: 5)).toLocal();
+            final formattedStartTime = localStartTime != null ? DateFormat('hh:mm a').format(localStartTime) : '';
+            final formattedEndTime = localEndTime != null ? DateFormat('hh:mm a').format(localEndTime) : '';
 
             return Center(
               child: Column(
@@ -89,7 +94,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                               Expanded(
                                 child: Center(
                                   child: Text(
-                                    '${nextOrOpenCheckInTime.dateTime.hour.toString().padLeft(2, '0')}:${nextOrOpenCheckInTime.dateTime.minute.toString().padLeft(2, '0')} - ${nextOrOpenCheckInTime.dateTime.add(const Duration(minutes: 5)).hour.toString().padLeft(2, '0')}:${nextOrOpenCheckInTime.dateTime.add(const Duration(minutes: 5)).minute.toString().padLeft(2, '0')}',
+                                    '$formattedStartTime - $formattedEndTime',
                                     style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
                                     textAlign: TextAlign.center,
                                   ),
@@ -168,7 +173,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                                 child: Center(
                                   child: nextOrOpenCheckInTime != null
                                       ? Text(
-                                          '${nextOrOpenCheckInTime.dateTime.hour.toString().padLeft(2, '0')}:${nextOrOpenCheckInTime.dateTime.minute.toString().padLeft(2, '0')} - ${nextOrOpenCheckInTime.dateTime.add(const Duration(minutes: 5)).hour.toString().padLeft(2, '0')}:${nextOrOpenCheckInTime.dateTime.add(const Duration(minutes: 5)).minute.toString().padLeft(2, '0')}',
+                                          '$formattedStartTime - $formattedEndTime',
                                           style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
                                           textAlign: TextAlign.center,
                                         )

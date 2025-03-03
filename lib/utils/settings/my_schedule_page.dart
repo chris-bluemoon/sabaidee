@@ -13,6 +13,7 @@ class MySchedulePage extends StatelessWidget {
     final userProvider = Provider.of<UserProvider>(context);
     final pendiningOrOpenScheduleTimes = userProvider.pendingOrOpenCheckInTimes;
     final screenWidth = MediaQuery.of(context).size.width;
+    final userTimezone = userProvider.user?.country['timezone'] ?? 'UTC';
 
     return Scaffold(
       backgroundColor: Colors.yellow,
@@ -48,8 +49,10 @@ class MySchedulePage extends StatelessWidget {
               itemCount: pendiningOrOpenScheduleTimes.length,
               itemBuilder: (context, index) {
                 final checkInTime = pendiningOrOpenScheduleTimes[index];
-                final formattedStartTime = DateFormat('hh:mm a').format(checkInTime.dateTime); // Format the time to 12-hour with AM/PM
-                final formattedEndTime = DateFormat('hh:mm a').format(checkInTime.dateTime.add(const Duration(minutes: 5))); // Format the time to 12-hour with AM/PM
+                final localStartTime = checkInTime.dateTime.toLocal();
+                final localEndTime = checkInTime.dateTime.add(const Duration(minutes: 5)).toLocal();
+                final formattedStartTime = DateFormat('hh:mm a').format(localStartTime); // Format the time to 12-hour with AM/PM
+                final formattedEndTime = DateFormat('hh:mm a').format(localEndTime); // Format the time to 12-hour with AM/PM
                 return Dismissible(
                   key: Key(checkInTime.dateTime.toString()),
                   direction: DismissDirection.endToStart,

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sabaidee/screens/settings/my_followers_page.dart';
 import 'package:sabaidee/screens/settings/my_schedule_page.dart';
 import 'package:sabaidee/screens/settings/my_watch_list.dart';
+import 'package:sabaidee/screens/settings/profile_page.dart'; // Import the ProfilePage
 import 'package:sabaidee/user_provider.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -29,7 +30,7 @@ class SettingsPage extends StatelessWidget {
                 child: ListView.separated(
                   shrinkWrap: true,
                   padding: const EdgeInsets.all(16.0),
-                  itemCount: 3, // Always show 3 items
+                  itemCount: 4, // Show 4 items
                   itemBuilder: (context, index) {
                     if (index == 0) {
                       return _buildSettingsOption(
@@ -51,6 +52,13 @@ class SettingsPage extends StatelessWidget {
                         'Who Am I Following?',
                         Icons.watch_later,
                         const MyWatchList(),
+                      );
+                    } else if (index == 3) {
+                      return _buildSettingsOption(
+                        context,
+                        'Profile',
+                        Icons.person,
+                        const ProfilePage(), // Navigate to ProfilePage
                       );
                     }
                     return Container(); // Return an empty container for any other index

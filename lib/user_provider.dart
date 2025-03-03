@@ -136,16 +136,17 @@ void setCheckInStatus(DateTime dateTime, String status) async {
     return List.generate(6, (index) => chars[random.nextInt(chars.length)]).join();
   }
 
-  Future<void> signUp(String email, String password, String name, String phoneNumber) async {
+  Future<void> signUp(String email, String password, String name, String phoneNumber, String country) async {
     try {
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
-      _user = User(uid: userCredential.user!.uid, email: email, name: 'Dummy', phoneNumber: phoneNumber, checkInTimes: [], followers: [], watching: [], referralCode: _generateRandomCode());
+      _user = User(uid: userCredential.user!.uid, email: email, name: 'Dummy', phoneNumber: phoneNumber, country: country, checkInTimes: [], followers: [], watching: [], referralCode: _generateRandomCode());
       
       // Add user to Firestore
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'email': email,
         'name': name,
         'phoneNumber': phoneNumber,
+        'country': country,
         'checkInTimes': [],
         'followers': [],
         'watching': [],
@@ -251,6 +252,7 @@ Future<void> _fetchUserData(String uid) async {
     email: userDoc['email'],
     name: userDoc['name'],
     phoneNumber: userDoc['phoneNumber'],
+    country: userDoc['country'],
     checkInTimes: (userDoc['checkInTimes'] as List).map((time) {
       return CheckInTime(
         dateTime: DateTime.parse(time['dateTime']),
@@ -521,7 +523,22 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
 
     notifyListeners();
   }
+  // Add the updateUser method
+  Future<void> updateUser({required String name, required String phoneNumber, required String country}) async {
+    if (_user == null) return;
 
+    // Update the user information in the provider
+    _user?.name = name;
+    _user?.phoneNumber = phoneNumber;
+    _user?.country = country;
+    notifyListeners();
+
+    // Update the user information in the database
+    await FirebaseFirestore.instance.collection('users').doc(_user?.uid).update({
+      'name': name,
+      'phoneNumber': phoneNumber,
+    });
+  }
   Future<void> createRelationship(String followerUid, String status) async {
     if (_user != null) {
       _user!.watching.add({'uid': followerUid, 'status': status});
@@ -547,6 +564,7 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
         email: _user!.email,
         name: _user!.name,
         phoneNumber: _user!.phoneNumber,
+        country: _user!.country,
         checkInTimes: _user!.checkInTimes,
         followers: _user!.followers,
         watching: _user!.watching,
@@ -633,8 +651,9 @@ class CheckInTime {
 class User {
   final String uid;
   final String email;
-  final String name;
-  final String phoneNumber;
+  String name;
+  String phoneNumber;
+  String country;
   final List<CheckInTime> checkInTimes;
   final List<Map<String, String>> followers;
   final List<Map<String, String>> watching;
@@ -646,6 +665,7 @@ class User {
     required this.email,
     required this.name,
     required this.phoneNumber,
+    required this.country,
     required this.checkInTimes,
     required this.followers,
     required this.watching,
@@ -660,6 +680,7 @@ class User {
       email: data['email'],
       name: data['name'],
       phoneNumber: data['phoneNumber'],
+      country: data['country'],
       checkInTimes: (data['checkInTimes'] as List)
           .map((item) => CheckInTime.fromMap(item as Map<String, dynamic>))
           .toList(),
@@ -675,6 +696,7 @@ class User {
       'email': email,
       'name': name,
       'phoneNumber': phoneNumber,
+      'country': country,
       'checkInTimes': checkInTimes.map((checkInTime) => checkInTime.toMap()).toList(),
       'followers': followers,
       'watching': watching,

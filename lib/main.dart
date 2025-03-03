@@ -145,6 +145,7 @@ class AuthWrapper extends StatelessWidget {
           email: userData['email'],
           name: userData['name'],
           phoneNumber: userData['phoneNumber'],
+          country: userData['country'],
           checkInTimes: checkInTimes,
           followers: followers,
           watching: watching,

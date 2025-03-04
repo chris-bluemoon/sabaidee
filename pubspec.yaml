@@ -20,6 +20,7 @@ dependencies:
   intl: ^0.20.2
   mailer: ^6.4.1
   provider: ^6.1.2
+  timezone: ^0.10.0
 
 dev_dependencies:
   flutter_test:

@@ -16,7 +16,7 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
       const missedDateTime = new Date(checkInDateTime.getTime() + 5 * 60000);
       if ((checkInTime.status === 'open' || checkInTime.status === 'pending') && now > missedDateTime) {
         checkInTime.status = 'missed';
-
+        log('Check-In missed:', checkInTime);
         // Add another check-in time 24 hours in the future
         const newCheckInTime = {
           dateTime: new Date(checkInDateTime.getTime() + 24 * 60 * 60000).toISOString(),

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sabaidee/settings/my_followers_page.dart';
+import 'package:sabaidee/settings/my_schedule_page.dart';
+import 'package:sabaidee/settings/my_watch_list.dart';
+import 'package:sabaidee/settings/profile_page.dart'; // Import the ProfilePage
 import 'package:sabaidee/user_provider.dart';
-import 'package:sabaidee/utils/settings/my_followers_page.dart';
-import 'package:sabaidee/utils/settings/my_schedule_page.dart';
-import 'package:sabaidee/utils/settings/my_watch_list.dart';
-import 'package:sabaidee/utils/settings/profile_page.dart'; // Import the ProfilePage
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});

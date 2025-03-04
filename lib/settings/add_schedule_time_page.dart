@@ -43,6 +43,25 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
     final pendingHours = pendingCheckInTimes.map((checkInTime) => checkInTime.dateTime.hour).toSet();
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final userTimezone = userProvider.user?.country['timezone'] ?? 'UTC';
+
+    // Calculate the offset in hours and minutes
+    final timezoneOffset = Duration(
+      hours: int.parse(userTimezone.substring(3, 6)),
+      minutes: int.parse(userTimezone.substring(7, 9)),
+    );
+
+    // Create a list of hours adjusted to the user's timezone
+    final adjustedHours = List.generate(24, (index) {
+      final adjustedTime = DateTime(0, 1, 1, index).toUtc().add(timezoneOffset);
+      return {
+        'hour': index,
+        'formattedHour': DateFormat('hh:mm a').format(adjustedTime),
+      };
+    });
+
+    // Sort the adjusted hours by the formatted time
+    adjustedHours.sort((a, b) => (a['formattedHour'] as String).compareTo(b['formattedHour'] as String));
 
     return Scaffold(
       appBar: AppBar(
@@ -73,22 +92,22 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
               ),
               itemCount: 24, // 24 hours in a day
               itemBuilder: (context, index) {
-                final hour = index;
+                final hour = adjustedHours[index]['hour'];
+                final formattedHour = adjustedHours[index]['formattedHour'];
                 final isSelected = _selectedHours.contains(hour);
                 final isPending = pendingHours.contains(hour);
-                final formattedHour = DateFormat('hh:mm a').format(DateTime(0, 1, 1, hour)); // Format the time to 12-hour with AM/PM
 
                 return ElevatedButton(
                   onPressed: isPending ? null : () {
-                    _toggleHour(hour);
+                    _toggleHour(hour as int);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: isSelected ? Colors.blue : null,
                     shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero, // Square shape
+                      borderRadius: BorderRadius.all(Radius.circular(100)) // Square shape
                     ),
                   ),
-                  child: Text(formattedHour),
+                  child: Text(formattedHour as String),
                 );
               },
             ),

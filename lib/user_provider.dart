@@ -33,7 +33,7 @@ class UserProvider with ChangeNotifier {
       final checkInTime = CheckInTime(
         dateTime: utcDateTime,
         status: 'pending',
-        duration: const Duration(minutes: 5), // Set default duration to 5 minutes
+        duration: const Duration(minutes: 15), // Set default duration to 15 minutes
       );
       log('Adding check-in time for user: ${checkInTime.dateTime.toIso8601String()}');
       _user!.checkInTimes.add(checkInTime);
@@ -43,7 +43,7 @@ class UserProvider with ChangeNotifier {
         'checkInTimes': FieldValue.arrayUnion([{
           'dateTime': checkInTime.dateTime.toIso8601String(),
           'status': 'pending',
-          'duration': checkInTime.duration.inSeconds, // Store duration in seconds
+          'duration': checkInTime.duration.inMinutes, // Store duration in minutes
         }])
       });
 
@@ -256,7 +256,6 @@ void setCheckInStatus(DateTime dateTime, String status) async {
 Future<void> _fetchUserData(String uid) async {
   // Fetch user data from your database and set the _user object
   DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
-  // final now = DateTime.now();
   _user = User(
     uid: uid,
     email: userDoc['email'],
@@ -266,20 +265,14 @@ Future<void> _fetchUserData(String uid) async {
     checkInTimes: (userDoc['checkInTimes'] as List).map((time) {
       return CheckInTime(
         dateTime: DateTime.parse(time['dateTime']),
-        // dateTime: time['dateTime'].toDate(),
-        // dateTime: DateTime(now.year, now.month, now.day, 
-          // time['hour'], 
-          // time['minute']),
         status: time['status'],
-        duration: Duration(minutes: time['duration'] ?? 0), // Provide a default value if duration is null
+        duration: Duration(minutes: time['duration']), // Provide a default value if duration is null
       );
     }).toList(),
     fcmToken: userDoc['fcmToken'],
     referralCode: userDoc['referralCode'],
     followers: (userDoc['followers'] as List).map((follower) => Map<String, String>.from(follower)).toList(),
     watching: (userDoc['watching'] as List).map((watching) => Map<String, String>.from(watching)).toList(),
-    // followers: List<Map<String, String>>.from(userDoc['followers'] ?? []),
-    // watching: List<Map<String, String>>.from(userDoc['watching'] ?? []),
   );
   notifyListeners();
 }
@@ -299,15 +292,12 @@ Future<void> deleteCheckInTime(CheckInTime checkInTime) async {
 
     // Update Firestore
     log('About to delete check-in time for user: ${checkInTime.dateTime.toIso8601String()}');
-    log(checkInTime.dateTime.toIso8601String());
-    log(checkInTime.status);
-    log(checkInTime.duration.inSeconds.toString());
     log('Deleting check-in time for user: ${checkInTime.dateTime.toIso8601String()}');
     await _firestore.collection('users').doc(_user!.uid).update({
       'checkInTimes': FieldValue.arrayRemove([{
         'dateTime': checkInTime.dateTime.toIso8601String(),
         'status': checkInTime.status, // Use the status from the CheckInTime object
-        'duration': checkInTime.duration.inSeconds // Use the duration from the CheckInTime object
+        'duration': checkInTime.duration // Use the duration from the CheckInTime object
       }])
     });
 
@@ -337,12 +327,12 @@ void _checkForOpenCheckInTimes() async {
         return CheckInTime(
           dateTime: DateTime.parse(time['dateTime']),
           status: time['status'],
-          duration: Duration(seconds: time['duration']),
+          duration: Duration(minutes: time['duration']), // Parse duration from minutes
         );
       }).toList();
 
       for (var checkInTime in checkInTimes) {
-        if (checkInTime.dateTime.isBefore(now) && !checkInTime.dateTime.isAfter(now.add(const Duration(minutes: 5))) && checkInTime.status == 'pending') {
+        if (checkInTime.dateTime.isBefore(now) && !checkInTime.dateTime.isAfter(now.add(Duration(minutes: checkInTime.duration.inMinutes))) && checkInTime.status == 'pending') {
           log('Setting status to open for user stored checkInTime: ${checkInTime.dateTime.toString()}');
           setCheckInStatus(checkInTime.dateTime, 'open');
           notifyListeners(); // Notify listeners about the change
@@ -351,23 +341,6 @@ void _checkForOpenCheckInTimes() async {
     }
   }
 }
-// void _checkForOpenCheckInTimes() async {
-//   if (_user != null) {
-//     final now = DateTime.now();
-//     // Create a copy of the list to avoid concurrent modification
-//     // final checkInTimesCopy = List.from(_user!.checkInTimes);
-//     final checkInTimesCopy = List.from(_user!.checkInTimes.where((checkInTime) => checkInTime.status == 'pending'));
-
-//     for (var checkInTime in checkInTimesCopy) {
-//       log('Checking user stored pending only checkInTime: ${checkInTime.dateTime.toString()}');
-//       if (checkInTime.dateTime.isBefore(now) && !checkInTime.dateTime.isAfter(now.add(const Duration(minutes:5))) && checkInTime.status == 'pending') {
-//         log('Setting status to open for user stored checkInTime: ${checkInTime.dateTime.toString()}');
-//         setCheckInStatus(checkInTime.dateTime, 'open');
-//         notifyListeners(); // Notify listeners about the change
-//       }
-//     }
-//   }
-// }
 
 void _checkForMissedCheckInTimes() async {
   if (_user != null) {

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/user_provider.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 import 'add_schedule_time_page.dart';
 
@@ -14,6 +16,41 @@ class MySchedulePage extends StatelessWidget {
     final pendiningOrOpenScheduleTimes = userProvider.pendingOrOpenCheckInTimes;
     final screenWidth = MediaQuery.of(context).size.width;
     final userTimezone = userProvider.user?.country['timezone'] ?? 'UTC';
+
+    // Initialize timezone data
+    tz.initializeTimeZones();
+
+    // Map the user's timezone offset to a valid timezone location name
+    final timezoneMapping = {
+      'UTC+00:00': 'Etc/UTC',
+      'UTC+01:00': 'Europe/London',
+      'UTC+02:00': 'Europe/Berlin',
+      'UTC+03:00': 'Europe/Moscow',
+      'UTC+04:00': 'Asia/Dubai',
+      'UTC+05:00': 'Asia/Karachi',
+      'UTC+06:00': 'Asia/Dhaka',
+      'UTC+07:00': 'Asia/Bangkok',
+      'UTC+08:00': 'Asia/Singapore',
+      'UTC+09:00': 'Asia/Tokyo',
+      'UTC+10:00': 'Australia/Sydney',
+      'UTC+11:00': 'Pacific/Noumea',
+      'UTC+12:00': 'Pacific/Auckland',
+      'UTC-01:00': 'Atlantic/Azores',
+      'UTC-02:00': 'America/Noronha',
+      'UTC-03:00': 'America/Argentina/Buenos_Aires',
+      'UTC-04:00': 'America/Halifax',
+      'UTC-05:00': 'America/New_York',
+      'UTC-06:00': 'America/Chicago',
+      'UTC-07:00': 'America/Denver',
+      'UTC-08:00': 'America/Los_Angeles',
+      'UTC-09:00': 'America/Anchorage',
+      'UTC-10:00': 'Pacific/Honolulu',
+      'UTC-11:00': 'Pacific/Midway',
+      'UTC-12:00': 'Etc/GMT+12',
+    };
+
+    final locationName = timezoneMapping[userTimezone] ?? 'Etc/UTC';
+    final location = tz.getLocation(locationName);
 
     return Scaffold(
       backgroundColor: Colors.yellow,
@@ -49,8 +86,8 @@ class MySchedulePage extends StatelessWidget {
               itemCount: pendiningOrOpenScheduleTimes.length,
               itemBuilder: (context, index) {
                 final checkInTime = pendiningOrOpenScheduleTimes[index];
-                final localStartTime = checkInTime.dateTime.toLocal();
-                final localEndTime = checkInTime.dateTime.add(const Duration(minutes: 5)).toLocal();
+                final localStartTime = tz.TZDateTime.from(checkInTime.dateTime, location);
+                final localEndTime = localStartTime.add(const Duration(minutes: 5));
                 final formattedStartTime = DateFormat('hh:mm a').format(localStartTime); // Format the time to 12-hour with AM/PM
                 final formattedEndTime = DateFormat('hh:mm a').format(localEndTime); // Format the time to 12-hour with AM/PM
                 return Dismissible(

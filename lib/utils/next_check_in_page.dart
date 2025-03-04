@@ -39,17 +39,20 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
 
             // Find the next check-in time
             final now = DateTime.now().toUtc();
-            final futureCheckInTimes = checkInTimes?.where((checkInTime) => checkInTime.dateTime.isAfter(now.subtract(const Duration(minutes: 5)))).toList() ?? [];
+            final futureCheckInTimes = checkInTimes?.where((checkInTime) => checkInTime.dateTime.isAfter(now.subtract(Duration(minutes: checkInTime.duration.inMinutes)))).toList() ?? [];
 
             CheckInTime? nextOrOpenCheckInTime;
             if (futureCheckInTimes.isNotEmpty) {
               nextOrOpenCheckInTime = futureCheckInTimes.reduce((a, b) => a.dateTime.isBefore(b.dateTime) ? a : b);
+            } else {
+              log('futreCheckInTimes is empty');
             }
 
             if (nextOrOpenCheckInTime == null) {
               log('No upcoming check-in times');
             }
 
+            final userTimezone = userProvider.user?.country['timezone'] ?? 'UTC';
             final localStartTime = nextOrOpenCheckInTime?.dateTime.toLocal();
             final localEndTime = nextOrOpenCheckInTime?.dateTime.add(const Duration(minutes: 5)).toLocal();
             final formattedStartTime = localStartTime != null ? DateFormat('hh:mm a').format(localStartTime) : '';

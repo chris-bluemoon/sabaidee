@@ -42,7 +42,7 @@ void main() async {
   } else {
     log('User declined or has not accepted permission');
   }
-  
+
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;

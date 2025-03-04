@@ -22,7 +22,7 @@ class MySchedulePage extends StatelessWidget {
 
     // Map the user's timezone offset to a valid timezone location name
     final timezoneMapping = {
-      'UTC+00:00': 'Etc/UTC',
+      'UTC+00:00': 'UTC',
       'UTC+01:00': 'Europe/London',
       'UTC+02:00': 'Europe/Berlin',
       'UTC+03:00': 'Europe/Moscow',
@@ -49,7 +49,7 @@ class MySchedulePage extends StatelessWidget {
       'UTC-12:00': 'Etc/GMT+12',
     };
 
-    final locationName = timezoneMapping[userTimezone] ?? 'Etc/UTC';
+    final locationName = timezoneMapping[userTimezone] ?? 'UTC';
     final location = tz.getLocation(locationName);
 
     return Scaffold(
@@ -87,7 +87,7 @@ class MySchedulePage extends StatelessWidget {
               itemBuilder: (context, index) {
                 final checkInTime = pendiningOrOpenScheduleTimes[index];
                 final localStartTime = tz.TZDateTime.from(checkInTime.dateTime, location);
-                final localEndTime = localStartTime.add(const Duration(minutes: 5));
+                final localEndTime = localStartTime.add(checkInTime.duration);
                 final formattedStartTime = DateFormat('hh:mm a').format(localStartTime); // Format the time to 12-hour with AM/PM
                 final formattedEndTime = DateFormat('hh:mm a').format(localEndTime); // Format the time to 12-hour with AM/PM
                 return Dismissible(

@@ -1,11 +1,11 @@
 const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 admin.initializeApp();
-const firestore = admin.firestore;
+const firestore = admin.firestore();
 
 exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minutes').onRun(async (context) => {
-  const now = firestore.Timestamp.now().toDate();
-  const usersSnapshot = await firestore().collection('users').get();
+  const now = admin.firestore.Timestamp.now().toDate();
+  const usersSnapshot = await firestore.collection('users').get();
 
   usersSnapshot.forEach(async (userDoc) => {
     const userData = userDoc.data();
@@ -13,10 +13,9 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
 
     const updatedCheckInTimes = checkInTimes.map(checkInTime => {
       const checkInDateTime = new Date(checkInTime.dateTime);
-      const missedDateTime = new Date(checkInDateTime.getTime() + 5 * 60000);
+      const missedDateTime = new Date(checkInDateTime.getTime() + checkInTime.duration * 60000); // Use duration from checkInTime
       if ((checkInTime.status === 'open' || checkInTime.status === 'pending') && now > missedDateTime) {
         checkInTime.status = 'missed';
-        log('Check-In missed:', checkInTime);
         // Add another check-in time 24 hours in the future
         const newCheckInTime = {
           dateTime: new Date(checkInDateTime.getTime() + 24 * 60 * 60000).toISOString(),
@@ -49,7 +48,7 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
         if (userData.relatives && Array.isArray(userData.relatives)) {
           userData.relatives.forEach(async relative => {
             if (relative.uid && typeof relative.uid === 'string' && relative.uid.trim() !== '') {
-              const relativeDoc = await firestore().collection('users').doc(relative.uid).get();
+              const relativeDoc = await firestore.collection('users').doc(relative.uid).get();
               if (relativeDoc.exists) {
                 const relativeData = relativeDoc.data();
                 if (relativeData.fcmToken) {
@@ -105,7 +104,7 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
       return checkInTime;
     });
 
-    await firestore().collection('users').doc(userDoc.id).update({
+    await firestore.collection('users').doc(userDoc.id).update({
       checkInTimes: checkInTimes,
     });
   });

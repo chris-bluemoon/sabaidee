@@ -139,6 +139,8 @@ void setCheckInStatus(DateTime dateTime, String status) async {
   Future<void> signUp(String email, String password, String name, String phoneNumber, Map<String, String> country) async {
     try {
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+
       _user = User(
         uid: userCredential.user!.uid,
         email: email,
@@ -148,6 +150,7 @@ void setCheckInStatus(DateTime dateTime, String status) async {
         checkInTimes: [],
         followers: [],
         watching: [],
+        fcmToken: fcmToken,
         referralCode: _generateRandomCode(),
       );
 
@@ -160,6 +163,7 @@ void setCheckInStatus(DateTime dateTime, String status) async {
         'checkInTimes': [],
         'followers': [],
         'watching': [],
+        'fcmToken': fcmToken,
         'referralCode': _generateRandomCode(),
       });
 
@@ -297,7 +301,7 @@ Future<void> deleteCheckInTime(CheckInTime checkInTime) async {
       'checkInTimes': FieldValue.arrayRemove([{
         'dateTime': checkInTime.dateTime.toIso8601String(),
         'status': checkInTime.status, // Use the status from the CheckInTime object
-        'duration': checkInTime.duration // Use the duration from the CheckInTime object
+        'duration': checkInTime.duration.inMinutes // Use the duration from the CheckInTime object
       }])
     });
 

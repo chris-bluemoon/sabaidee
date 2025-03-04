@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -93,9 +91,6 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
                 final formattedHour = DateFormat('hh:mm a').format(adjustedTime);
                 final isSelected = _selectedHours.contains(hour);
                 final isPending = pendingHours.contains(hour);
-                log(hour.toString());
-                log(isSelected.toString());
-                log(isPending.toString());
 
                 return ElevatedButton(
                   onPressed: isPending ? null : () {

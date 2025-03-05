@@ -92,7 +92,6 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
             }
 
             final localStartTime = nextOrOpenCheckInTime != null ? tz.TZDateTime.from(nextOrOpenCheckInTime.dateTime, location) : null;
-            log('nextOrLocalCheckInTime: $localStartTime');
             log('localStartTime: $localStartTime');
             log('timezoneOffset: $locationName');
             final localEndTime = localStartTime != null && nextOrOpenCheckInTime != null ? localStartTime.add(nextOrOpenCheckInTime.duration) : null;

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/user_provider.dart';
+import 'package:timezone/timezone.dart';
 
 class AddScheduleTimePage extends StatefulWidget {
   const AddScheduleTimePage({super.key});
@@ -30,11 +31,26 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
   Future<void> _submitSchedule() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final now = DateTime.now();
-    log(now.toString());
+    final userTimezone = userProvider.user?.country['timezone'] ?? 'UTC';
+
+    log('Users timezone is $userTimezone');
+    // Calculate the offset in hours and minutes
+    final sign = userTimezone[3] == '-' ? -1 : 1;
+    final timezoneOffset = Duration(
+      hours: sign * int.parse(userTimezone.substring(4, 6)),
+      minutes: sign * int.parse(userTimezone.substring(7, 9)),
+    );
+    log('Timezone offset is $timezoneOffset');
+
+    log(_selectedHours.toString());
     for (int hour in _selectedHours) {
-      final dateTime = DateTime(now.year, now.month, now.day, hour, 0);
-      log('Adding check-in time: $dateTime');
-      await userProvider.addCheckInTime(dateTime);
+      // Adjust the dateTime to the user's timezone
+      log('Hour is set to $hour');
+      final localDateTime = DateTime(now.year, now.month, now.day, hour, 0).subtract(timezoneOffset);
+      final utcDateTime = TZDateTime.utc(now.year, now.month, now.day, hour, 0).subtract(timezoneOffset);
+      log('localDateTime in users location is $localDateTime');
+      log('utcDateTime in users location is $utcDateTime');
+      await userProvider.addCheckInTime(utcDateTime);
     }
     print('Schedule times added: $_selectedHours');
     Navigator.of(context).pop();

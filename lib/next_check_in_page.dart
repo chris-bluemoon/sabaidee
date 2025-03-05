@@ -82,6 +82,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
             CheckInTime? nextOrOpenCheckInTime;
             if (futureCheckInTimes.isNotEmpty) {
               nextOrOpenCheckInTime = futureCheckInTimes.reduce((a, b) => a.dateTime.isBefore(b.dateTime) ? a : b);
+              log('nextOrOpenCheckInTime: ${nextOrOpenCheckInTime.dateTime}');
             } else {
               log('futureCheckInTimes is empty');
             }
@@ -91,6 +92,9 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
             }
 
             final localStartTime = nextOrOpenCheckInTime != null ? tz.TZDateTime.from(nextOrOpenCheckInTime.dateTime, location) : null;
+            log('nextOrLocalCheckInTime: $localStartTime');
+            log('localStartTime: $localStartTime');
+            log('timezoneOffset: $locationName');
             final localEndTime = localStartTime != null && nextOrOpenCheckInTime != null ? localStartTime.add(nextOrOpenCheckInTime.duration) : null;
             final formattedStartTime = localStartTime != null ? DateFormat('hh:mm a').format(localStartTime) : '';
             final formattedEndTime = localEndTime != null ? DateFormat('hh:mm a').format(localEndTime) : '';

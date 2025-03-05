@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -28,8 +30,10 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
   Future<void> _submitSchedule() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final now = DateTime.now();
+    log(now.toString());
     for (int hour in _selectedHours) {
       final dateTime = DateTime(now.year, now.month, now.day, hour, 0);
+      log('Adding check-in time: $dateTime');
       await userProvider.addCheckInTime(dateTime);
     }
     print('Schedule times added: $_selectedHours');

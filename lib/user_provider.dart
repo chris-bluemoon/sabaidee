@@ -29,9 +29,8 @@ class UserProvider with ChangeNotifier {
   
   Future<void> addCheckInTime(DateTime dateTime) async {
     if (_user != null) {
-      final utcDateTime = dateTime.toUtc(); // Convert to UTC
       final checkInTime = CheckInTime(
-        dateTime: utcDateTime,
+        dateTime: dateTime,
         status: 'pending',
         duration: const Duration(minutes: 15), // Set default duration to 15 minutes
       );

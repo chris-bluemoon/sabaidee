@@ -176,16 +176,6 @@ class _MyFollowersPageState extends State<MyFollowersPage> {
     // Remove the follower from the user's followers list
     await userProvider.removeFollower(followerUid);
 
-    // // Update Firestore for the current user
-    // await FirebaseFirestore.instance.collection('users').doc(currentUserUid).update({
-    //   'followers': FieldValue.arrayRemove([{'uid': followerUid, 'status': 'pending'}]),
-    // });
-
-    // // Update Firestore for the follower user
-    // await FirebaseFirestore.instance.collection('users').doc(followerUid).update({
-    //   'watching': FieldValue.arrayRemove([{'uid': currentUserUid, 'status': 'pending'}]),
-    // });
-
     print('Follower removed.');
     setState(() {}); // Refresh the screen
   }
@@ -292,6 +282,28 @@ class _MyFollowersPageState extends State<MyFollowersPage> {
               onTap: () async {
                 final code = _generateRandomCode();
                 await sendEmailWithInstructions(code);
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Email Sent'),
+                      content: const Center(
+                        child: Text('Please check your email for the referral code and send to your friend!'),
+                      ),
+                      actions: <Widget>[
+                        TextButton(
+                          child: const Text(
+                            'OK',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
               },
               child: const Text(
                 "Don't have a code yet? Receive an email",

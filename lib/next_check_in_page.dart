@@ -92,8 +92,6 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
             }
 
             final localStartTime = nextOrOpenCheckInTime != null ? tz.TZDateTime.from(nextOrOpenCheckInTime.dateTime, location) : null;
-            log('localStartTime: $localStartTime');
-            log('timezoneOffset: $locationName');
             final localEndTime = localStartTime != null && nextOrOpenCheckInTime != null ? localStartTime.add(nextOrOpenCheckInTime.duration) : null;
             final formattedStartTime = localStartTime != null ? DateFormat('hh:mm a').format(localStartTime) : '';
             final formattedEndTime = localEndTime != null ? DateFormat('hh:mm a').format(localEndTime) : '';
@@ -137,7 +135,17 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                               Expanded(
                                 child: Center(
                                   child: Text(
-                                    '$formattedStartTime - $formattedEndTime',
+                                    formattedStartTime,
+                                    style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              const Icon(Icons.arrow_downward_outlined , size: 40), 
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    formattedEndTime,
                                     style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
                                     textAlign: TextAlign.center,
                                   ),
@@ -211,15 +219,25 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                                 'Next Check In',
                                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                               ),
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 5),
                               Expanded(
                                 child: Center(
                                   child: nextOrOpenCheckInTime != null
-                                      ? Text(
-                                          '$formattedStartTime - $formattedEndTime',
-                                          style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-                                          textAlign: TextAlign.center,
-                                        )
+                                      ? Column(
+                                        children: [
+                                          Text(
+                                              formattedStartTime,
+                                              style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          const Icon(Icons.arrow_downward_outlined , size: 40), 
+                                          Text(
+                                              formattedEndTime,
+                                              style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                        ],
+                                      )
                                       : const Text(
                                           'No Check In Time Set Up',
                                           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),

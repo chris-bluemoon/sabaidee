@@ -277,9 +277,6 @@ Future<void> _fetchUserData(String uid) async {
     followers: (userDoc['followers'] as List).map((follower) => Map<String, String>.from(follower)).toList(),
     watching: (userDoc['watching'] as List).map((watching) => Map<String, String>.from(watching)).toList(),
   );
-  if (_user != null && _user!.checkInTimes.isNotEmpty) {
-    log('New checkin time status set to ${_user!.checkInTimes[5].status}');
-  }
   notifyListeners();
 }
 

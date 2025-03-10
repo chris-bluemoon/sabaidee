@@ -24,8 +24,14 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
     formattedDate = DateFormat('E, d MMMM yyyy').format(now).toUpperCase(); // Format the date
   }
 
+  Future<void> _fetchUserData() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    await userProvider.fetchUserData(userProvider.user?.uid ?? '');
+  }
+
   @override
   Widget build(BuildContext context) {
+    _fetchUserData();
     return Scaffold(
       backgroundColor: Colors.yellow, // Set background color to yellow
       body: Padding(
@@ -95,7 +101,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
             final localEndTime = localStartTime != null && nextOrOpenCheckInTime != null ? localStartTime.add(nextOrOpenCheckInTime.duration) : null;
             final formattedStartTime = localStartTime != null ? DateFormat('hh:mm a').format(localStartTime) : '';
             final formattedEndTime = localEndTime != null ? DateFormat('hh:mm a').format(localEndTime) : '';
-
+            log(nextOrOpenCheckInTime?.status ?? 'No check-in time set up');
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -198,7 +204,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
                         )
                       : Container(
                           width: MediaQuery.of(context).size.width * 0.9, // 90% of the screen width
-                          height: MediaQuery.of(context).size.height * 0.3, // 30% of the screen height
+                          height: MediaQuery.of(context).size.height * 0.4, // 30% of the screen height
                           padding: const EdgeInsets.all(16.0),
                           decoration: BoxDecoration(
                             color: const Color(0xFFE8F0EB), // Light shade of the primary color

@@ -18,6 +18,12 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterL
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   log('Handling a background message: ${message.messageId}');
+
+  final userProvider = navigatorKey.currentContext?.read<UserProvider>();
+  if (userProvider != null && userProvider.user != null) {
+    await userProvider.fetchUserData(userProvider.user!.uid);
+    log('User data updated in background handler');
+  }
 }
 
 void main() async {
@@ -126,6 +132,19 @@ class AuthWrapper extends StatelessWidget {
     }
   }
 
+  Future<void> _updateFcmToken(BuildContext context) async {
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+      if (fcmToken != null && userProvider.user != null) {
+        await userProvider.updateFcmToken(userProvider.user!.uid, fcmToken);
+        log('FCM token updated: $fcmToken');
+      }
+    } catch (e) {
+      log('Failed to update FCM token: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<auth.User?>(
@@ -140,6 +159,7 @@ class AuthWrapper extends StatelessWidget {
           log('User is logged in as ${snapshot.data!.uid}');
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             await _fetchAndSetUser(context, snapshot.data!.uid);
+            await _updateFcmToken(context);
           });
           return const HomePage();
         } else {

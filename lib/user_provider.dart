@@ -543,7 +543,7 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
     }
   }
 
-  Future<void> updateFcmToken(String token) async {
+  Future<void> updateFcmToken(String uid, String token) async {
     if (_user != null) {
       _user = User(
         uid: _user!.uid,

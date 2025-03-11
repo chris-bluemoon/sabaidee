@@ -14,15 +14,29 @@ class NextCheckInPage extends StatefulWidget {
   State<NextCheckInPage> createState() => _NextCheckInPageState();
 }
 
-class _NextCheckInPageState extends State<NextCheckInPage> {
+class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingObserver {
   late final String formattedDate;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final now = DateTime.now();
     formattedDate = DateFormat('E, d MMMM yyyy').format(now).toUpperCase(); // Format the date
     _fetchUserData();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _fetchUserData();
+    }
   }
 
   Future<void> _fetchUserData() async {

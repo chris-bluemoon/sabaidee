@@ -22,22 +22,30 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
     super.initState();
     final now = DateTime.now();
     formattedDate = DateFormat('E, d MMMM yyyy').format(now).toUpperCase(); // Format the date
+    _fetchUserData();
   }
 
   Future<void> _fetchUserData() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    await userProvider.fetchUserData(userProvider.user?.uid ?? '');
+    if (userProvider.user != null) {
+      await userProvider.fetchUserData(userProvider.user!.uid);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    _fetchUserData();
     return Scaffold(
       backgroundColor: Colors.yellow, // Set background color to yellow
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Consumer<UserProvider>(
           builder: (context, userProvider, child) {
+            if (userProvider.user == null) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+
             final checkInTimes = userProvider.user?.checkInTimes.where((time) => (time.status == 'pending' || time.status == 'open')).toList();
             if (userProvider.user?.checkInTimes.isEmpty ?? true) {
               return const Center(
@@ -102,6 +110,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> {
             final formattedStartTime = localStartTime != null ? DateFormat('hh:mm a').format(localStartTime) : '';
             final formattedEndTime = localEndTime != null ? DateFormat('hh:mm a').format(localEndTime) : '';
             log(nextOrOpenCheckInTime?.status ?? 'No check-in time set up');
+
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,

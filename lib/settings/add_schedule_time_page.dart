@@ -44,10 +44,10 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
 
     log(_selectedHours.toString());
     for (int hour in _selectedHours) {
-      // Adjust the dateTime to the user's timezone
+      // Adjust the dateTime to the user's timezone for the next day
       log('Hour is set to $hour');
-      final localDateTime = DateTime(now.year, now.month, now.day, hour, 0).subtract(timezoneOffset);
-      final utcDateTime = TZDateTime.utc(now.year, now.month, now.day, hour, 0).subtract(timezoneOffset);
+      final localDateTime = DateTime(now.year, now.month, now.day + 1, hour, 0).subtract(timezoneOffset);
+      final utcDateTime = TZDateTime.utc(now.year, now.month, now.day + 1, hour, 0).subtract(timezoneOffset);
       log('localDateTime in users location is $localDateTime');
       log('utcDateTime in users location is $utcDateTime');
       await userProvider.addCheckInTime(utcDateTime);

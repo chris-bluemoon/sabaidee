@@ -513,18 +513,24 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
   
   Future<void> removeFollower(String uid) async {
     _user?.followers.removeWhere((follower) => follower['uid'] == uid);
-          // Update Firestore for the current user
-      await _firestore.collection('users').doc(_user!.uid).update({
-        'followers': FieldValue.arrayRemove([{'uid': uid, 'status': 'pending'}]),
-      });
+    // Update Firestore for the current user
+    await _firestore.collection('users').doc(_user!.uid).update({
+      'followers': FieldValue.arrayRemove([
+        {'uid': uid, 'status': 'pending'}
+      ]),
+    });
 
     // Update Firestore for the follower user
     await _firestore.collection('users').doc(uid).update({
-      'followers': FieldValue.arrayRemove([{'uid': _user!.uid, 'status': 'pending'}]),
+      'followers': FieldValue.arrayRemove([
+        {'uid': _user!.uid, 'status': 'pending'}
+      ]),
     });
     // Update Firestore for the watcher user
     await _firestore.collection('users').doc(uid).update({
-      'watching': FieldValue.arrayRemove([{'uid': _user!.uid, 'status': 'pending'}]),
+      'watching': FieldValue.arrayRemove([
+        {'uid': _user!.uid, 'status': 'pending'}
+      ]),
     });
 
     notifyListeners();

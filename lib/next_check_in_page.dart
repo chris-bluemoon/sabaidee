@@ -159,7 +159,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                             children: [
                               const Text(
                                 'Check In Now',
-                                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                                style: TextStyle(fontSize: 28, fontWeight: FontWeight.normal),
                               ),
                               const SizedBox(height: 10),
                               Expanded(
@@ -181,6 +181,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                   ),
                                 ),
                               ),
+                              const SizedBox(height: 20), // Add a SizedBox to increase the gap
                               ElevatedButton.icon(
                                 onPressed: () async {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -247,7 +248,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                             children: [
                               const Text(
                                 'Next Check In',
-                                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                                style: TextStyle(fontSize: 28, fontWeight: FontWeight.normal),
                               ),
                               const SizedBox(height: 5),
                               Expanded(

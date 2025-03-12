@@ -57,147 +57,243 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3), // changes position of shadow
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 60, // Set a consistent height for each box
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    margin: const EdgeInsets.only(bottom: 16.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10), // Make the boxes more rounded
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: const Offset(0, 3), // changes position of shadow
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Name',
-                        labelStyle: TextStyle(color: Colors.black),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black),
+                    child: Row(
+                      children: [
+                        Icon(Icons.person_outline, size: screenWidth * 0.06, color: Colors.black),
+                        const SizedBox(width: 8.0),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _nameController,
+                            decoration: InputDecoration(
+                              hintText: 'Name',
+                              hintStyle: TextStyle(color: Colors.black, fontSize: screenWidth * 0.045),
+                              border: InputBorder.none,
+                            ),
+                            style: TextStyle(color: Colors.black, fontSize: screenWidth * 0.045),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your name';
+                              }
+                              return null;
+                            },
+                            enabled: _isEditing,
+                          ),
                         ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                      ),
-                      style: const TextStyle(color: Colors.black),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your name';
-                        }
-                        return null;
-                      },
-                      enabled: _isEditing,
+                      ],
                     ),
-                    const SizedBox(height: 8.0),
-                    TextFormField(
-                      controller: _phoneController,
-                      decoration: const InputDecoration(
-                        labelText: 'Phone',
-                        labelStyle: TextStyle(color: Colors.black),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black),
+                  ),
+                  Container(
+                    height: 60, // Set a consistent height for each box
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    margin: const EdgeInsets.only(bottom: 16.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10), // Make the boxes more rounded
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: const Offset(0, 3), // changes position of shadow
                         ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                      ),
-                      style: const TextStyle(color: Colors.black),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your phone number';
-                        }
-                        return null;
-                      },
-                      enabled: _isEditing,
+                      ],
                     ),
-                    const SizedBox(height: 8.0),
-                    Text(
-                      'Email: ${user?.email ?? 'Unknown'}',
-                      style: TextStyle(
-                        fontSize: screenWidth * 0.045, // Set the font size relative to the screen width
-                      ),
-                    ),
-                    const SizedBox(height: 8.0),
-                    DropdownButtonFormField<String>(
-                      value: _selectedCountry,
-                      decoration: const InputDecoration(
-                        labelText: 'Country',
-                        labelStyle: TextStyle(color: Colors.black),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black),
+                    child: Row(
+                      children: [
+                        Icon(Icons.phone_outlined, size: screenWidth * 0.06, color: Colors.black),
+                        const SizedBox(width: 8.0),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _phoneController,
+                            decoration: InputDecoration(
+                              hintText: 'Phone',
+                              hintStyle: TextStyle(color: Colors.black, fontSize: screenWidth * 0.045),
+                              border: InputBorder.none,
+                            ),
+                            style: TextStyle(color: Colors.black, fontSize: screenWidth * 0.045),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your phone number';
+                              }
+                              return null;
+                            },
+                            enabled: _isEditing,
+                          ),
                         ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                      ),
-                      items: getCountryNames().map((String country) {
-                        return DropdownMenuItem<String>(
-                          value: country,
-                          child: Text(country),
-                        );
-                      }).toList(),
-                      onChanged: _isEditing ? (String? newValue) {
-                        setState(() {
-                          _selectedCountry = newValue;
-                        });
-                      } : null,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please select your country';
-                        }
-                        return null;
-                      },
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  Container(
+                    height: 60, // Set a consistent height for each box
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    margin: const EdgeInsets.only(bottom: 16.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10), // Make the boxes more rounded
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: const Offset(0, 3), // changes position of shadow
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.email_outlined, size: screenWidth * 0.06, color: Colors.black),
+                        const SizedBox(width: 8.0),
+                        Expanded(
+                          child: Text(
+                            'Email: ${user?.email ?? 'Unknown'}',
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.045, // Set the font size relative to the screen width
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    height: 60, // Set a consistent height for each box
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    margin: const EdgeInsets.only(bottom: 16.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10), // Make the boxes more rounded
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: const Offset(0, 3), // changes position of shadow
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.flag_outlined, size: screenWidth * 0.06, color: Colors.black),
+                        const SizedBox(width: 8.0),
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            value: _selectedCountry,
+                            decoration: InputDecoration(
+                              hintText: 'Country',
+                              hintStyle: TextStyle(color: Colors.black, fontSize: screenWidth * 0.045),
+                              border: InputBorder.none,
+                            ),
+                            items: getCountryNames().map((String country) {
+                              return DropdownMenuItem<String>(
+                                value: country,
+                                child: Text(country, style: TextStyle(fontSize: screenWidth * 0.045)),
+                              );
+                            }).toList(),
+                            onChanged: _isEditing ? (String? newValue) {
+                              setState(() {
+                                _selectedCountry = newValue;
+                              });
+                            } : null,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please select your country';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: () {
-                  if (_isEditing) {
-                    if (_formKey.currentState?.validate() ?? false) {
-                      userProvider.updateUser(
-                        name: _nameController.text,
-                        phoneNumber: _phoneController.text,
-                        country: {
-                          'country': _selectedCountry ?? '',
-                          'timezone': getCountryListWithTimezones()
-                              .firstWhere((element) => element['country'] == _selectedCountry)['timezone'] ?? '',
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: Center(
+                child: _isEditing
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              if (_formKey.currentState?.validate() ?? false) {
+                                userProvider.updateUser(
+                                  name: _nameController.text,
+                                  phoneNumber: _phoneController.text,
+                                  country: {
+                                    'country': _selectedCountry ?? '',
+                                    'timezone': getCountryListWithTimezones()
+                                        .firstWhere((element) => element['country'] == _selectedCountry)['timezone'] ?? '',
+                                  },
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Profile updated')),
+                                );
+                                setState(() {
+                                  _isEditing = false;
+                                });
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black, // Set the background color to black
+                              foregroundColor: Colors.white, // Set the text color to white
+                            ),
+                            child: Text('SAVE', style: TextStyle(fontSize: screenWidth * 0.045)),
+                          ),
+                          const SizedBox(width: 16.0),
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _isEditing = false;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey, // Set the background color to grey
+                              foregroundColor: Colors.white, // Set the text color to white
+                            ),
+                            child: Text('CANCEL', style: TextStyle(fontSize: screenWidth * 0.045)),
+                          ),
+                        ],
+                      )
+                    : ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _isEditing = true;
+                          });
                         },
-                      );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Profile updated')),
-                      );
-                      setState(() {
-                        _isEditing = false;
-                      });
-                    }
-                  } else {
-                    setState(() {
-                      _isEditing = true;
-                    });
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black, // Set the background color to black
-                  foregroundColor: Colors.white, // Set the text color to white
-                ),
-                child: Text(_isEditing ? 'SAVE' : 'EDIT'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black, // Set the background color to black
+                          foregroundColor: Colors.white, // Set the text color to white
+                        ),
+                        child: Text('EDIT', style: TextStyle(fontSize: screenWidth * 0.045)),
+                      ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

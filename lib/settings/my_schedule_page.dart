@@ -78,7 +78,7 @@ class MySchedulePage extends StatelessWidget {
           const Padding(
             padding: EdgeInsets.all(12.0), // Decrease the padding slightly
             child: Text(
-              'Set up to 4 check-ins per day. You can change the amount of time to check in under settings, the default is 30 minutes. Changes to the current schedule are effective the next day.',
+              'Set up to 4 check-ins per day. You can change the amount of time to check in under settings, the default is 15 minutes. Changes to the current schedule are effective the next day.',
               style: TextStyle(fontSize: 16.0),
               textAlign: TextAlign.center,
             ),
@@ -131,12 +131,12 @@ class MySchedulePage extends StatelessWidget {
                               text: '$formattedStartTime to $formattedEndTime',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: screenWidth * 0.05, // Set the font size relative to the screen width
+                                fontSize: screenWidth * 0.06, // Set the font size relative to the screen width
                               ),
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.delete_outline, color: Colors.black),
+                            icon: Icon(Icons.delete_outline, color: Colors.black, size: screenWidth * 0.08), // Set the icon size relative to the screen width  
                             onPressed: () async {
                               // Handle delete action
                               await userProvider.deleteCheckInTime(checkInTime);

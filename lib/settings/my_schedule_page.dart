@@ -89,13 +89,11 @@ class MySchedulePage extends StatelessWidget {
               itemBuilder: (context, index) {
                 final checkInTime = pendiningOrOpenScheduleTimes[index];
                 log('checkInTime: ${checkInTime.dateTime}');
-                // final localStartTime = tz.TZDateTime.from(checkInTime.dateTime, location);
-                // final utcTime = tz.TZDateTime.utc(checkInTime.dateTime.year, checkInTime.dateTime.month, checkInTime.dateTime.day, checkInTime.dateTime.hour);
                 final localStartTime = tz.TZDateTime.from(checkInTime.dateTime, location);
                 log('localStartTime: $localStartTime');
                 final localEndTime = localStartTime.add(checkInTime.duration);
-                final formattedStartTime = DateFormat('hh:mm a').format(localStartTime); // Format the time to 12-hour with AM/PM
-                final formattedEndTime = DateFormat('hh:mm a').format(localEndTime); // Format the time to 12-hour with AM/PM
+                final formattedStartTime = DateFormat('h:mm a').format(localStartTime); // Format the time to 12-hour with AM/PM without leading zero
+                final formattedEndTime = DateFormat('h:mm a').format(localEndTime); // Format the time to 12-hour with AM/PM without leading zero
                 return Dismissible(
                   key: Key(checkInTime.dateTime.toString()),
                   direction: DismissDirection.endToStart,

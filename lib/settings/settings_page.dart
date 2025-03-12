@@ -11,8 +11,6 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
-    final watchings = userProvider.watching;
 
     return Scaffold(
       backgroundColor: Colors.yellow,

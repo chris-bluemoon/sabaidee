@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:sabaidee/I_need_help_page.dart';
 import 'package:sabaidee/user_provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -122,8 +123,8 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
 
             final localStartTime = nextOrOpenCheckInTime != null ? tz.TZDateTime.from(nextOrOpenCheckInTime.dateTime, location) : null;
             final localEndTime = localStartTime != null && nextOrOpenCheckInTime != null ? localStartTime.add(nextOrOpenCheckInTime.duration) : null;
-            final formattedStartTime = localStartTime != null ? DateFormat('hh:mm a').format(localStartTime) : '';
-            final formattedEndTime = localEndTime != null ? DateFormat('hh:mm a').format(localEndTime) : '';
+            final formattedStartTime = localStartTime != null ? DateFormat('h:mm a').format(localStartTime) : '';
+            final formattedEndTime = localEndTime != null ? DateFormat('h:mm a').format(localEndTime) : '';
             log(nextOrOpenCheckInTime?.status ?? 'No check-in time set up');
 
             return Center(
@@ -288,8 +289,10 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('I Need Help!')),
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const INeedHelpPage(),
+                        ),
                       );
                     },
                     icon: const Icon(Icons.local_hospital),

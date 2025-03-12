@@ -108,7 +108,7 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
               itemBuilder: (context, index) {
                 final adjustedTime = DateTime(0, 1, 1, index).toUtc().add(timezoneOffset);
                 final hour = adjustedTime.hour;
-                final formattedHour = DateFormat('hh:mm a').format(adjustedTime);
+                final formattedHour = DateFormat('h:mm a').format(adjustedTime); // Use 'h' instead of 'hh' to remove leading zero
                 final isSelected = _selectedHours.contains(hour);
                 final isPending = pendingHours.contains(hour);
 
@@ -122,27 +122,33 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
                       borderRadius: BorderRadius.all(Radius.circular(100)) // Rounded shape
                     ),
                   ),
-                  child: Text(formattedHour),
+                  child: Text(
+                    formattedHour,
+                    style: TextStyle(
+                      color: isPending ? Colors.grey : (isSelected ? Colors.white : Colors.black), // Change text color based on selection and pending status
+                    ),
+                  ),
                 );
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SizedBox(
-              width: double.infinity, // Extend the button to the size of the screen
-              child: ElevatedButton(
-                onPressed: _submitSchedule,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black, // Button color black
-                ),
-                child: const Text(
-                  'SUBMIT',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), // Text color white
+          if (_selectedHours.isNotEmpty) // Only show the SUBMIT button if a time is selected
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: double.infinity, // Extend the button to the size of the screen
+                child: ElevatedButton(
+                  onPressed: _submitSchedule,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black, // Button color black
+                  ),
+                  child: const Text(
+                    'SUBMIT',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), // Text color white
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );

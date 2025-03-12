@@ -216,7 +216,56 @@ class _MyFollowersPageState extends State<MyFollowersPage> {
                 } else if (snapshot.hasError) {
                   return const Center(child: Text('Error loading followers'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No current followers'));
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'No Current Followers',
+                          style: TextStyle(
+                            fontSize: 24, // Increase the font size
+                            fontWeight: FontWeight.bold, // Make the text bold
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        GestureDetector(
+                          onTap: () async {
+                            final code = _generateRandomCode();
+                            await sendEmailWithInstructions(code);
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('Email Sent'),
+                                  content: const Center(
+                                    child: Text('Please check your email for the referral code and send to your friend!'),
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      child: const Text(
+                                        'OK',
+                                        style: TextStyle(color: Colors.black),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          child: const Text(
+                            "Don't have a code yet? Receive an email",
+                            style: TextStyle(
+                              color: Colors.black,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
                 } else {
                   final followersWithNames = snapshot.data!;
                   return ListView(
@@ -274,44 +323,6 @@ class _MyFollowersPageState extends State<MyFollowersPage> {
                   );
                 }
               },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: GestureDetector(
-              onTap: () async {
-                final code = _generateRandomCode();
-                await sendEmailWithInstructions(code);
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Email Sent'),
-                      content: const Center(
-                        child: Text('Please check your email for the referral code and send to your friend!'),
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                          child: const Text(
-                            'OK',
-                            style: TextStyle(color: Colors.black),
-                          ),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-              child: const Text(
-                "Don't have a code yet? Receive an email",
-                style: TextStyle(
-                  color: Colors.black,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
             ),
           ),
         ],

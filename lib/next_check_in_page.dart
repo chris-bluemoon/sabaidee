@@ -212,10 +212,10 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                     userProvider.addCheckInTime(newCheckInTime);
                                   }
                                 },
-                                icon: const Icon(Icons.check_box_outlined),
+                                icon: const Icon(Icons.check_circle_outline),
                                 label: const Text('CHECK IN'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.black, // Button color
+                                  backgroundColor: Colors.blue, // Change button color to blue
                                   foregroundColor: Colors.white, // Text color
                                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                                   shape: RoundedRectangleBorder(

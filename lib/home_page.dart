@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:sabaidee/activity_page.dart';
 import 'package:sabaidee/next_check_in_page.dart';
 import 'package:sabaidee/settings/settings_page.dart';
 
@@ -15,7 +16,7 @@ class _HomePageState extends State<HomePage> {
 
   static const List<Widget> _pages = <Widget>[
     NextCheckInPage(),
-    Center(child: Text('Activity Page')),
+    ActivityPage(),
     SettingsPage(),
   ];
 

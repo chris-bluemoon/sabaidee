@@ -182,7 +182,10 @@ class MyWatchList extends StatelessWidget {
           } else if (snapshot.hasError) {
             return const Center(child: Text('Something went wrong'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Not currently following'));
+            return const Center(child: Text('Not Currently Following Anyone',                           style: TextStyle(
+                            fontSize: 24, // Increase the font size
+                            fontWeight: FontWeight.bold, // Make the text bold
+                          ),));
           } else {
             final watchingNamesAndStatuses = snapshot.data!;
             return ListView.builder(

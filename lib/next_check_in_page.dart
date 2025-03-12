@@ -55,6 +55,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
         child: Consumer<UserProvider>(
           builder: (context, userProvider, child) {
             if (userProvider.user == null) {
+              log('Building NEXT_CHECK_IN_PAGE but user is null');
               return const Center(
                 child: CircularProgressIndicator(),
               );

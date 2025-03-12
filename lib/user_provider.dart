@@ -173,9 +173,29 @@ void setCheckInStatus(DateTime dateTime, String status) async {
   }
 
   Future<void> fetchUserData(String uid) async {
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    _user = User.fromFirestore(userDoc);
-    notifyListeners();
+    final userDoc = await _firestore.collection('users').doc(uid).get();
+    if (userDoc.exists) {
+      final userData = userDoc.data()!;
+      _user = User(
+        uid: uid,
+        email: userData['email'],
+        name: userData['name'],
+        phoneNumber: userData['phoneNumber'],
+        country: Map<String, String>.from(userData['country']),
+        checkInTimes: (userData['checkInTimes'] as List).map((time) {
+          return CheckInTime(
+            dateTime: DateTime.parse(time['dateTime']),
+            status: time['status'],
+            duration: Duration(minutes: time['duration']),
+          );
+        }).toList(),
+        followers: (userData['followers'] as List).map((follower) => Map<String, String>.from(follower)).toList(),
+        watching: (userData['watching'] as List).map((watching) => Map<String, String>.from(watching)).toList(),
+        fcmToken: userData['fcmToken'],
+        referralCode: userData['referralCode'],
+      );
+      notifyListeners();
+    }
   }
 
   Future<void> signIn(String email, String password) async {

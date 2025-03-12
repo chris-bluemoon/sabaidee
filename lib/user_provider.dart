@@ -543,6 +543,7 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
     await FirebaseFirestore.instance.collection('users').doc(_user?.uid).update({
       'name': name,
       'phoneNumber': phoneNumber,
+      'country': country,
     });
   }
   Future<void> createRelationship(String followerUid, String status) async {

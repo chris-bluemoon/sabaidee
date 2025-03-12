@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/user_provider.dart';
-import 'package:sabaidee/utils/country_list.dart'; // Import the country list
+import 'package:sabaidee/utils/country_list2.dart'; // Import the country list
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -71,7 +71,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     margin: const EdgeInsets.only(bottom: 16.0),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(10), // Make the boxes more rounded
+                      borderRadius: BorderRadius.circular(20), // Make the boxes more rounded
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.1),
@@ -112,7 +112,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     margin: const EdgeInsets.only(bottom: 16.0),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(10), // Make the boxes more rounded
+                      borderRadius: BorderRadius.circular(20), // Make the boxes more rounded
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.1),
@@ -153,7 +153,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     margin: const EdgeInsets.only(bottom: 16.0),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(10), // Make the boxes more rounded
+                      borderRadius: BorderRadius.circular(20), // Make the boxes more rounded
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.1),
@@ -184,7 +184,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     margin: const EdgeInsets.only(bottom: 16.0),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(10), // Make the boxes more rounded
+                      borderRadius: BorderRadius.circular(20), // Increase the border radius to make the corners more rounded
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.1),
@@ -196,7 +196,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.flag_outlined, size: screenWidth * 0.06, color: Colors.black),
+                        Icon(Icons.location_on_outlined, size: screenWidth * 0.06, color: Colors.black), // Change to location icon
                         const SizedBox(width: 8.0),
                         Expanded(
                           child: DropdownButtonFormField<String>(
@@ -205,11 +205,28 @@ class _ProfilePageState extends State<ProfilePage> {
                               hintText: 'Country',
                               hintStyle: TextStyle(color: Colors.black, fontSize: screenWidth * 0.045),
                               border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero, // Remove default padding
                             ),
-                            items: getCountryNames().map((String country) {
+                            isExpanded: true, // Ensure the dropdown button takes up available space
+                            items: getCountryList2().map((country) {
                               return DropdownMenuItem<String>(
-                                value: country,
-                                child: Text(country, style: TextStyle(fontSize: screenWidth * 0.045)),
+                                value: country['country'],
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Image.asset(
+                                          'assets/flags/${country['filename']}',
+                                          width: 24,
+                                          height: 24,
+                                        ),
+                                        const SizedBox(width: 8.0),
+                                        Text(country['country']!, style: TextStyle(fontSize: screenWidth * 0.045)),
+                                      ],
+                                    ),
+                                    const Divider(), // Add a divider between items
+                                  ],
+                                ),
                               );
                             }).toList(),
                             onChanged: _isEditing ? (String? newValue) {
@@ -222,6 +239,14 @@ class _ProfilePageState extends State<ProfilePage> {
                                 return 'Please select your country';
                               }
                               return null;
+                            },
+                            selectedItemBuilder: (BuildContext context) {
+                              return getCountryList2().map((country) {
+                                return Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(country['country']!, style: TextStyle(fontSize: screenWidth * 0.045)),
+                                );
+                              }).toList();
                             },
                           ),
                         ),
@@ -246,7 +271,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   phoneNumber: _phoneController.text,
                                   country: {
                                     'country': _selectedCountry ?? '',
-                                    'timezone': getCountryListWithTimezones()
+                                    'timezone': getCountryList2()
                                         .firstWhere((element) => element['country'] == _selectedCountry)['timezone'] ?? '',
                                   },
                                 );

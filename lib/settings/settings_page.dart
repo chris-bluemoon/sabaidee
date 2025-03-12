@@ -82,7 +82,7 @@ class SettingsPage extends StatelessWidget {
                   children: [
                     ListTile(
                       leading: const Icon(Icons.logout),
-                      title: const Text('Sign Out'),
+                      title: const Text('SIGN OUT'),
                       iconColor: Colors.black,
                       textColor: Colors.black,
                       onTap: () {

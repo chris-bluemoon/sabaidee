@@ -90,10 +90,10 @@ class _ProfilePageState extends State<ProfilePage> {
                             controller: _nameController,
                             decoration: InputDecoration(
                               hintText: 'Name',
-                              hintStyle: TextStyle(color: Colors.black, fontSize: screenWidth * 0.045),
+                              hintStyle: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045),
                               border: InputBorder.none,
                             ),
-                            style: TextStyle(color: Colors.black, fontSize: screenWidth * 0.045),
+                            style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your name';
@@ -131,10 +131,10 @@ class _ProfilePageState extends State<ProfilePage> {
                             controller: _phoneController,
                             decoration: InputDecoration(
                               hintText: 'Phone',
-                              hintStyle: TextStyle(color: Colors.black, fontSize: screenWidth * 0.045),
+                              hintStyle: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045),
                               border: InputBorder.none,
                             ),
-                            style: TextStyle(color: Colors.black, fontSize: screenWidth * 0.045),
+                            style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your phone number';
@@ -169,8 +169,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         const SizedBox(width: 8.0),
                         Expanded(
                           child: Text(
-                            'Email: ${user?.email ?? 'Unknown'}',
+                            user?.email ?? 'Unknown',
                             style: TextStyle(
+                              color: _isEditing ? Colors.black : Colors.grey[700],
                               fontSize: screenWidth * 0.045, // Set the font size relative to the screen width
                             ),
                           ),
@@ -203,7 +204,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             value: _selectedCountry,
                             decoration: InputDecoration(
                               hintText: 'Country',
-                              hintStyle: TextStyle(color: Colors.black, fontSize: screenWidth * 0.045),
+                              hintStyle: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045),
                               border: InputBorder.none,
                               contentPadding: EdgeInsets.zero, // Remove default padding
                             ),
@@ -221,7 +222,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                           height: 24,
                                         ),
                                         const SizedBox(width: 8.0),
-                                        Text(country['country']!, style: TextStyle(fontSize: screenWidth * 0.045)),
+                                        Text(country['country']!, style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045)),
                                       ],
                                     ),
                                     const Divider(), // Add a divider between items
@@ -244,7 +245,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               return getCountryList2().map((country) {
                                 return Align(
                                   alignment: Alignment.centerLeft,
-                                  child: Text(country['country']!, style: TextStyle(fontSize: screenWidth * 0.045)),
+                                  child: Text(country['country']!, style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045)),
                                 );
                               }).toList();
                             },

@@ -44,35 +44,35 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
             });
         }
 
-        // Notify relatives
-        if (userData.relatives && Array.isArray(userData.relatives)) {
-          userData.relatives.forEach(async relative => {
-            if (relative.uid && typeof relative.uid === 'string' && relative.uid.trim() !== '') {
-              const relativeDoc = await firestore.collection('users').doc(relative.uid).get();
-              if (relativeDoc.exists) {
-                const relativeData = relativeDoc.data();
-                if (relativeData.fcmToken) {
-                  const relativePayload = {
+        // Notify followers
+        if (userData.followers && Array.isArray(userData.followers)) {
+          userData.followers.forEach(async follower => {
+            if (follower.uid && typeof follower.uid === 'string' && follower.uid.trim() !== '') {
+              const followerDoc = await firestore.collection('users').doc(follower.uid).get();
+              if (followerDoc.exists) {
+                const followerData = followerDoc.data();
+                if (followerData.fcmToken) {
+                  const followerPayload = {
                     notification: {
-                      title: 'Relative Check-In Status Update',
+                      title: 'follower Check-In Status Update',
                       body: `The check-in status for ${userData.name} has been updated to MISSED.`,
                     },
-                    token: relativeData.fcmToken,
+                    token: followerData.fcmToken,
                     data: {
                       status: 'missed',
                     },
                   };
-                  admin.messaging().send(relativePayload)
+                  admin.messaging().send(followerPayload)
                     .then(response => {
-                      console.log('Relative notification sent successfully:', response);
+                      console.log('follower notification sent successfully:', response);
                     })
                     .catch(error => {
-                      console.log('Error sending relative notification:', error);
+                      console.log('Error sending follower notification:', error);
                     });
                 }
               }
             } else {
-              console.log('Invalid relative ID:', relative.uid);
+              console.log('Invalid follower ID:', follower.uid);
             }
           });
         }

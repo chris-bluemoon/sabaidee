@@ -147,9 +147,9 @@ class MyWatchList extends StatelessWidget {
 
     // Remove the follower from the user's watching list
     print('Follower ID $followerUid.');
-    await userProvider.removeFollower(followerUid);
+    // await userProvider.removeFollower(followerUid);
+    await userProvider.removeRelationship(followerUid, 'pending');
 
-    print('Follower removed.');
   }
 
   @override

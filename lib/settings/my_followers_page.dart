@@ -174,9 +174,8 @@ class _MyFollowersPageState extends State<MyFollowersPage> {
     }
 
     // Remove the follower from the user's followers list
-    await userProvider.removeFollower(followerUid);
-
-    print('Follower removed.');
+    // await userProvider.removeFollower(followerUid);
+    await userProvider.removeRelationship2(followerUid, 'pending');
     setState(() {}); // Refresh the screen
   }
 

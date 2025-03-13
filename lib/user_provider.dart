@@ -552,6 +552,40 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
       'country': country,
     });
   }
+  Future<void> removeRelationship(String followerUid, String status) async {
+    if (_user != null) {
+      _user?.watching.removeWhere((follower) => follower['uid'] == followerUid);
+
+      await _firestore.collection('users').doc(_user!.uid).update({
+        'watching': FieldValue.arrayRemove([
+          {'uid': followerUid, 'status': 'pending'}
+        ]),
+      });
+      await _firestore.collection('users').doc(followerUid).update({
+        'followers': FieldValue.arrayRemove([
+          {'uid': _user!.uid, 'status': 'pending'}
+        ]),
+      });
+      notifyListeners();
+    }
+  }
+  Future<void> removeRelationship2(String followerUid, String status) async {
+    if (_user != null) {
+      _user?.followers.removeWhere((follower) => follower['uid'] == followerUid);
+
+      await _firestore.collection('users').doc(_user!.uid).update({
+        'followers': FieldValue.arrayRemove([
+          {'uid': followerUid, 'status': 'pending'}
+        ]),
+      });
+      await _firestore.collection('users').doc(followerUid).update({
+        'watching': FieldValue.arrayRemove([
+          {'uid': _user!.uid, 'status': 'pending'}
+        ]),
+      });
+      notifyListeners();
+    }
+  }
   Future<void> createRelationship(String followerUid, String status) async {
     if (_user != null) {
       _user!.watching.add({'uid': followerUid, 'status': status});

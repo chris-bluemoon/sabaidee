@@ -183,10 +183,33 @@ class MyWatchList extends StatelessWidget {
           } else if (snapshot.hasError) {
             return const Center(child: Text('Something went wrong'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Not Currently Following Anyone',                           style: TextStyle(
-                            fontSize: 24, // Increase the font size
-                            fontWeight: FontWeight.bold, // Make the text bold
-                          ),));
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16.0), // Add padding around the text
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center, // Center the text vertically
+                  children: [
+                    Text(
+                      'Not Currently Following Anyone',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 24, // Increase the font size
+                        fontWeight: FontWeight.bold, // Make the text bold
+                      ),
+                    ),
+                    SizedBox(height: 8.0), // Add some space between the texts
+                    Text(
+                      '(Click add button below to add a friend who has provided an invitation code)',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16, // Set the font size
+                        color: Colors.black54, // Set the text color
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
           } else {
             final watchingNamesAndStatuses = snapshot.data!;
             return ListView.builder(

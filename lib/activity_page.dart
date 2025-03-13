@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Import the intl package
 import 'package:provider/provider.dart';
@@ -27,61 +29,96 @@ class ActivityPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.yellow,
-      appBar: AppBar(
-        title: const Text('ACTIVITY', style: TextStyle(fontWeight: FontWeight.bold)),
-        leading: IconButton(
-          icon: Icon(
-            Icons.chevron_left,
-            size: MediaQuery.of(context).size.width * 0.08, // Set the size relative to the screen width
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/bg2.png'),
+            fit: BoxFit.cover,
           ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
         ),
-        backgroundColor: Colors.yellow,
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: checkInTimes.length,
-          itemBuilder: (context, index) {
-            final checkIn = checkInTimes[index];
-            final formattedDate = DateFormat('MMM d, yyyy').format(checkIn.dateTime); // Format the date
-            final formattedTime = DateFormat('h:mm a').format(checkIn.dateTime); // Format the time with AM/PM without leading zero
-            final translatedStatus = statusTranslations[checkIn.status] ?? checkIn.status; // Translate the status
-            final statusIcon = statusIcons[checkIn.status]?['icon'] ?? Icons.help_outline; // Get the icon for the status
-            final statusColor = statusIcons[checkIn.status]?['color'] ?? Colors.black; // Get the color for the status
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            color: Colors.black.withOpacity(0.1),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ListView.builder(
+                itemCount: checkInTimes.length,
+                itemBuilder: (context, index) {
+                  final checkIn = checkInTimes[index];
+                  final formattedDate = DateFormat('MMM d, yyyy').format(checkIn.dateTime); // Format the date
+                  final formattedTime = DateFormat('h:mm a').format(checkIn.dateTime); // Format the time with AM/PM without leading zero
+                  final translatedStatus = statusTranslations[checkIn.status] ?? checkIn.status; // Translate the status
+                  final statusIcon = statusIcons[checkIn.status]?['icon'] ?? Icons.help_outline; // Get the icon for the status
+                  final statusColor = statusIcons[checkIn.status]?['color'] ?? Colors.black; // Get the color for the status
 
-            return Card(
-              color: Colors.white,
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
-              child: ListTile(
-                leading: Icon(statusIcon as IconData?, color: statusColor as Color?, size: 40), // Set the icon and color
-                title: Text(
-                  translatedStatus,
-                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.045, fontWeight: FontWeight.bold),
-                ),
-                subtitle: Row(
-                  children: [
-                    const Icon(Icons.calendar_today, size: 16, color: Colors.black), // Calendar icon
-                    const SizedBox(width: 4.0),
-                    Text(
-                      formattedDate,
-                      style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04),
+                  return GlassmorphismContainer(
+                    child: ListTile(
+                      leading: Icon(statusIcon as IconData?, color: statusColor as Color?, size: 40), // Set the icon and color
+                      title: Text(
+                        translatedStatus,
+                        style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.045, fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Row(
+                        children: [
+                          const Icon(Icons.calendar_today, size: 16, color: Colors.black), // Calendar icon
+                          const SizedBox(width: 4.0),
+                          Text(
+                            formattedDate,
+                            style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04),
+                          ),
+                          const SizedBox(width: 16.0), // Increase the width of the SizedBox for more spacing
+                          const Icon(Icons.access_time, size: 16, color: Colors.black), // Clock icon
+                          const SizedBox(width: 4.0),
+                          Text(
+                            formattedTime,
+                            style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(width: 16.0), // Increase the width of the SizedBox for more spacing
-                    const Icon(Icons.access_time, size: 16, color: Colors.black), // Clock icon
-                    const SizedBox(width: 4.0),
-                    Text(
-                      formattedTime,
-                      style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class GlassmorphismContainer extends StatelessWidget {
+  final Widget child;
+
+  const GlassmorphismContainer({required this.child, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2), // Semi-transparent white
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3), // Semi-transparent white border
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                spreadRadius: 2,
+                blurRadius: 5,
+                offset: const Offset(0, 3), // changes position of shadow
+              ),
+            ],
+          ),
+          child: child,
         ),
       ),
     );

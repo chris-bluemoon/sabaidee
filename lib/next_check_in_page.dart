@@ -50,6 +50,8 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -83,8 +85,29 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
 
                 final checkInTimes = userProvider.user?.checkInTimes.where((time) => (time.status == 'pending' || time.status == 'open')).toList();
                 if (userProvider.user?.checkInTimes.isEmpty ?? true) {
-                  return const Center(
-                    child: Text('No Check In Times Set Up Yet'),
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
+                          child: Text(
+                            'No Check In Time Set Up',
+                            style: TextStyle(fontSize: screenWidth * 0.12, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        SizedBox(height: screenWidth * 0.02),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
+                          child: Text(
+                            'Go to Settings and add a Schedule',
+                            style: TextStyle(fontSize: screenWidth * 0.06, fontWeight: FontWeight.normal),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
                   );
                 }
 
@@ -150,43 +173,35 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 50),
+                      SizedBox(height: screenWidth * 0.1),
                       Row(
                         children: [
-                          Text(formattedDate, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                          Text(formattedDate, style: TextStyle(fontSize: screenWidth * 0.06, fontWeight: FontWeight.bold)),
                         ],
                       ),
-                      const SizedBox(height: 50),
+                      SizedBox(height: screenWidth * 0.1),
                       nextOrOpenCheckInTime != null && nextOrOpenCheckInTime.status == 'open'
                           ? GlassmorphismContainer(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Check In Now',
-                                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.normal),
+                                    style: TextStyle(fontSize: screenWidth * 0.07, fontWeight: FontWeight.normal),
                                   ),
-                                  const SizedBox(height: 10),
-                                  Expanded(
-                                    child: Center(
-                                      child: Text(
-                                        formattedStartTime,
-                                        style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
+                                  SizedBox(height: screenWidth * 0.02),
+                                  Text(
+                                    formattedStartTime,
+                                    style: TextStyle(fontSize: screenWidth * 0.1, fontWeight: FontWeight.bold),
+                                    textAlign: TextAlign.center,
                                   ),
-                                  const Icon(Icons.arrow_downward_outlined , size: 40), 
-                                  Expanded(
-                                    child: Center(
-                                      child: Text(
-                                        formattedEndTime,
-                                        style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
+                                  Icon(Icons.arrow_downward_outlined, size: screenWidth * 0.1),
+                                  Text(
+                                    formattedEndTime,
+                                    style: TextStyle(fontSize: screenWidth * 0.1, fontWeight: FontWeight.bold),
+                                    textAlign: TextAlign.center,
                                   ),
-                                  const SizedBox(height: 20), // Add a SizedBox to increase the gap
+                                  SizedBox(height: screenWidth * 0.05), // Add a SizedBox to increase the gap
                                   ElevatedButton.icon(
                                     onPressed: () async {
                                       ScaffoldMessenger.of(context).showSnackBar(
@@ -223,7 +238,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.blue, // Change button color to blue
                                       foregroundColor: Colors.white, // Text color
-                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.06, vertical: screenWidth * 0.03),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(30.0),
                                       ),
@@ -236,46 +251,50 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Next Check In',
-                                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.normal),
+                                    style: TextStyle(fontSize: screenWidth * 0.07, fontWeight: FontWeight.normal),
                                   ),
-                                  const SizedBox(height: 5),
-                                  Expanded(
-                                    child: Center(
-                                      child: nextOrOpenCheckInTime != null
-                                          ? Column(
-                                            children: [
-                                              Text(
-                                                  formattedStartTime,
-                                                  style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-                                                  textAlign: TextAlign.center,
-                                                ),
-                                              const Icon(Icons.arrow_downward_outlined , size: 40), 
-                                              Text(
-                                                  formattedEndTime,
-                                                  style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-                                                  textAlign: TextAlign.center,
-                                                ),
-                                            ],
-                                          )
-                                          : const Text(
-                                              'No Check In Time Set Up',
-                                              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                                  SizedBox(height: screenWidth * 0.02),
+                                  nextOrOpenCheckInTime != null
+                                      ? Column(
+                                          children: [
+                                            Text(
+                                              formattedStartTime,
+                                              style: TextStyle(fontSize: screenWidth * 0.1, fontWeight: FontWeight.bold),
                                               textAlign: TextAlign.center,
                                             ),
-                                    ),
-                                  ),
+                                            Icon(Icons.arrow_downward_outlined, size: screenWidth * 0.1),
+                                            Text(
+                                              formattedEndTime,
+                                              style: TextStyle(fontSize: screenWidth * 0.1, fontWeight: FontWeight.bold),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        )
+                                      : Column(
+                                          children: [
+                                            Padding(
+                                              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
+                                              child: Text(
+                                                'Error loading Check In Time',
+                                                style: TextStyle(fontSize: screenWidth * 0.12, fontWeight: FontWeight.bold),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                   if (nextOrOpenCheckInTime != null && nextOrOpenCheckInTime.dateTime.day == DateTime.now().add(const Duration(days: 1)).day)
-                                    const SizedBox(height: 10), // Add consistent space
-                                    const Text(
-                                      '(tomorrow)',
-                                      style: TextStyle(fontSize: 32, fontWeight: FontWeight.normal),
+                                    SizedBox(height: screenWidth * 0.02), // Add consistent space
+                                  if (nextOrOpenCheckInTime != null && nextOrOpenCheckInTime.dateTime.day == DateTime.now().add(const Duration(days: 1)).day)
+                                    Text(
+                                      '(Tomorrow)',
+                                      style: TextStyle(fontSize: screenWidth * 0.08, fontWeight: FontWeight.normal),
                                     ),
                                 ],
                               ),
                             ),
-                      const SizedBox(height: 80),
+                      SizedBox(height: screenWidth * 0.15),
                       ElevatedButton.icon(
                         onPressed: () {
                           Navigator.of(context).push(
@@ -319,7 +338,7 @@ class GlassmorphismContainer extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           width: MediaQuery.of(context).size.width * 0.9, // 90% of the screen width
-          height: MediaQuery.of(context).size.height * 0.4, // 40% of the screen height
+          height: MediaQuery.of(context).size.height * 0.5, // 50% of the screen height
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2), // Semi-transparent white

@@ -20,6 +20,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: Colors.yellow,
       body: Stack(
@@ -55,49 +58,59 @@ class _SettingsPageState extends State<SettingsPage> {
                         if (index == 0) {
                           return _buildSettingsOption(
                             context,
-                            'My Followers',
-                            Icons.people,
-                            const MyFollowersPage(),
+                            'My Schedule',
+                            Icons.schedule_outlined,
+                            const MySchedulePage(),
+                            screenWidth,
                           );
                         } else if (index == 1) {
                           return _buildSettingsOption(
                             context,
-                            'My Schedule',
-                            Icons.schedule,
-                            const MySchedulePage(),
+                            'My Followers',
+                            Icons.people_outline,
+                            const MyFollowersPage(),
+                            screenWidth,
                           );
                         } else if (index == 2) {
                           return _buildSettingsOption(
                             context,
                             'Who Am I Following?',
-                            Icons.watch_later,
+                            Icons.remove_red_eye_outlined, // Change to a pair of glasses icon
                             const MyWatchList(),
+                            screenWidth,
                           );
                         } else if (index == 3) {
                           return _buildSettingsOption(
                             context,
                             'Profile',
-                            Icons.person,
+                            Icons.person_outline,
                             const ProfilePage(), // Navigate to ProfilePage
+                            screenWidth,
                           );
                         }
                         return Container(); // Return an empty container for any other index
                       },
-                      separatorBuilder: (context, index) => const Divider(
-                        color: Colors.grey,
-                        height: 1,
+                      separatorBuilder: (context, index) => Column(
+                        children: [
+                          SizedBox(height: screenHeight * 0.01), // Add separation between items
+                          const Divider(color: Colors.grey, height: 1), // Add a separator line
+                          SizedBox(height: screenHeight * 0.01), // Add separation between items
+                        ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16), // Add some space between the containers
+                  SizedBox(height: screenHeight * 0.05), // Add some space between the containers
                   GlassmorphismContainer(
                     child: ListView(
                       shrinkWrap: true,
                       padding: const EdgeInsets.symmetric(vertical: 8.0), // Reduce padding above and below
                       children: [
                         ListTile(
-                          leading: const Icon(Icons.notifications),
-                          title: const Text('Notifications'),
+                          leading: Icon(Icons.notifications_outlined, size: screenWidth * 0.08),
+                          title: Text(
+                            'Notifications',
+                            style: TextStyle(fontSize: screenWidth * 0.05),
+                          ),
                           trailing: Switch(
                             value: _notificationsEnabled,
                             onChanged: (bool value) {
@@ -119,22 +132,28 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                   const Spacer(), // Add a spacer to push the Sign Out option to the bottom
-                  GlassmorphismContainer(
-                    child: ListView(
-                      shrinkWrap: true,
-                      padding: const EdgeInsets.symmetric(vertical: 0), // Reduce padding above and below
-                      children: [
-                        ListTile(
-                          leading: const Icon(Icons.logout),
-                          title: const Text('SIGN OUT'),
-                          iconColor: Colors.black,
-                          textColor: Colors.black,
-                          onTap: () {
-                            Provider.of<UserProvider>(context, listen: false).signOut();
-                            Navigator.of(context).popUntil((route) => route.isFirst);
-                          },
-                        ),
-                      ],
+                  Padding(
+                    padding: EdgeInsets.only(bottom: screenHeight * 0.05), // Add padding to avoid overlap with bottom nav bar
+                    child: GlassmorphismContainer(
+                      child: ListView(
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.symmetric(vertical: 0), // Reduce padding above and below
+                        children: [
+                          ListTile(
+                            leading: Icon(Icons.logout_outlined, size: screenWidth * 0.08),
+                            title: Text(
+                              'SIGN OUT',
+                              style: TextStyle(fontSize: screenWidth * 0.05),
+                            ),
+                            iconColor: Colors.black,
+                            textColor: Colors.black,
+                            onTap: () {
+                              Provider.of<UserProvider>(context, listen: false).signOut();
+                              Navigator.of(context).popUntil((route) => route.isFirst);
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -146,11 +165,14 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildSettingsOption(BuildContext context, String title, IconData icon, Widget page) {
+  Widget _buildSettingsOption(BuildContext context, String title, IconData icon, Widget page, double screenWidth) {
     return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      trailing: const Icon(Icons.chevron_right), // Add right chevron
+      leading: Icon(icon, size: screenWidth * 0.08),
+      title: Text(
+        title,
+        style: TextStyle(fontSize: screenWidth * 0.05),
+      ),
+      trailing: Icon(Icons.chevron_right_outlined, size: screenWidth * 0.08), // Add right chevron
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => page),

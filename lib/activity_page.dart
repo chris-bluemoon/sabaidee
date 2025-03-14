@@ -42,44 +42,55 @@ class ActivityPage extends StatelessWidget {
             color: Colors.black.withOpacity(0.1),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: ListView.builder(
-                itemCount: checkInTimes.length,
-                itemBuilder: (context, index) {
-                  final checkIn = checkInTimes[index];
-                  final formattedDate = DateFormat('MMM d, yyyy').format(checkIn.dateTime); // Format the date
-                  final formattedTime = DateFormat('h:mm a').format(checkIn.dateTime); // Format the time with AM/PM without leading zero
-                  final translatedStatus = statusTranslations[checkIn.status] ?? checkIn.status; // Translate the status
-                  final statusIcon = statusIcons[checkIn.status]?['icon'] ?? Icons.help_outline; // Get the icon for the status
-                  final statusColor = statusIcons[checkIn.status]?['color'] ?? Colors.black; // Get the color for the status
+              child: checkInTimes.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No history of activity yet',
+                        style: TextStyle(
+                          fontSize: MediaQuery.of(context).size.width * 0.06,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: checkInTimes.length,
+                      itemBuilder: (context, index) {
+                        final checkIn = checkInTimes[index];
+                        final formattedDate = DateFormat('MMM d, yyyy').format(checkIn.dateTime); // Format the date
+                        final formattedTime = DateFormat('h:mm a').format(checkIn.dateTime); // Format the time with AM/PM without leading zero
+                        final translatedStatus = statusTranslations[checkIn.status] ?? checkIn.status; // Translate the status
+                        final statusIcon = statusIcons[checkIn.status]?['icon'] ?? Icons.help_outline; // Get the icon for the status
+                        final statusColor = statusIcons[checkIn.status]?['color'] ?? Colors.black; // Get the color for the status
 
-                  return GlassmorphismContainer(
-                    child: ListTile(
-                      leading: Icon(statusIcon as IconData?, color: statusColor as Color?, size: 40), // Set the icon and color
-                      title: Text(
-                        translatedStatus,
-                        style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.045, fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Row(
-                        children: [
-                          const Icon(Icons.calendar_today, size: 16, color: Colors.black), // Calendar icon
-                          const SizedBox(width: 4.0),
-                          Text(
-                            formattedDate,
-                            style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04),
+                        return GlassmorphismContainer(
+                          child: ListTile(
+                            leading: Icon(statusIcon as IconData?, color: statusColor as Color?, size: 40), // Set the icon and color
+                            title: Text(
+                              translatedStatus,
+                              style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.045, fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Row(
+                              children: [
+                                const Icon(Icons.calendar_today, size: 16, color: Colors.black), // Calendar icon
+                                const SizedBox(width: 4.0),
+                                Text(
+                                  formattedDate,
+                                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04),
+                                ),
+                                const SizedBox(width: 16.0), // Increase the width of the SizedBox for more spacing
+                                const Icon(Icons.access_time, size: 16, color: Colors.black), // Clock icon
+                                const SizedBox(width: 4.0),
+                                Text(
+                                  formattedTime,
+                                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04),
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(width: 16.0), // Increase the width of the SizedBox for more spacing
-                          const Icon(Icons.access_time, size: 16, color: Colors.black), // Clock icon
-                          const SizedBox(width: 4.0),
-                          Text(
-                            formattedTime,
-                            style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ),
         ),

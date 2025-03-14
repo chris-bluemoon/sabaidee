@@ -36,6 +36,13 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final iconSize = screenHeight * 0.04; // Set icon size relative to screen height
+    final navBarHeight = screenHeight * 0.08; // Set navigation bar height relative to screen height
+
+    // Ensure navBarHeight is within the allowed range
+    final adjustedNavBarHeight = navBarHeight.clamp(0.0, 75.0);
+
     return Scaffold(
       extendBody: true, // Extend the body behind the bottom navigation bar
       body: PageView(
@@ -47,11 +54,11 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.transparent, // Make the background transparent
         color: Colors.white, // Color of the navigation bar
         buttonBackgroundColor: Colors.white, // Color of the button background
-        height: 60, // Height of the navigation bar
+        height: adjustedNavBarHeight, // Height of the navigation bar
         items: <Widget>[
-          Icon(Icons.home, size: 30, color: _selectedIndex == 0 ? Colors.black : Colors.grey),
-          Icon(Icons.business, size: 30, color: _selectedIndex == 1 ? Colors.black : Colors.grey),
-          Icon(Icons.settings, size: 30, color: _selectedIndex == 2 ? Colors.black : Colors.grey),
+          Icon(Icons.home, size: iconSize, color: _selectedIndex == 0 ? Colors.black : Colors.grey),
+          Icon(Icons.history, size: iconSize, color: _selectedIndex == 1 ? Colors.black : Colors.grey), // Changed icon to history
+          Icon(Icons.settings, size: iconSize, color: _selectedIndex == 2 ? Colors.black : Colors.grey),
         ],
         index: _selectedIndex,
         onTap: _onItemTapped,

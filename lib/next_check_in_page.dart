@@ -267,6 +267,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                     ),
                                   ),
                                   if (nextOrOpenCheckInTime != null && nextOrOpenCheckInTime.dateTime.day == DateTime.now().add(const Duration(days: 1)).day)
+                                    const SizedBox(height: 10), // Add consistent space
                                     const Text(
                                       '(tomorrow)',
                                       style: TextStyle(fontSize: 32, fontWeight: FontWeight.normal),
@@ -274,8 +275,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                 ],
                               ),
                             ),
-                      const SizedBox(height: 60),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 80),
                       ElevatedButton.icon(
                         onPressed: () {
                           Navigator.of(context).push(

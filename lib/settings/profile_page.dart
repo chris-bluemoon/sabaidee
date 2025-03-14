@@ -89,7 +89,7 @@ class _ProfilePageState extends State<ProfilePage> {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                SizedBox(height: appBarHeight + 20), // Add more space below the app bar
+                SizedBox(height: appBarHeight + screenHeight * 0.08), // Add more space below the app bar
                 Form(
                   key: _formKey,
                   child: Column(
@@ -186,58 +186,52 @@ class _ProfilePageState extends State<ProfilePage> {
                             Icon(Icons.location_on_outlined, size: screenWidth * 0.06, color: Colors.black), // Change to location icon
                             const SizedBox(width: 8.0),
                             Expanded(
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: DropdownButtonFormField<String>(
-                                  value: _selectedCountry,
-                                  decoration: InputDecoration(
-                                    hintText: 'Country',
-                                    hintStyle: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045),
-                                    border: InputBorder.none,
-                                    contentPadding: EdgeInsets.zero, // Remove default padding
-                                  ),
-                                  isExpanded: true, // Ensure the dropdown button takes up available space
-                                  items: getCountryList2().map((country) {
-                                    return DropdownMenuItem<String>(
-                                      value: country['country'],
-                                      child: Column(
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Image.asset(
-                                                'assets/flags/${country['filename']}',
-                                                width: 24,
-                                                height: 24,
-                                              ),
-                                              const SizedBox(width: 8.0),
-                                              Text(country['country']!, style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045)),
-                                            ],
-                                          ),
-                                          const Divider(), // Add a divider between items
-                                        ],
-                                      ),
-                                    );
-                                  }).toList(),
-                                  onChanged: _isEditing ? (String? newValue) {
-                                    setState(() {
-                                      _selectedCountry = newValue;
-                                    });
-                                  } : null,
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Please select your country';
-                                    }
-                                    return null;
-                                  },
-                                  selectedItemBuilder: (BuildContext context) {
-                                    return getCountryList2().map((country) {
-                                      return Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(country['country']!, style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045)),
-                                      );
-                                    }).toList();
-                                  },
+                              child: DropdownButtonFormField<String>(
+                                value: _selectedCountry,
+                                decoration: InputDecoration(
+                                  hintText: 'Country',
+                                  hintStyle: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.zero, // Remove default padding
                                 ),
+                                isExpanded: true, // Ensure the dropdown button takes up available space
+                                items: getCountryList2().map((country) {
+                                  return DropdownMenuItem<String>(
+                                    value: country['country'],
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Image.asset(
+                                              'assets/flags/${country['filename']}',
+                                              width: screenWidth * 0.06, // Set the width relative to the screen width
+                                              height: screenWidth * 0.06, // Set the height relative to the screen width
+                                            ),
+                                            const SizedBox(width: 8.0),
+                                            Text(country['country']!, style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045)),
+                                          ],
+                                        ),
+                                        const Divider(), // Add a divider between items
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: _isEditing ? (String? newValue) {
+                                  setState(() {
+                                    _selectedCountry = newValue;
+                                  });
+                                } : null,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please select your country';
+                                  }
+                                  return null;
+                                },
+                                selectedItemBuilder: (BuildContext context) {
+                                  return getCountryList2().map((country) {
+                                    return Text(country['country']!, style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045));
+                                  }).toList();
+                                },
                               ),
                             ),
                           ],
@@ -277,6 +271,10 @@ class _ProfilePageState extends State<ProfilePage> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.black, // Set the background color to black
                                   foregroundColor: Colors.white, // Set the text color to white
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20), // Match the border radius of the GlassmorphismContainer
+                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 12.0), // Add padding for a consistent look
                                 ),
                                 child: Text('SAVE', style: TextStyle(fontSize: screenWidth * 0.045)),
                               ),
@@ -290,6 +288,10 @@ class _ProfilePageState extends State<ProfilePage> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.grey, // Set the background color to grey
                                   foregroundColor: Colors.white, // Set the text color to white
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20), // Match the border radius of the GlassmorphismContainer
+                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 12.0), // Add padding for a consistent look
                                 ),
                                 child: Text('CANCEL', style: TextStyle(fontSize: screenWidth * 0.045)),
                               ),
@@ -304,6 +306,10 @@ class _ProfilePageState extends State<ProfilePage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black, // Set the background color to black
                               foregroundColor: Colors.white, // Set the text color to white
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20), // Match the border radius of the GlassmorphismContainer
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 12.0), // Add padding for a consistent look
                             ),
                             child: Text('EDIT', style: TextStyle(fontSize: screenWidth * 0.045)),
                           ),

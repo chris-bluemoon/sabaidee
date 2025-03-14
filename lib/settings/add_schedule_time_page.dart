@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -53,7 +54,7 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
       await userProvider.addCheckInTime(utcDateTime);
     }
     print('Schedule times added: $_selectedHours');
-    Navigator.of(context).pop();
+    Navigator.pop(context);
   }
 
   @override
@@ -78,78 +79,147 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
     }).toSet();
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Add Schedule Time', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
-        backgroundColor: Colors.yellow,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
           icon: Icon(
             Icons.chevron_left,
             size: screenWidth * 0.08, // Set the size relative to the screen width
           ),
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.pop(context); // Go back to the settings page
           },
         ),
       ),
-      backgroundColor: Colors.yellow,
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(16.0),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3, // 3 columns
-                childAspectRatio: screenWidth / (screenHeight / 4), // Adjust the aspect ratio to fit the text
-                crossAxisSpacing: 8.0,
-                mainAxisSpacing: 8.0,
-              ),
-              itemCount: 24, // 24 hours in a day
-              itemBuilder: (context, index) {
-                final adjustedTime = DateTime(0, 1, 1, index).toUtc().add(timezoneOffset);
-                final hour = adjustedTime.hour;
-                final formattedHour = DateFormat('h:mm a').format(adjustedTime); // Use 'h' instead of 'hh' to remove leading zero
-                final isSelected = _selectedHours.contains(hour);
-                final isPending = pendingHours.contains(hour);
-
-                return ElevatedButton(
-                  onPressed: isPending ? null : () {
-                    _toggleHour(hour);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isSelected ? Colors.blue : null,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(100)) // Rounded shape
-                    ),
-                  ),
-                  child: Text(
-                    formattedHour,
-                    style: TextStyle(
-                      color: isPending ? Colors.grey : (isSelected ? Colors.white : Colors.black), // Change text color based on selection and pending status
-                    ),
-                  ),
-                );
-              },
+          // Background image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/bg3.png',
+              fit: BoxFit.cover,
             ),
           ),
-          if (_selectedHours.isNotEmpty) // Only show the SUBMIT button if a time is selected
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SizedBox(
-                width: double.infinity, // Extend the button to the size of the screen
-                child: ElevatedButton(
-                  onPressed: _submitSchedule,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black, // Button color black
-                  ),
-                  child: const Text(
-                    'SUBMIT',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), // Text color white
-                  ),
-                ),
+          // Glassmorphism effect
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                color: Colors.black.withOpacity(0.1),
               ),
             ),
+          ),
+          // Main content
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                SizedBox(height: screenHeight * 0.08), // Add space below the app bar
+                Expanded(
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(16.0),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3, // 3 columns
+                      childAspectRatio: screenWidth / (screenHeight / 4), // Adjust the aspect ratio to fit the text
+                      crossAxisSpacing: 8.0,
+                      mainAxisSpacing: 8.0,
+                    ),
+                    itemCount: 24, // 24 hours in a day
+                    itemBuilder: (context, index) {
+                      final adjustedTime = DateTime(0, 1, 1, index).toUtc().add(timezoneOffset);
+                      final hour = adjustedTime.hour;
+                      final formattedHour = DateFormat('h:mm a').format(adjustedTime); // Use 'h' instead of 'hh' to remove leading zero
+                      final isSelected = _selectedHours.contains(hour);
+                      final isPending = pendingHours.contains(hour);
+
+                      return ElevatedButton(
+                        onPressed: isPending ? null : () {
+                          _toggleHour(hour);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isSelected ? Colors.blue : null,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(100)) // Rounded shape
+                          ),
+                          padding: EdgeInsets.zero, // Reduce padding within the button
+                        ),
+                        child: Text(
+                          formattedHour,
+                          style: TextStyle(
+                            color: isPending ? Colors.black : (isSelected ? Colors.white : Colors.black), // Change text color based on selection and pending status
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, // Make selected text darker
+                            fontSize: screenWidth * 0.04, // Ensure consistent text size
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                if (_selectedHours.isNotEmpty) // Only show the SUBMIT button if a time is selected
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: SizedBox(
+                      width: double.infinity, // Extend the button to the size of the screen
+                      child: ElevatedButton(
+                        onPressed: _submitSchedule,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black, // Set the background color to black
+                          foregroundColor: Colors.white, // Set the text color to white
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20), // Match the border radius of the GlassmorphismContainer
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 12.0), // Add padding for a consistent look
+                        ),
+                        child: Text('SUBMIT', style: TextStyle(fontSize: screenWidth * 0.045)),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class GlassmorphismContainer extends StatelessWidget {
+  final Widget child;
+  final double height;
+
+  const GlassmorphismContainer({required this.child, required this.height, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          height: height, // Set a consistent height for each box
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2), // Semi-transparent white
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3), // Semi-transparent white border
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                spreadRadius: 2,
+                blurRadius: 5,
+                offset: const Offset(0, 3), // changes position of shadow
+              ),
+            ],
+          ),
+          child: child,
+        ),
       ),
     );
   }

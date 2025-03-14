@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -184,147 +185,204 @@ class _MyFollowersPageState extends State<MyFollowersPage> {
     final userProvider = Provider.of<UserProvider>(context);
     final followers = userProvider.followers;
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Colors.yellow,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text(
           'MY FOLLOWERS',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: Colors.yellow,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
           icon: Icon(
             Icons.chevron_left,
-            size: screenWidth * 0.08, // Set the size follower to the screen width
+            size: screenWidth * 0.08, // Set the size relative to the screen width
           ),
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.pop(context); // Go back to the settings page
           },
         ),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: FutureBuilder<List<Map<String, String>>>(
-              future: _fetchFollowersWithNames(followers),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return const Center(child: Text('Error loading followers'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'No Current Followers',
-                          style: TextStyle(
-                            fontSize: 24, // Increase the font size
-                            fontWeight: FontWeight.bold, // Make the text bold
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        GestureDetector(
-                          onTap: () async {
-                            final code = _generateRandomCode();
-                            await sendEmailWithInstructions(code);
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text('Email Sent'),
-                                  content: const Center(
-                                    child: Text('Please check your email for the referral code and send to your friend!'),
-                                  ),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      child: const Text(
-                                        'OK',
-                                        style: TextStyle(color: Colors.black),
-                                      ),
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                          child: const Text(
-                            "Don't have a code yet? Receive an email",
-                            style: TextStyle(
-                              color: Colors.black,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                } else {
-                  final followersWithNames = snapshot.data!;
-                  return ListView(
-                    padding: const EdgeInsets.all(16.0),
-                    children: followersWithNames.map((follower) {
-                      return Dismissible(
-                        key: Key(follower['uid']!),
-                        direction: DismissDirection.endToStart,
-                        onDismissed: (direction) async {
-                          await _removeFollower(context, follower['uid']!);
-                        },
-                        background: Container(
-                          color: Colors.red,
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: const Icon(Icons.delete_outline, color: Colors.white),
-                        ),
-                        child: ListTile(
-                          title: Container(
-                            padding: const EdgeInsets.fromLTRB(12.0, 6.0, 6.0, 6.0), // Increase the left padding slightly
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(5),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  spreadRadius: 2,
-                                  blurRadius: 5,
-                                  offset: const Offset(0, 3), // changes position of shadow
+          // Background image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/bg3.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          // Glassmorphism effect
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                color: Colors.black.withOpacity(0.1),
+              ),
+            ),
+          ),
+          // Main content
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                SizedBox(height: screenHeight * 0.04), // Add space below the app bar
+                Expanded(
+                  child: FutureBuilder<List<Map<String, String>>>(
+                    future: _fetchFollowersWithNames(followers),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return const Center(child: Text('Error loading followers'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'No Current Followers',
+                                style: TextStyle(
+                                  fontSize: 24, // Increase the font size
+                                  fontWeight: FontWeight.bold, // Make the text bold
                                 ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  follower['name']!,
+                              ),
+                              const SizedBox(height: 10),
+                              GestureDetector(
+                                onTap: () async {
+                                  final code = _generateRandomCode();
+                                  await sendEmailWithInstructions(code);
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text('Email Sent'),
+                                        content: const Center(
+                                          child: Text('Please check your email for the referral code and send to your friend!'),
+                                        ),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            child: const Text(
+                                              'OK',
+                                              style: TextStyle(color: Colors.black),
+                                            ),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                                child: const Text(
+                                  "Don't have a code yet? Receive an email",
                                   style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: screenWidth * 0.05, // Set the font size follower to the screen width
+                                    color: Colors.black,
+                                    decoration: TextDecoration.underline,
                                   ),
                                 ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline, color: Colors.black),
-                                  onPressed: () async {
-                                    await _removeFollower(context, follower['uid']!);
-                                  },
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ),
-                      );
-                    }).toList(),
-                  );
-                }
-              },
+                        );
+                      } else {
+                        final followersWithNames = snapshot.data!;
+                        return ListView(
+                          padding: const EdgeInsets.all(16.0),
+                          children: followersWithNames.map((follower) {
+                            return Padding(
+                              padding: EdgeInsets.only(bottom: screenHeight * 0.02), // Add padding between containers
+                              child: Dismissible(
+                                key: Key(follower['uid']!),
+                                direction: DismissDirection.endToStart,
+                                onDismissed: (direction) async {
+                                  await _removeFollower(context, follower['uid']!);
+                                },
+                                background: Container(
+                                  color: Colors.red,
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  child: const Icon(Icons.delete_outline, color: Colors.white),
+                                ),
+                                child: GlassmorphismContainer(
+                                  height: screenWidth * 0.15, // Adjust height based on screen size
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(12.0, 6.0, 6.0, 6.0), // Increase the left padding slightly
+                                        child: Text(
+                                          follower['name']!,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: screenWidth * 0.05, // Set the font size relative to the screen width
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete_outline, color: Colors.black),
+                                        onPressed: () async {
+                                          await _removeFollower(context, follower['uid']!);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class GlassmorphismContainer extends StatelessWidget {
+  final Widget child;
+  final double height;
+
+  const GlassmorphismContainer({required this.child, required this.height, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          height: height, // Set a consistent height for each box
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2), // Semi-transparent white
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3), // Semi-transparent white border
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                spreadRadius: 2,
+                blurRadius: 5,
+                offset: const Offset(0, 3), // changes position of shadow
+              ),
+            ],
+          ),
+          child: child,
+        ),
       ),
     );
   }

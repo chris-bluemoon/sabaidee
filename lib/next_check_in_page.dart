@@ -107,7 +107,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                           ),
                         ),
                       ],
-                    ),
+                    )
                   );
                 }
 
@@ -185,9 +185,12 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    'Check In Now',
-                                    style: TextStyle(fontSize: screenWidth * 0.07, fontWeight: FontWeight.normal),
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      'Check In Now',
+                                      style: TextStyle(fontSize: screenWidth * 0.07, fontWeight: FontWeight.normal),
+                                    ),
                                   ),
                                   SizedBox(height: screenWidth * 0.02),
                                   Text(
@@ -249,11 +252,14 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                             )
                           : GlassmorphismContainer(
                               child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.start, // Align text to the top
                                 children: [
-                                  Text(
-                                    'Next Check In',
-                                    style: TextStyle(fontSize: screenWidth * 0.07, fontWeight: FontWeight.normal),
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      'Next Check In',
+                                      style: TextStyle(fontSize: screenWidth * 0.07, fontWeight: FontWeight.normal),
+                                    ),
                                   ),
                                   SizedBox(height: screenWidth * 0.02),
                                   nextOrOpenCheckInTime != null
@@ -339,7 +345,7 @@ class GlassmorphismContainer extends StatelessWidget {
         child: Container(
           width: MediaQuery.of(context).size.width * 0.9, // 90% of the screen width
           height: MediaQuery.of(context).size.height * 0.5, // 50% of the screen height
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0), // Increase top padding
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2), // Semi-transparent white
             borderRadius: BorderRadius.circular(10),

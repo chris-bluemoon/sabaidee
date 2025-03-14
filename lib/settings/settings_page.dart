@@ -24,7 +24,6 @@ class _SettingsPageState extends State<SettingsPage> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Colors.yellow,
       body: Stack(
         children: [
           // Background image

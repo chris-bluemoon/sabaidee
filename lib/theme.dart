@@ -46,7 +46,7 @@ final ThemeData appTheme = ThemeData(
       ),
     ),
   ),
-  scaffoldBackgroundColor: Colors.yellow, // Set the background color to yellow
+  // scaffoldBackgroundColor: Colors.yellow, // Set the background color to yellow
   bottomNavigationBarTheme: const BottomNavigationBarThemeData(
     backgroundColor: Color(0xFFFFC0CB), // Compatible with pink
     selectedItemColor: Color(0xFFFFFFFF),

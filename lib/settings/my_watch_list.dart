@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -149,7 +151,6 @@ class MyWatchList extends StatelessWidget {
     print('Follower ID $followerUid.');
     // await userProvider.removeFollower(followerUid);
     await userProvider.removeRelationship(followerUid, 'pending');
-
   }
 
   @override
@@ -158,9 +159,10 @@ class MyWatchList extends StatelessWidget {
     final watchings = userProvider.watching;
     final currentUserUid = userProvider.user?.uid;
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Colors.yellow,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('FOLLOWING', style: TextStyle(fontWeight: FontWeight.bold)),
         leading: IconButton(
@@ -172,105 +174,129 @@ class MyWatchList extends StatelessWidget {
             Navigator.of(context).pop();
           },
         ),
-        backgroundColor: Colors.yellow,
+        backgroundColor: Colors.transparent,
         centerTitle: true,
+        elevation: 0,
       ),
-      body: FutureBuilder<Map<String, Map<String, String>>>(
-        future: userProvider.fetchWatchingNamesAndStatuses(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return const Center(child: Text('Something went wrong'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16.0), // Add padding around the text
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center, // Center the text vertically
-                  children: [
-                    Text(
-                      'Not Currently Following Anyone',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 24, // Increase the font size
-                        fontWeight: FontWeight.bold, // Make the text bold
-                      ),
-                    ),
-                    SizedBox(height: 8.0), // Add some space between the texts
-                    Text(
-                      '(Click add button below to add a friend who has provided an invitation code)',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16, // Set the font size
-                        color: Colors.black54, // Set the text color
-                      ),
-                    ),
-                  ],
-                ),
+      body: Stack(
+        children: [
+          // Background image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/bg3.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          // Glassmorphism effect
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                color: Colors.black.withOpacity(0.1),
               ),
-            );
-          } else {
-            final watchingNamesAndStatuses = snapshot.data!;
-            return ListView.builder(
-              itemCount: watchings.length,
-              itemBuilder: (context, index) {
-                final watching = watchings[index];
-                final watchingUid = watching['uid'];
-                final watchingName = watchingNamesAndStatuses[watchingUid]?['name'] ?? 'Unknown';
-                final watchingStatus = watchingNamesAndStatuses[watchingUid]?['status'] ?? 'Unknown';
-                return Dismissible(
-                  key: Key(watchingUid!),
-                  direction: DismissDirection.endToStart,
-                  onDismissed: (direction) async {
-                    await _removeFollower(context, watchingUid);
-                  },
-                  background: Container(
-                    color: Colors.red,
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: const Icon(Icons.delete_outline, color: Colors.white),
-                  ),
-                  child: ListTile(
-                    title: Container(
-                      padding: const EdgeInsets.fromLTRB(12.0, 6.0, 6.0, 6.0), // Increase the left padding slightly
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            spreadRadius: 2,
-                            blurRadius: 5,
-                            offset: const Offset(0, 3), // changes position of shadow
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            watchingName,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: screenWidth * 0.05, // Set the font size relative to the screen width
+            ),
+          ),
+          // Main content
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                SizedBox(height: screenHeight * 0.04), // Reduce space below the app bar
+                Expanded(
+                  child: FutureBuilder<Map<String, Map<String, String>>>(
+                    future: userProvider.fetchWatchingNamesAndStatuses(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return const Center(child: Text('Something went wrong'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0), // Add padding around the text
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center, // Center the text vertically
+                              children: [
+                                Text(
+                                  'Not Currently Following Anyone',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 24, // Increase the font size
+                                    fontWeight: FontWeight.bold, // Make the text bold
+                                  ),
+                                ),
+                                SizedBox(height: 8.0), // Add some space between the texts
+                                Text(
+                                  '(Click add button below to add a friend who has provided an invitation code)',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 16, // Set the font size
+                                    color: Colors.black54, // Set the text color
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline, color: Colors.black),
-                            onPressed: () async {
-                              await _removeFollower(context, watchingUid);
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
+                        );
+                      } else {
+                        final watchingNamesAndStatuses = snapshot.data!;
+                        return ListView.builder(
+                          itemCount: watchings.length,
+                          itemBuilder: (context, index) {
+                            final watching = watchings[index];
+                            final watchingUid = watching['uid'];
+                            final watchingName = watchingNamesAndStatuses[watchingUid]?['name'] ?? 'Unknown';
+                            final watchingStatus = watchingNamesAndStatuses[watchingUid]?['status'] ?? 'Unknown';
+                            return Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: screenHeight * 0.01), // Add horizontal padding and vertical padding between containers
+                              child: Dismissible(
+                                key: Key(watchingUid!),
+                                direction: DismissDirection.endToStart,
+                                onDismissed: (direction) async {
+                                  await _removeFollower(context, watchingUid);
+                                },
+                                background: Container(
+                                  color: Colors.red,
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  child: const Icon(Icons.delete_outline, color: Colors.white),
+                                ),
+                                child: GlassmorphismContainer(
+                                  height: screenWidth * 0.15, // Adjust height based on screen size
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(12.0, 6.0, 6.0, 6.0), // Increase the left padding slightly
+                                        child: Text(
+                                          watchingName,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: screenWidth * 0.05, // Set the font size relative to the screen width
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete_outline, color: Colors.black),
+                                        onPressed: () async {
+                                          await _removeFollower(context, watchingUid);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      }
+                    },
                   ),
-                );
-              },
-            );
-          }
-        },
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
@@ -279,6 +305,44 @@ class MyWatchList extends StatelessWidget {
         },
         backgroundColor: Colors.white,
         child: const Icon(Icons.add, color: Colors.black),
+      ),
+    );
+  }
+}
+
+class GlassmorphismContainer extends StatelessWidget {
+  final Widget child;
+  final double height;
+
+  const GlassmorphismContainer({required this.child, required this.height, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          height: height, // Set a consistent height for each box
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2), // Semi-transparent white
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3), // Semi-transparent white border
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                spreadRadius: 2,
+                blurRadius: 5,
+                offset: const Offset(0, 3), // changes position of shadow
+              ),
+            ],
+          ),
+          child: child,
+        ),
       ),
     );
   }

@@ -230,7 +230,7 @@ class _MyFollowersPageState extends State<MyFollowersPage> {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                SizedBox(height: screenHeight * 0.04), // Add space below the app bar
+                SizedBox(height: screenHeight * 0.1), // Add space below the app bar
                 Expanded(
                   child: FutureBuilder<List<Map<String, String>>>(
                     future: _fetchFollowersWithNames(followers),

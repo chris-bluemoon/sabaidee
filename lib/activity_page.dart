@@ -30,6 +30,9 @@ class ActivityPage extends StatelessWidget {
       'pending': {'icon': Icons.hourglass_empty, 'color': Colors.blue}, // Change color to blue
     };
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       // backgroundColor: Colors.yellow,
       body: Container(
@@ -50,7 +53,7 @@ class ActivityPage extends StatelessWidget {
                       child: Text(
                         'No history of activity yet',
                         style: TextStyle(
-                          fontSize: MediaQuery.of(context).size.width * 0.06,
+                          fontSize: screenWidth * 0.06,
                           fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,
@@ -67,28 +70,30 @@ class ActivityPage extends StatelessWidget {
                         final statusColor = statusIcons[checkIn.status]?['color'] ?? Colors.black; // Get the color for the status
 
                         return Padding(
-                          padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.02), // Add padding between containers
+                          padding: EdgeInsets.only(bottom: screenHeight * 0.02), // Add padding between containers
                           child: GlassmorphismContainer(
                             child: ListTile(
-                              leading: Icon(statusIcon as IconData?, color: statusColor as Color?, size: 40), // Set the icon and color
+                              leading: Icon(statusIcon as IconData?, color: statusColor as Color?, size: screenWidth * 0.1), // Set the icon size relative to the screen width
                               title: Text(
                                 translatedStatus,
-                                style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.045, fontWeight: FontWeight.bold),
+                                style: TextStyle(fontSize: screenWidth * 0.045, fontWeight: FontWeight.bold),
                               ),
                               subtitle: Row(
                                 children: [
-                                  const Icon(Icons.calendar_today, size: 16, color: Colors.black), // Calendar icon
-                                  const SizedBox(width: 4.0),
+                                  Icon(Icons.calendar_today, size: screenWidth * 0.045, color: Colors.black), // Calendar icon
+                                  SizedBox(width: screenWidth * 0.01),
                                   Text(
                                     formattedDate,
-                                    style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04),
+                                    style: TextStyle(fontSize: screenWidth * 0.045),
                                   ),
-                                  const SizedBox(width: 16.0), // Increase the width of the SizedBox for more spacing
-                                  const Icon(Icons.access_time, size: 16, color: Colors.black), // Clock icon
-                                  const SizedBox(width: 4.0),
-                                  Text(
-                                    formattedTime,
-                                    style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04),
+                                  SizedBox(width: screenWidth * 0.04), // Increase the width of the SizedBox for more spacing
+                                  Icon(Icons.access_time, size: screenWidth * 0.045, color: Colors.black), // Clock icon
+                                  SizedBox(width: screenWidth * 0.01),
+                                  Expanded(
+                                    child: Text(
+                                      formattedTime,
+                                      style: TextStyle(fontSize: screenWidth * 0.045),
+                                    ),
                                   ),
                                 ],
                               ),

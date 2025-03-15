@@ -169,7 +169,7 @@ class _SettingsPageState extends State<SettingsPage> {
       leading: Icon(icon, size: screenWidth * 0.08),
       title: Text(
         title,
-        style: TextStyle(fontSize: screenWidth * 0.05),
+        style: TextStyle(fontSize: screenWidth * 0.045),
       ),
       trailing: Icon(Icons.chevron_right_outlined, size: screenWidth * 0.08), // Add right chevron
       onTap: () {

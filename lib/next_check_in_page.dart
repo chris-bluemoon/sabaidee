@@ -183,14 +183,12 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                       nextOrOpenCheckInTime != null && nextOrOpenCheckInTime.status == 'open'
                           ? GlassmorphismContainer(
                               child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      'Check In Now',
-                                      style: TextStyle(fontSize: screenWidth * 0.07, fontWeight: FontWeight.normal),
-                                    ),
+                                  const Spacer(),
+                                  Text(
+                                    'Check In Now',
+                                    style: TextStyle(fontSize: screenWidth * 0.07, fontWeight: FontWeight.normal),
+                                    textAlign: TextAlign.center,
                                   ),
                                   SizedBox(height: screenWidth * 0.02),
                                   Text(
@@ -247,19 +245,18 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                       ),
                                     ),
                                   ),
+                                  const Spacer(),
                                 ],
                               ),
                             )
                           : GlassmorphismContainer(
                               child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start, // Align text to the top
                                 children: [
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      'Next Check In',
-                                      style: TextStyle(fontSize: screenWidth * 0.07, fontWeight: FontWeight.normal),
-                                    ),
+                                  SizedBox(height: screenWidth * 0.04), // Add consistent space
+                                  Text(
+                                    'Next Check In',
+                                    style: TextStyle(fontSize: screenWidth * 0.07, fontWeight: FontWeight.normal),
+                                    textAlign: TextAlign.center,
                                   ),
                                   SizedBox(height: screenWidth * 0.02),
                                   nextOrOpenCheckInTime != null
@@ -296,7 +293,9 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                     Text(
                                       '(Tomorrow)',
                                       style: TextStyle(fontSize: screenWidth * 0.08, fontWeight: FontWeight.normal),
+                                      textAlign: TextAlign.center,
                                     ),
+                                  SizedBox(height: screenWidth * 0.02), // Add consistent space
                                 ],
                               ),
                             ),
@@ -314,6 +313,8 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red, // Button color
                           foregroundColor: Colors.white, // Button color
+                          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1, vertical: screenWidth * 0.04), // Adjust padding
+                          textStyle: TextStyle(fontSize: screenWidth * 0.05), // Adjust font size
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20), // More rounded corners
                           ),
@@ -345,7 +346,7 @@ class GlassmorphismContainer extends StatelessWidget {
         child: Container(
           width: MediaQuery.of(context).size.width * 0.9, // 90% of the screen width
           height: MediaQuery.of(context).size.height * 0.5, // 50% of the screen height
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0), // Increase top padding
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Decrease vertical padding
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2), // Semi-transparent white
             borderRadius: BorderRadius.circular(10),

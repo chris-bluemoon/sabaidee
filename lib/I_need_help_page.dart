@@ -176,18 +176,23 @@ class DetailPage extends StatelessWidget {
     log(helpline.policeNumber);
 
     String phoneNumber;
+    String mapQuery;
     switch (title) {
       case 'POLICE':
         phoneNumber = helpline.policeNumber;
+        mapQuery = 'police station near me';
         break;
       case 'FIRE BRIGADE':
         phoneNumber = helpline.fireBrigadeNumber;
+        mapQuery = 'fire station near me';
         break;
       case 'AMBULANCE':
         phoneNumber = helpline.ambulanceNumber;
+        mapQuery = 'hospital near me';
         break;
       default:
         phoneNumber = '';
+        mapQuery = 'emergency services near me';
     }
 
     return Scaffold(
@@ -240,13 +245,19 @@ class DetailPage extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0), // Add horizontal margin
                   child: ElevatedButton.icon(
                     onPressed: () async {
-                      final url = 'tel:$phoneNumber';
-                      if (await canLaunchUrl(Uri.parse(url))) {
-                        log('About to launch $url with phone number $phoneNumber');
-                        await launchUrl(Uri.parse(url));
-                      } else {
-                        log('Could not launch $url');
-                        throw 'Could not launch $url';
+                      try {
+                        final url = 'tel:$phoneNumber';
+                        if (await canLaunchUrl(Uri.parse(url))) {
+                          log('About to launch $url with phone number $phoneNumber');
+                          await launchUrl(Uri.parse(url));
+                        } else {
+                          throw 'Could not launch $url';
+                        }
+                      } catch (e) {
+                        log(e.toString());
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: $e')),
+                        );
                       }
                     },
                     icon: const Padding(
@@ -259,6 +270,47 @@ class DetailPage extends StatelessWidget {
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue, // Button background color
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0), // Rounded edges
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20), // Add space between buttons
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0), // Add horizontal margin
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      try {
+                        final encodedQuery = Uri.encodeComponent(mapQuery);
+                        const url = 'https://www.google.com';
+                        // final url = 'https://www.google.com/maps/search/?api=1&query=$encodedQuery';
+                         
+                        try { await canLaunchUrl(Uri.parse(url)); } catch (e) { log('Error:${e.toString()}'); }
+                        if (await canLaunchUrl(Uri.parse(url))) {
+                          log('About to launch $url');
+                          await launchUrl(Uri.parse(url));
+                        } else {
+                          throw 'Could not launch $url';
+                        }
+                      } catch (e) {
+                        log(e.toString());
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: $e')),
+                        );
+                      }
+                    },
+                    icon: const Padding(
+                      padding: EdgeInsets.only(right: 8.0), // Add space between icon and text
+                      child: Icon(Icons.map, color: Colors.white),
+                    ),
+                    label: Text(
+                      'FIND NEAREST $title',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green, // Button background color
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30.0), // Rounded edges
                       ),

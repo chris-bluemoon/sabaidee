@@ -27,8 +27,8 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
         if (userData.fcmToken) {
           const payload = {
             notification: {
-              title: 'Check-In Status Update',
-              body: 'Your check-in status has been updated to MISSED.',
+              title: 'Check-In Missed!',
+              body: "You've missed a check-in, your followers have been notified.",
             },
             token: userData.fcmToken,
             data: {
@@ -54,8 +54,8 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
                 if (followerData.fcmToken) {
                   const followerPayload = {
                     notification: {
-                      title: 'follower Check-In Status Update',
-                      body: `The check-in status for ${userData.name} has been updated to MISSED.`,
+                      title: '${userData.name} missed their check-in.',
+                      body: `Please check in on them!`,
                     },
                     token: followerData.fcmToken,
                     data: {
@@ -84,8 +84,8 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
         if (userData.fcmToken) {
           const payload = {
             notification: {
-              title: 'Check-In Status Update',
-              body: 'Your check-in status has been updated to open.',
+              title: 'Your check-in is now open.',
+              body: 'Please check in now!',
             },
             token: userData.fcmToken,
             data: {

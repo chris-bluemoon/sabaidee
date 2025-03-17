@@ -18,6 +18,7 @@ class NextCheckInPage extends StatefulWidget {
 
 class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingObserver {
   late final String formattedDate;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -42,10 +43,18 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
   }
 
   Future<void> _fetchUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     if (userProvider.user != null) {
       await userProvider.fetchUserData(userProvider.user!.uid);
     }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
@@ -76,6 +85,12 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
             padding: const EdgeInsets.all(16.0),
             child: Consumer<UserProvider>(
               builder: (context, userProvider, child) {
+                if (_isLoading) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+
                 if (userProvider.user == null) {
                   log('Building NEXT_CHECK_IN_PAGE but user is null');
                   return const Center(

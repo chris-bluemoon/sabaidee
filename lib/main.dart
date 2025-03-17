@@ -109,13 +109,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => UserProvider(),
-      child: MaterialApp(
-        navigatorKey: navigatorKey,
-        title: 'Sabaidee',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
+      child: MediaQuery(
+        data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)),
+        child: MaterialApp(
+          navigatorKey: navigatorKey,
+          title: 'Sabaidee',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+          ),
+          home: const AuthWrapper(),
         ),
-        home: const AuthWrapper(),
       ),
     );
   }

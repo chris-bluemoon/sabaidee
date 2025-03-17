@@ -16,6 +16,7 @@ class AddScheduleTimePage extends StatefulWidget {
 
 class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
   final List<int> _selectedHours = [];
+  bool _isLoading = false;
 
   void _toggleHour(int hour) {
     setState(() {
@@ -30,6 +31,10 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
   }
 
   Future<void> _submitSchedule() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final now = DateTime.now();
     final userTimezone = userProvider.user?.country['timezone'] ?? 'UTC';
@@ -54,6 +59,11 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
       await userProvider.addCheckInTime(utcDateTime);
     }
     print('Schedule times added: $_selectedHours');
+
+    setState(() {
+      _isLoading = false;
+    });
+
     Navigator.pop(context);
   }
 
@@ -174,7 +184,9 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 12.0), // Add padding for a consistent look
                         ),
-                        child: Text('SUBMIT', style: TextStyle(fontSize: screenWidth * 0.045)),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : Text('SUBMIT', style: TextStyle(fontSize: screenWidth * 0.045)),
                       ),
                     ),
                   ),

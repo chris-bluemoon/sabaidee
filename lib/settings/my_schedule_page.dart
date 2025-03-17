@@ -120,7 +120,7 @@ class MySchedulePage extends StatelessWidget {
                       final formattedStartTime = DateFormat('h:mm a').format(localStartTime); // Format the time to 12-hour with AM/PM without leading zero
                       final formattedEndTime = DateFormat('h:mm a').format(localEndTime); // Format the time to 12-hour with AM/PM without leading zero
                       return Padding(
-                        padding: EdgeInsets.only(bottom: screenHeight * 0.02), // Add padding between containers
+                        padding: EdgeInsets.only(bottom: screenHeight * 0.015), // Reduce padding between containers
                         child: Dismissible(
                           key: Key(checkInTime.dateTime.toString()),
                           direction: DismissDirection.endToStart,
@@ -134,22 +134,22 @@ class MySchedulePage extends StatelessWidget {
                             child: const Icon(Icons.delete_outline, color: Colors.white),
                           ),
                           child: GlassmorphismContainer(
-                            height: screenWidth * 0.15, // Adjust height based on screen size
+                            height: screenWidth * 0.12, // Reduce height based on screen size
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.fromLTRB(12.0, 6.0, 6.0, 6.0), // Increase the left padding slightly
+                                  padding: const EdgeInsets.fromLTRB(10.0, 5.0, 5.0, 5.0), // Reduce the left padding slightly
                                   child: Text(
                                     '$formattedStartTime to $formattedEndTime',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: screenWidth * 0.06, // Set the font size relative to the screen width
+                                      fontSize: screenWidth * 0.05, // Reduce the font size relative to the screen width
                                     ),
                                   ),
                                 ),
                                 IconButton(
-                                  icon: Icon(Icons.delete_outline, color: Colors.black, size: screenWidth * 0.08), // Set the icon size relative to the screen width  
+                                  icon: Icon(Icons.delete_outline, color: Colors.black, size: screenWidth * 0.07), // Reduce the icon size relative to the screen width  
                                   onPressed: () async {
                                     // Handle delete action
                                     await userProvider.deleteCheckInTime(checkInTime);
@@ -200,7 +200,7 @@ class GlassmorphismContainer extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           height: height, // Set a consistent height for each box
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 12.0), // Reduce padding inside the container
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2), // Semi-transparent white
             borderRadius: BorderRadius.circular(20),

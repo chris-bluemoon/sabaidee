@@ -170,9 +170,10 @@ class DetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final userProvider = Provider.of<UserProvider>(context);
-    final userCountry = userProvider.user?.country['name'] ?? 'Test Country'; // Replace this with the actual method to get the user's country
+    final userCountry = userProvider.user?.country['DUMMY-TODO'] ?? 'Test Country'; // Replace this with the actual method to get the user's country
     final emergencyHelplines = getEmergencyHelplines();
     final helpline = emergencyHelplines.firstWhere((helpline) => helpline.country == userCountry);
+    log(helpline.policeNumber);
 
     String phoneNumber;
     switch (title) {

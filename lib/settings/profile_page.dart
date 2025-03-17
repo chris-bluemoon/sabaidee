@@ -50,13 +50,13 @@ class _ProfilePageState extends State<ProfilePage> {
           'PROFILE',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: screenWidth * 0.05, // Set the font size relative to the screen width
+            fontSize: screenWidth * 0.045, // Set the font size relative to the screen width
           ),
         ),
         leading: IconButton(
           icon: Icon(
             Icons.chevron_left,
-            size: screenWidth * 0.08, // Set the size relative to the screen width
+            size: screenWidth * 0.07, // Set the size relative to the screen width
           ),
           onPressed: () {
             Navigator.of(context).pop();
@@ -99,7 +99,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         height: screenHeight * 0.08, // Adjust height based on screen size
                         child: Row(
                           children: [
-                            Icon(Icons.person_outline, size: screenWidth * 0.06, color: Colors.black),
+                            Icon(Icons.person_outline, size: screenWidth * 0.055, color: Colors.black),
                             const SizedBox(width: 8.0),
                             Expanded(
                               child: Align(
@@ -108,10 +108,10 @@ class _ProfilePageState extends State<ProfilePage> {
                                   controller: _nameController,
                                   decoration: InputDecoration(
                                     hintText: 'Name',
-                                    hintStyle: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045),
+                                    hintStyle: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.04),
                                     border: InputBorder.none,
                                   ),
-                                  style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045),
+                                  style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.04),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
                                       return 'Please enter your name';
@@ -130,7 +130,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         height: screenHeight * 0.08, // Adjust height based on screen size
                         child: Row(
                           children: [
-                            Icon(Icons.phone_outlined, size: screenWidth * 0.06, color: Colors.black),
+                            Icon(Icons.phone_outlined, size: screenWidth * 0.055, color: Colors.black),
                             const SizedBox(width: 8.0),
                             Expanded(
                               child: Align(
@@ -139,10 +139,10 @@ class _ProfilePageState extends State<ProfilePage> {
                                   controller: _phoneController,
                                   decoration: InputDecoration(
                                     hintText: 'Phone',
-                                    hintStyle: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045),
+                                    hintStyle: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.04),
                                     border: InputBorder.none,
                                   ),
-                                  style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045),
+                                  style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.04),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
                                       return 'Please enter your phone number';
@@ -161,7 +161,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         height: screenHeight * 0.08, // Adjust height based on screen size
                         child: Row(
                           children: [
-                            Icon(Icons.email_outlined, size: screenWidth * 0.06, color: Colors.black),
+                            Icon(Icons.email_outlined, size: screenWidth * 0.055, color: Colors.black),
                             const SizedBox(width: 8.0),
                             Expanded(
                               child: Align(
@@ -170,7 +170,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   user?.email ?? 'Unknown',
                                   style: TextStyle(
                                     color: _isEditing ? Colors.black : Colors.grey[700],
-                                    fontSize: screenWidth * 0.045, // Set the font size relative to the screen width
+                                    fontSize: screenWidth * 0.04, // Set the font size relative to the screen width
                                   ),
                                 ),
                               ),
@@ -183,14 +183,14 @@ class _ProfilePageState extends State<ProfilePage> {
                         height: screenHeight * 0.08, // Adjust height based on screen size
                         child: Row(
                           children: [
-                            Icon(Icons.location_on_outlined, size: screenWidth * 0.06, color: Colors.black), // Change to location icon
+                            Icon(Icons.location_on_outlined, size: screenWidth * 0.055, color: Colors.black), // Change to location icon
                             const SizedBox(width: 8.0),
                             Expanded(
                               child: DropdownButtonFormField<String>(
                                 value: _selectedCountry,
                                 decoration: InputDecoration(
                                   hintText: 'Country',
-                                  hintStyle: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045),
+                                  hintStyle: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.04),
                                   border: InputBorder.none,
                                   contentPadding: EdgeInsets.zero, // Remove default padding
                                 ),
@@ -204,11 +204,11 @@ class _ProfilePageState extends State<ProfilePage> {
                                           children: [
                                             Image.asset(
                                               'assets/flags/${country['filename']}',
-                                              width: screenWidth * 0.06, // Set the width relative to the screen width
-                                              height: screenWidth * 0.06, // Set the height relative to the screen width
+                                              width: screenWidth * 0.055, // Set the width relative to the screen width
+                                              height: screenWidth * 0.055, // Set the height relative to the screen width
                                             ),
                                             const SizedBox(width: 8.0),
-                                            Text(country['country']!, style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045)),
+                                            Text(country['country']!, style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.04)),
                                           ],
                                         ),
                                         const Divider(), // Add a divider between items
@@ -229,7 +229,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 },
                                 selectedItemBuilder: (BuildContext context) {
                                   return getCountryList2().map((country) {
-                                    return Text(country['country']!, style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.045));
+                                    return Text(country['country']!, style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.04));
                                   }).toList();
                                 },
                               ),
@@ -276,7 +276,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   ),
                                   padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 12.0), // Add padding for a consistent look
                                 ),
-                                child: Text('SAVE', style: TextStyle(fontSize: screenWidth * 0.045)),
+                                child: Text('SAVE', style: TextStyle(fontSize: screenWidth * 0.04)),
                               ),
                               const SizedBox(width: 16.0),
                               ElevatedButton(
@@ -293,7 +293,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   ),
                                   padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 12.0), // Add padding for a consistent look
                                 ),
-                                child: Text('CANCEL', style: TextStyle(fontSize: screenWidth * 0.045)),
+                                child: Text('CANCEL', style: TextStyle(fontSize: screenWidth * 0.04)),
                               ),
                             ],
                           )
@@ -311,7 +311,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                               padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 12.0), // Add padding for a consistent look
                             ),
-                            child: Text('EDIT', style: TextStyle(fontSize: screenWidth * 0.045)),
+                            child: Text('EDIT', style: TextStyle(fontSize: screenWidth * 0.04)),
                           ),
                   ),
                 ),

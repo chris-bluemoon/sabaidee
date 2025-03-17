@@ -176,7 +176,13 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                       SizedBox(height: screenWidth * 0.1),
                       Row(
                         children: [
-                          Text(formattedDate, style: TextStyle(fontSize: screenWidth * 0.06, fontWeight: FontWeight.bold)),
+                          Text(
+                            formattedDate,
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.05, // Adjust font size based on screen width
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                       SizedBox(height: screenWidth * 0.1),
@@ -308,7 +314,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                             ),
                           );
                         },
-                        icon: const Icon(Icons.local_hospital),
+                        icon: Icon(Icons.local_hospital, size: screenWidth * 0.07), // Adjust icon size
                         label: const Text('I NEED HELP!'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red, // Button color

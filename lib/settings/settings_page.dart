@@ -102,13 +102,13 @@ class _SettingsPageState extends State<SettingsPage> {
                   GlassmorphismContainer(
                     child: ListView(
                       shrinkWrap: true,
-                      padding: const EdgeInsets.symmetric(vertical: 8.0), // Reduce padding above and below
+                      padding: const EdgeInsets.symmetric(vertical: 4.0), // Reduce padding above and below
                       children: [
                         ListTile(
-                          leading: Icon(Icons.notifications_outlined, size: screenWidth * 0.08),
+                          leading: Icon(Icons.notifications_outlined, size: screenWidth * 0.055),
                           title: Text(
                             'Notifications',
-                            style: TextStyle(fontSize: screenWidth * 0.05),
+                            style: TextStyle(fontSize: screenWidth * 0.04),
                           ),
                           trailing: Switch(
                             value: _notificationsEnabled,
@@ -136,13 +136,13 @@ class _SettingsPageState extends State<SettingsPage> {
                     child: GlassmorphismContainer(
                       child: ListView(
                         shrinkWrap: true,
-                        padding: const EdgeInsets.symmetric(vertical: 0), // Reduce padding above and below
+                        padding: const EdgeInsets.symmetric(vertical: 4.0), // Reduce padding above and below
                         children: [
                           ListTile(
-                            leading: Icon(Icons.logout_outlined, size: screenWidth * 0.08),
+                            leading: Icon(Icons.logout_outlined, size: screenWidth * 0.055),
                             title: Text(
                               'SIGN OUT',
-                              style: TextStyle(fontSize: screenWidth * 0.05),
+                              style: TextStyle(fontSize: screenWidth * 0.04),
                             ),
                             iconColor: Colors.black,
                             textColor: Colors.black,
@@ -166,12 +166,12 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildSettingsOption(BuildContext context, String title, IconData icon, Widget page, double screenWidth) {
     return ListTile(
-      leading: Icon(icon, size: screenWidth * 0.08),
+      leading: Icon(icon, size: screenWidth * 0.055),
       title: Text(
         title,
-        style: TextStyle(fontSize: screenWidth * 0.045),
+        style: TextStyle(fontSize: screenWidth * 0.04),
       ),
-      trailing: Icon(Icons.chevron_right_outlined, size: screenWidth * 0.08), // Add right chevron
+      trailing: Icon(Icons.chevron_right_outlined, size: screenWidth * 0.055), // Add right chevron
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => page),
@@ -194,7 +194,7 @@ class GlassmorphismContainer extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           margin: const EdgeInsets.symmetric(vertical: 0),
-          padding: const EdgeInsets.all(8.0), // Reduce padding inside the container
+          padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0), // Reduce padding inside the container
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2), // Semi-transparent white
             borderRadius: BorderRadius.circular(10),

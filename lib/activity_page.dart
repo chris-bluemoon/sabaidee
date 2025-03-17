@@ -78,22 +78,29 @@ class ActivityPage extends StatelessWidget {
                                 translatedStatus,
                                 style: TextStyle(fontSize: screenWidth * 0.045, fontWeight: FontWeight.bold),
                               ),
-                              subtitle: Row(
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.calendar_today, size: screenWidth * 0.045, color: Colors.black), // Calendar icon
-                                  SizedBox(width: screenWidth * 0.01),
-                                  Text(
-                                    formattedDate,
-                                    style: TextStyle(fontSize: screenWidth * 0.045),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.calendar_today, size: screenWidth * 0.04, color: Colors.black), // Calendar icon
+                                      SizedBox(width: screenWidth * 0.01),
+                                      Text(
+                                        formattedDate,
+                                        style: TextStyle(fontSize: screenWidth * 0.04),
+                                      ),
+                                    ],
                                   ),
-                                  SizedBox(width: screenWidth * 0.04), // Increase the width of the SizedBox for more spacing
-                                  Icon(Icons.access_time, size: screenWidth * 0.045, color: Colors.black), // Clock icon
-                                  SizedBox(width: screenWidth * 0.01),
-                                  Expanded(
-                                    child: Text(
-                                      formattedTime,
-                                      style: TextStyle(fontSize: screenWidth * 0.045),
-                                    ),
+                                  SizedBox(height: screenWidth * 0.01), // Add spacing between rows
+                                  Row(
+                                    children: [
+                                      Icon(Icons.access_time, size: screenWidth * 0.04, color: Colors.black), // Clock icon
+                                      SizedBox(width: screenWidth * 0.01),
+                                      Text(
+                                        formattedTime,
+                                        style: TextStyle(fontSize: screenWidth * 0.04),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),

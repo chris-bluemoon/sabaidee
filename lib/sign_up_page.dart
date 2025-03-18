@@ -198,6 +198,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             // width: screenWidth * 1,
                             child: DropdownButtonFormField<String>(
                               value: _selectedCountry,
+                              isExpanded: true,
                               decoration: InputDecoration(
                                 isDense: false,
                                 labelText: 'Country',
@@ -210,7 +211,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 ),
                                 prefixIcon: const Icon(Icons.public), // Add country icon
                               ),
-                              icon: const Icon(Icons.arrow_drop_down, size: 0),
+                              icon: const Icon(Icons.arrow_drop_down, size: 24),
                               items: getCountryNames().map((String country) {
                                 return DropdownMenuItem<String>(
                                   value: country,

@@ -63,9 +63,9 @@ class MySchedulePage extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'MY SCHEDULE',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenWidth * 0.05),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
@@ -104,11 +104,11 @@ class MySchedulePage extends StatelessWidget {
             child: Column(
               children: [
                 SizedBox(height: screenHeight * 0.08), // Add space below the app bar
-                const Padding(
-                  padding: EdgeInsets.all(12.0), // Decrease the padding slightly
+                Padding(
+                  padding: const EdgeInsets.all(12.0), // Decrease the padding slightly
                   child: Text(
                     'Set up to 4 check-ins per day. You can change the amount of time to check in under settings, the default is 15 minutes. Additions to the schedule are effective the next day.',
-                    style: TextStyle(fontSize: 16.0),
+                    style: TextStyle(fontSize: screenWidth * 0.04), // Adjust text size relative to screen width
                     textAlign: TextAlign.center,
                   ),
                 ),

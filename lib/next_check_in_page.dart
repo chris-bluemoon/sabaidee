@@ -227,7 +227,12 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                   ElevatedButton.icon(
                                     onPressed: () async {
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Checked in successfully')),
+                                        SnackBar(
+                                          content: Text(
+                                            'Checked in successfully',
+                                            style: TextStyle(fontSize: screenWidth * 0.04), // Adjust text size relative to screen width
+                                          ),
+                                        ),
                                       );
                                       showDialog(
                                         context: context,
@@ -255,14 +260,20 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                         userProvider.addCheckInTime(newCheckInTime);
                                       }
                                     },
-                                    icon: const Icon(Icons.check_circle_outline),
-                                    label: const Text('CHECK IN'),
+                                    icon: Padding(
+                                      padding: EdgeInsets.only(right: screenWidth * 0.02), // Add padding between icon and text
+                                      child: Icon(Icons.check_circle_outline, size: screenWidth * 0.09), // Increase icon size
+                                    ),
+                                    label: Text(
+                                      'CHECK IN',
+                                      style: TextStyle(fontSize: screenWidth * 0.05), // Adjust font size
+                                    ),
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.blue, // Change button color to blue
+                                      backgroundColor: Colors.blue, // Button color
                                       foregroundColor: Colors.white, // Text color
-                                      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.06, vertical: screenWidth * 0.03),
+                                      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1, vertical: screenWidth * 0.04), // Adjust padding
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(30.0),
+                                        borderRadius: BorderRadius.circular(20), // More rounded corners
                                       ),
                                     ),
                                   ),
@@ -329,13 +340,18 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                             ),
                           );
                         },
-                        icon: Icon(Icons.local_hospital, size: screenWidth * 0.07), // Adjust icon size
-                        label: const Text('I NEED HELP!'),
+                        icon: Padding(
+                          padding: EdgeInsets.only(right: screenWidth * 0.02), // Add padding between icon and text
+                          child: Icon(Icons.local_hospital, size: screenWidth * 0.09), // Increase icon size
+                        ),
+                        label: Text(
+                          'I NEED HELP!',
+                          style: TextStyle(fontSize: screenWidth * 0.05), // Adjust font size
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red, // Button color
                           foregroundColor: Colors.white, // Button color
                           padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1, vertical: screenWidth * 0.04), // Adjust padding
-                          textStyle: TextStyle(fontSize: screenWidth * 0.05), // Adjust font size
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20), // More rounded corners
                           ),

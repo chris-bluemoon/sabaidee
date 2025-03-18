@@ -18,13 +18,24 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
   final List<int> _selectedHours = [];
   bool _isLoading = false;
 
-  void _toggleHour(int hour) {
+  void _toggleHour(int hour, int totalSelectedHours) {
     setState(() {
       if (_selectedHours.contains(hour)) {
         _selectedHours.remove(hour);
       } else {
-        if (_selectedHours.length < 4) {
+        if (totalSelectedHours < 4) {
           _selectedHours.add(hour);
+        } else {
+          final screenWidth = MediaQuery.of(context).size.width;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Maximum number of check-in times reached. Please remove a time to add a new one.',
+                style: TextStyle(fontSize: screenWidth * 0.04), // Adjust text size relative to screen width
+              ),
+              duration: const Duration(seconds: 2),
+            ),
+          );
         }
       }
     });
@@ -88,6 +99,8 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
       return adjustedTime.hour;
     }).toSet();
 
+    final totalSelectedHours = _selectedHours.length + pendingHours.length;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -148,7 +161,7 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
 
                       return ElevatedButton(
                         onPressed: isPending ? null : () {
-                          _toggleHour(hour);
+                          _toggleHour(hour, totalSelectedHours);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isSelected ? Colors.blue : null,

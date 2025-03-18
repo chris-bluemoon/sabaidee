@@ -190,9 +190,9 @@ class _MyFollowersPageState extends State<MyFollowersPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'MY FOLLOWERS',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenWidth * 0.05),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
@@ -326,6 +326,7 @@ class _MyFollowersPageState extends State<MyFollowersPage> {
                                       ),
                                       IconButton(
                                         icon: const Icon(Icons.delete_outline, color: Colors.black),
+                                        iconSize: screenWidth * 0.07, // Set the icon size relative to the screen width
                                         onPressed: () async {
                                           await _removeFollower(context, follower['uid']!);
                                         },

@@ -164,7 +164,7 @@ class MyWatchList extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('FOLLOWING', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('FOLLOWING', style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenWidth * 0.05)),
         leading: IconButton(
           icon: Icon(
             Icons.chevron_left,
@@ -278,6 +278,7 @@ class MyWatchList extends StatelessWidget {
                                       ),
                                       IconButton(
                                         icon: const Icon(Icons.delete_outline, color: Colors.black),
+                                        iconSize: screenWidth * 0.07, // Set the icon size relative to the screen width
                                         onPressed: () async {
                                           await _removeFollower(context, watchingUid);
                                         },

@@ -284,15 +284,20 @@ class DetailPage extends StatelessWidget {
                     onPressed: () async {
                       try {
                         final encodedQuery = Uri.encodeComponent(mapQuery);
-                        const url = 'https://www.google.com';
-                        // final url = 'https://www.google.com/maps/search/?api=1&query=$encodedQuery';
-                         
-                        try { await canLaunchUrl(Uri.parse(url)); } catch (e) { log('Error:${e.toString()}'); }
-                        if (await canLaunchUrl(Uri.parse(url))) {
-                          log('About to launch $url');
-                          await launchUrl(Uri.parse(url));
+                        final googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=$encodedQuery';
+                        final appleMapsUrl = 'https://maps.apple.com/?q=$encodedQuery';
+
+                        if (await canLaunchUrl(Uri.parse('comgooglemaps://'))) {
+                          // Launch Google Maps if available
+                          await launchUrl(Uri.parse('comgooglemaps://?q=$encodedQuery'));
+                        } else if (await canLaunchUrl(Uri.parse('maps://'))) {
+                          // Launch Apple Maps if available
+                          await launchUrl(Uri.parse(appleMapsUrl));
+                        } else if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
+                          // Launch Google Maps in browser
+                          await launchUrl(Uri.parse(googleMapsUrl));
                         } else {
-                          throw 'Could not launch $url';
+                          throw 'Could not launch maps';
                         }
                       } catch (e) {
                         log(e.toString());

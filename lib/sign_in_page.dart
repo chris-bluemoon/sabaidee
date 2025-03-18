@@ -37,7 +37,7 @@ class _SignInPageState extends State<SignInPage> {
         if (mounted) {
           log(e.toString());
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to sign in: $e')),
+            const SnackBar(content: Text('Failed to sign in, check details and try again.')),
           );
         }
       } finally {

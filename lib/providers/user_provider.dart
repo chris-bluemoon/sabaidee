@@ -318,11 +318,11 @@ Future<void> _fetchUserData(String uid) async {
   Future<void> deleteAccountAndData() async {
     if (_user != null) {
       try {
-        // Delete user data from Firestore
-        await _firestore.collection('users').doc(_user!.uid).delete();
-
         // Delete user authentication
         await FirebaseAuth.instance.currentUser!.delete();
+
+        // Delete user data from Firestore
+        await _firestore.collection('users').doc(_user!.uid).delete();
 
         // Sign out the user
         await signOut();

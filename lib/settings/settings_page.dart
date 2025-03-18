@@ -152,10 +152,10 @@ class _SettingsPageState extends State<SettingsPage> {
                             },
                           ),
                           ListTile(
-                            leading: Icon(Icons.delete_forever_outlined, size: screenWidth * 0.055, color: Colors.red),
+                            leading: Icon(Icons.delete_forever_outlined, size: screenWidth * 0.055, color: Colors.black),
                             title: Text(
                               'DELETE ACCOUNT',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenWidth * 0.04, color: Colors.red),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenWidth * 0.04, color: Colors.black),
                             ),
                             onTap: () async {
                               final userProvider = Provider.of<UserProvider>(context, listen: false);

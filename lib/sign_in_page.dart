@@ -37,8 +37,14 @@ class _SignInPageState extends State<SignInPage> {
       } catch (e) {
         if (mounted) {
           log(e.toString());
+          final screenWidth = MediaQuery.of(context).size.width;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to sign in, check details and try again.')),
+            SnackBar(
+              content: Text(
+                'Failed to sign in, check details and try again.',
+                style: TextStyle(fontSize: screenWidth * 0.04), // Adjust text size based on screen width
+              ),
+            ),
           );
         }
       } finally {
@@ -63,8 +69,14 @@ class _SignInPageState extends State<SignInPage> {
     } catch (e) {
       if (mounted) {
         log(e.toString());
+        final screenWidth = MediaQuery.of(context).size.width;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to sign in with Google: $e')),
+          SnackBar(
+            content: Text(
+              'Failed to sign in with Google: $e',
+              style: TextStyle(fontSize: screenWidth * 0.04), // Adjust text size based on screen width
+            ),
+          ),
         );
       }
     } finally {

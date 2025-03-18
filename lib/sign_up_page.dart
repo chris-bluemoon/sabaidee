@@ -23,6 +23,11 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _isLoading = false;
   String? _selectedCountry;
   String? _selectedTimezone;
+  final ValueNotifier<bool> _isFormValid = ValueNotifier<bool>(false);
+
+  void _validateForm() {
+    _isFormValid.value = _formKey.currentState?.validate() ?? false;
+  }
 
   Future<void> _signUp() async {
     if (_formKey.currentState!.validate()) {
@@ -58,6 +63,28 @@ class _SignUpPageState extends State<SignUpPage> {
         }
       }
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController.addListener(_validateForm);
+    _passwordController.addListener(_validateForm);
+    _phoneNumberController.addListener(_validateForm);
+    _nameController.addListener(_validateForm);
+  }
+
+  @override
+  void dispose() {
+    _emailController.removeListener(_validateForm);
+    _passwordController.removeListener(_validateForm);
+    _phoneNumberController.removeListener(_validateForm);
+    _nameController.removeListener(_validateForm);
+    _emailController.dispose();
+    _passwordController.dispose();
+    _phoneNumberController.dispose();
+    _nameController.dispose();
+    super.dispose();
   }
 
   @override
@@ -102,6 +129,7 @@ class _SignUpPageState extends State<SignUpPage> {
             padding: const EdgeInsets.all(16.0),
             child: Form(
               key: _formKey,
+              onChanged: _validateForm,
               child: ListView(
                 children: [
                   GlassmorphismContainer(
@@ -195,10 +223,10 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                           const SizedBox(height: 10),
                           SizedBox(
-                            // width: screenWidth * 1,
+                            width: screenWidth * 0.9,
                             child: DropdownButtonFormField<String>(
-                              value: _selectedCountry,
                               isExpanded: true,
+                              value: _selectedCountry,
                               decoration: InputDecoration(
                                 isDense: false,
                                 labelText: 'Country',
@@ -224,6 +252,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                   _selectedTimezone = getCountryListWithTimezones()
                                       .firstWhere((element) => element['country'] == newValue)['timezone'];
                                 });
+                                _validateForm();
                               },
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
@@ -234,20 +263,25 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          _isLoading
-                              ? const Center(child: CircularProgressIndicator())
-                              : ElevatedButton(
-                                  onPressed: _signUp,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.black, // Set the background color to black
-                                    foregroundColor: Colors.white, // Set the text color to white
-                                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30.0),
-                                    ),
+                          ValueListenableBuilder<bool>(
+                            valueListenable: _isFormValid,
+                            builder: (context, isFormValid, child) {
+                              return ElevatedButton(
+                                onPressed: isFormValid ? _signUp : null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.black, // Set the background color to black
+                                  foregroundColor: Colors.white, // Set the text color to white
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30.0),
                                   ),
-                                  child: const Text('SIGN UP'),
                                 ),
+                                child: _isLoading
+                                    ? const Center(child: CircularProgressIndicator())
+                                    : const Text('SIGN UP'),
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),

@@ -195,10 +195,11 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                           const SizedBox(height: 10),
                           SizedBox(
-                            width: screenWidth * 0.9,
+                            // width: screenWidth * 1,
                             child: DropdownButtonFormField<String>(
                               value: _selectedCountry,
                               decoration: InputDecoration(
+                                isDense: false,
                                 labelText: 'Country',
                                 floatingLabelBehavior: FloatingLabelBehavior.never, // Prevent label from moving up
                                 filled: true,
@@ -209,6 +210,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 ),
                                 prefixIcon: const Icon(Icons.public), // Add country icon
                               ),
+                              icon: const Icon(Icons.arrow_drop_down, size: 0),
                               items: getCountryNames().map((String country) {
                                 return DropdownMenuItem<String>(
                                   value: country,

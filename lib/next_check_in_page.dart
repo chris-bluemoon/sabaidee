@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/I_need_help_page.dart';
-import 'package:sabaidee/user_provider.dart';
+import 'package:sabaidee/models/check_in_time.dart';
+import 'package:sabaidee/providers/user_provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 

@@ -7,7 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
 import 'package:provider/provider.dart';
-import 'package:sabaidee/user_provider.dart';
+import 'package:sabaidee/providers/user_provider.dart';
 
 class MyFollowersPage extends StatefulWidget {
   const MyFollowersPage({super.key});

@@ -4,8 +4,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/home_page.dart';
+import 'package:sabaidee/providers/user_provider.dart';
 import 'package:sabaidee/sign_up_page.dart';
-import 'package:sabaidee/user_provider.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -30,6 +30,7 @@ class _SignInPageState extends State<SignInPage> {
           _emailController.text,
           _passwordController.text,
         );
+        log('Signed in successfully');
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const HomePage()),
         );

@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/home_page.dart';
-import 'package:sabaidee/user_provider.dart';
+import 'package:sabaidee/providers/user_provider.dart';
 import 'package:sabaidee/utils/country_list.dart'; // Import the country list
 
 class SignUpPage extends StatefulWidget {

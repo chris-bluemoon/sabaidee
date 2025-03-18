@@ -8,9 +8,11 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sabaidee/main.dart';
+import 'package:sabaidee/models/check_in_time.dart';
+import 'package:sabaidee/models/user.dart' as myUser;
 
 class UserProvider with ChangeNotifier {
-  User? _user;
+  myUser.User? _user;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   Timer? _timer;
@@ -19,9 +21,9 @@ class UserProvider with ChangeNotifier {
     // _startTimer();
   }
 
-  User? get user => _user;
+  myUser.User? get user => _user;
 
-  void setUser(User user) {
+  void setUser(myUser.User user) {
     _user = user;
     notifyListeners();
   }
@@ -60,7 +62,7 @@ class UserProvider with ChangeNotifier {
         );
 
         UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-        final User? firebaseUser = userCredential.user as User?;
+        final User? firebaseUser = userCredential.user;
 
         if (firebaseUser != null) {
           final userDoc = await _firestore.collection('users').doc(firebaseUser.uid).get();
@@ -140,7 +142,7 @@ void setCheckInStatus(DateTime dateTime, String status) async {
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
       final fcmToken = await FirebaseMessaging.instance.getToken();
 
-      _user = User(
+      _user = myUser.User(
         uid: userCredential.user!.uid,
         email: email,
         name: name,
@@ -174,9 +176,10 @@ void setCheckInStatus(DateTime dateTime, String status) async {
 
   Future<void> fetchUserData(String uid) async {
     final userDoc = await _firestore.collection('users').doc(uid).get();
+    log('User data from firestore: ${userDoc.data()}, uid provided: $uid');
     if (userDoc.exists) {
       final userData = userDoc.data()!;
-      _user = User(
+      _user = myUser.User(
         uid: uid,
         email: userData['email'],
         name: userData['name'],
@@ -194,7 +197,11 @@ void setCheckInStatus(DateTime dateTime, String status) async {
         fcmToken: userData['fcmToken'],
         referralCode: userData['referralCode'],
       );
+      log('User data from firestore: ${_user.toString()}');
       notifyListeners();
+    }
+    if (_user == null) {
+      log('User data is null, does the UID exist in the database?');
     }
   }
 
@@ -279,7 +286,7 @@ void setCheckInStatus(DateTime dateTime, String status) async {
 Future<void> _fetchUserData(String uid) async {
   // Fetch user data from your database and set the _user object
   DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
-  _user = User(
+  _user = myUser.User(
     uid: uid,
     email: userDoc['email'],
     name: userDoc['name'],
@@ -308,6 +315,24 @@ Future<void> _fetchUserData(String uid) async {
     return _user?.checkInTimes.where((time) => time.status == 'pending' || time.status == 'open').toList() ?? [];
   }
   
+  Future<void> deleteAccountAndData() async {
+    if (_user != null) {
+      try {
+        // Delete user data from Firestore
+        await _firestore.collection('users').doc(_user!.uid).delete();
+
+        // Delete user authentication
+        await FirebaseAuth.instance.currentUser!.delete();
+
+        // Sign out the user
+        await signOut();
+      } catch (e) {
+        print('Failed to delete account and data: $e');
+        throw Exception('Failed to delete account and data: $e');
+      }
+    }
+  }
+
 Future<void> deleteCheckInTime(CheckInTime checkInTime) async {
   if (_user != null) {
     // Remove the check-in time from the local list
@@ -606,7 +631,7 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
 
   Future<void> updateFcmToken(String uid, String token) async {
     if (_user != null) {
-      _user = User(
+      _user = myUser.User(
         uid: _user!.uid,
         email: _user!.email,
         name: _user!.name,
@@ -672,83 +697,3 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
   }
 }
 
-class CheckInTime {
-  final DateTime dateTime;
-  String status;
-  final Duration duration; // Add duration field
-
-  CheckInTime({required this.dateTime, required this.status, required this.duration});
-
-  factory CheckInTime.fromMap(Map<String, dynamic> map) {
-    return CheckInTime(
-      dateTime: DateTime.parse(map['dateTime']),
-      status: map['status'],
-      duration: Duration(minutes: map['duration']), // Parse duration from minutes
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'dateTime': dateTime.toIso8601String(),
-      'status': status,
-      'duration': duration.inMinutes, // Store duration in minutes
-    };
-  }
-}
-class User {
-  final String uid;
-  final String email;
-  String name;
-  String phoneNumber;
-  Map<String, String> country; // Change country to a map with timezone
-  final List<CheckInTime> checkInTimes;
-  final List<Map<String, String>> followers;
-  final List<Map<String, String>> watching;
-  final String? fcmToken;
-  final String referralCode;
-
-  User({
-    required this.uid,
-    required this.email,
-    required this.name,
-    required this.phoneNumber,
-    required this.country,
-    required this.checkInTimes,
-    required this.followers,
-    required this.watching,
-    this.fcmToken,
-    required this.referralCode,
-  });
-
-  factory User.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return User(
-      uid: doc.id,
-      email: data['email'],
-      name: data['name'],
-      phoneNumber: data['phoneNumber'],
-      country: Map<String, String>.from(data['country']),
-      checkInTimes: (data['checkInTimes'] as List)
-          .map((item) => CheckInTime.fromMap(item as Map<String, dynamic>))
-          .toList(),
-      followers: List<Map<String, String>>.from(data['followers']),
-      watching: List<Map<String, String>>.from(data['watching']),
-      fcmToken: data['fcmToken'],
-      referralCode: data['referralCode'],
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'email': email,
-      'name': name,
-      'phoneNumber': phoneNumber,
-      'country': country,
-      'checkInTimes': checkInTimes.map((checkInTime) => checkInTime.toMap()).toList(),
-      'followers': followers,
-      'watching': watching,
-      'fcmToken': fcmToken,
-      'referralCode': referralCode,
-    };
-  }
-}

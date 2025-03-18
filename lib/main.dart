@@ -9,8 +9,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/firebase_options.dart';
 import 'package:sabaidee/home_page.dart';
+import 'package:sabaidee/providers/user_provider.dart';
 import 'package:sabaidee/sign_in_page.dart';
-import 'package:sabaidee/user_provider.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();

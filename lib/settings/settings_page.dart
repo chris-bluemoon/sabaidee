@@ -2,11 +2,11 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sabaidee/providers/user_provider.dart';
 import 'package:sabaidee/settings/my_followers_page.dart';
 import 'package:sabaidee/settings/my_schedule_page.dart';
 import 'package:sabaidee/settings/my_watch_list.dart';
 import 'package:sabaidee/settings/profile_page.dart'; // Import the ProfilePage
-import 'package:sabaidee/user_provider.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -149,6 +149,38 @@ class _SettingsPageState extends State<SettingsPage> {
                             onTap: () {
                               Provider.of<UserProvider>(context, listen: false).signOut();
                               Navigator.of(context).popUntil((route) => route.isFirst);
+                            },
+                          ),
+                          ListTile(
+                            leading: Icon(Icons.delete_forever_outlined, size: screenWidth * 0.055, color: Colors.red),
+                            title: Text(
+                              'DELETE ACCOUNT',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenWidth * 0.04, color: Colors.red),
+                            ),
+                            onTap: () async {
+                              final userProvider = Provider.of<UserProvider>(context, listen: false);
+                              try {
+                                await userProvider.deleteAccountAndData();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Account deleted successfully.',
+                                      style: TextStyle(fontSize: screenWidth * 0.04),
+                                    ),
+                                  ),
+                                );
+                                await Future.delayed(const Duration(seconds: 2)); // Wait for 2 seconds before logging out
+                                Navigator.of(context).popUntil((route) => route.isFirst);
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Failed to delete account: $e',
+                                      style: TextStyle(fontSize: screenWidth * 0.04),
+                                    ),
+                                  ),
+                                );
+                              }
                             },
                           ),
                         ],

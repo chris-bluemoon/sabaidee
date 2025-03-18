@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sabaidee/user_provider.dart';
+import 'package:sabaidee/providers/user_provider.dart';
 
 class MyWatchList extends StatelessWidget {
   const MyWatchList({super.key});

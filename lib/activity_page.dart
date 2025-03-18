@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Import the intl package
 import 'package:provider/provider.dart';
 import 'package:sabaidee/user_provider.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 class ActivityPage extends StatelessWidget {
   const ActivityPage({super.key});
@@ -32,6 +34,42 @@ class ActivityPage extends StatelessWidget {
 
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+
+    // Initialize timezone data
+    tz.initializeTimeZones();
+
+    // Map the user's timezone offset to a valid timezone location name
+    final timezoneMapping = {
+      'UTC+00:00': 'UTC',
+      'UTC+01:00': 'Europe/London',
+      'UTC+02:00': 'Europe/Berlin',
+      'UTC+03:00': 'Europe/Moscow',
+      'UTC+04:00': 'Asia/Dubai',
+      'UTC+05:00': 'Asia/Karachi',
+      'UTC+06:00': 'Asia/Dhaka',
+      'UTC+07:00': 'Asia/Bangkok',
+      'UTC+08:00': 'Asia/Singapore',
+      'UTC+09:00': 'Asia/Tokyo',
+      'UTC+10:00': 'Australia/Sydney',
+      'UTC+11:00': 'Pacific/Noumea',
+      'UTC+12:00': 'Pacific/Auckland',
+      'UTC-01:00': 'Atlantic/Azores',
+      'UTC-02:00': 'America/Noronha',
+      'UTC-03:00': 'America/Argentina/Buenos_Aires',
+      'UTC-04:00': 'America/Halifax',
+      'UTC-05:00': 'America/New_York',
+      'UTC-06:00': 'America/Chicago',
+      'UTC-07:00': 'America/Denver',
+      'UTC-08:00': 'America/Los_Angeles',
+      'UTC-09:00': 'America/Anchorage',
+      'UTC-10:00': 'Pacific/Honolulu',
+      'UTC-11:00': 'Pacific/Midway',
+      'UTC-12:00': 'Etc/GMT+12',
+    };
+
+    final userTimezone = userProvider.user?.country['timezone'] ?? 'UTC';
+    final locationName = timezoneMapping[userTimezone] ?? 'UTC';
+    final location = tz.getLocation(locationName);
 
     return Scaffold(
       // backgroundColor: Colors.yellow,
@@ -63,8 +101,9 @@ class ActivityPage extends StatelessWidget {
                       itemCount: filteredCheckInTimes.length,
                       itemBuilder: (context, index) {
                         final checkIn = filteredCheckInTimes[index];
-                        final formattedDate = DateFormat('MMM d, yyyy').format(checkIn.dateTime); // Format the date
-                        final formattedTime = DateFormat('h:mm a').format(checkIn.dateTime); // Format the time with AM/PM without leading zero
+                        final localDateTime = tz.TZDateTime.from(checkIn.dateTime, location);
+                        final formattedDate = DateFormat('MMM d, yyyy').format(localDateTime); // Format the date
+                        final formattedTime = DateFormat('h:mm a').format(localDateTime); // Format the time with AM/PM without leading zero
                         final translatedStatus = statusTranslations[checkIn.status] ?? checkIn.status; // Translate the status
                         final statusIcon = statusIcons[checkIn.status]?['icon'] ?? Icons.help_outline; // Get the icon for the status
                         final statusColor = statusIcons[checkIn.status]?['color'] ?? Colors.black; // Get the color for the status

@@ -25,10 +25,14 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
         checkInTimes.push(newCheckInTime);
 
         if (userData.fcmToken) {
+          const notificationBody = userData.followers && Array.isArray(userData.followers) && userData.followers.length > 0
+            ? "You missed a check-in, your followers have been notified."
+            : "You missed a check-in, but have no followers, add a follower for future alerts.";
+
           const payload = {
             notification: {
               title: 'Check-In Missed!',
-              body: "You've missed a check-in, your followers have been notified.",
+              body: notificationBody,
             },
             token: userData.fcmToken,
             data: {
@@ -82,10 +86,14 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
 
         // Send FCM notification to update user status
         if (userData.fcmToken) {
+          const notificationBody = userData.followers && Array.isArray(userData.followers) && userData.followers.length > 0
+            ? 'Please check in now!'
+            : 'Check in now and add some followers so they can be alerted to any future missed check ins.';
+
           const payload = {
             notification: {
-              title: 'Your check-in is now open.',
-              body: 'Please check in now!',
+              title: 'Check-In Reminder!',
+              body: notificationBody,
             },
             token: userData.fcmToken,
             data: {

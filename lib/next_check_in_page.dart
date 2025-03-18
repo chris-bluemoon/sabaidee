@@ -92,12 +92,12 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                   );
                 }
 
-                if (userProvider.user == null) {
-                  log('Building NEXT_CHECK_IN_PAGE but user is null');
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
+                // if (userProvider.user == null) {
+                //   log('Building NEXT_CHECK_IN_PAGE but user is null');
+                //   return const Center(
+                //     child: CircularProgressIndicator(),
+                //   );
+                // }
 
                 final checkInTimes = userProvider.user?.checkInTimes.where((time) => (time.status == 'pending' || time.status == 'open')).toList();
                 if (userProvider.user?.checkInTimes.isEmpty ?? true) {

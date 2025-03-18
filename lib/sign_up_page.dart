@@ -96,9 +96,12 @@ class _SignUpPageState extends State<SignUpPage> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(
+            Icons.chevron_left,
+            size: screenWidth * 0.08, // Set the size relative to the screen width
+          ),
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.pop(context); // Go back to the settings page
           },
         ),
         title: const Text('SIGN UP', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -273,7 +276,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                   foregroundColor: Colors.white, // Set the text color to white
                                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30.0),
+                                    borderRadius: BorderRadius.circular(10.0), // Change to 10.0 for squared off corners
                                   ),
                                 ),
                                 child: _isLoading

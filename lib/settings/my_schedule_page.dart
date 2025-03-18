@@ -56,6 +56,10 @@ class MySchedulePage extends StatelessWidget {
     final locationName = timezoneMapping[userTimezone] ?? 'UTC';
     final location = tz.getLocation(locationName);
 
+    // Sort the schedule times in ascending order
+    pendiningOrOpenScheduleTimes.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    log('pendiningOrOpenScheduleTimes: $pendiningOrOpenScheduleTimes'); 
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(

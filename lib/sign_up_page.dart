@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/home_page.dart';
 import 'package:sabaidee/providers/user_provider.dart';
-import 'package:sabaidee/utils/country_list.dart'; // Import the country list
+import 'package:sabaidee/country_selection_page.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -17,51 +17,26 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  String? _selectedCountry;
-  String? _selectedTimezone;
   final ValueNotifier<bool> _isFormValid = ValueNotifier<bool>(false);
 
   void _validateForm() {
     _isFormValid.value = _formKey.currentState?.validate() ?? false;
   }
 
-  Future<void> _signUp() async {
+  void _navigateToCountrySelection() {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-      try {
-        await Provider.of<UserProvider>(context, listen: false).signUp(
-          _emailController.text,
-          _passwordController.text,
-          _nameController.text,
-          _phoneNumberController.text,
-          {
-            'country': _selectedCountry ?? '',
-            'timezone': _selectedTimezone ?? 'default',
-          },
-        );
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomePage()),
-        );
-      } catch (e) {
-        if (mounted) {
-          log(e.toString());
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to sign up: $e')),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      }
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => CountrySelectionPage(
+            name: _nameController.text,
+            email: _emailController.text,
+            password: _passwordController.text,
+          ),
+        ),
+      );
     }
   }
 
@@ -70,7 +45,6 @@ class _SignUpPageState extends State<SignUpPage> {
     super.initState();
     _emailController.addListener(_validateForm);
     _passwordController.addListener(_validateForm);
-    _phoneNumberController.addListener(_validateForm);
     _nameController.addListener(_validateForm);
   }
 
@@ -78,11 +52,9 @@ class _SignUpPageState extends State<SignUpPage> {
   void dispose() {
     _emailController.removeListener(_validateForm);
     _passwordController.removeListener(_validateForm);
-    _phoneNumberController.removeListener(_validateForm);
     _nameController.removeListener(_validateForm);
     _emailController.dispose();
     _passwordController.dispose();
-    _phoneNumberController.dispose();
     _nameController.dispose();
     super.dispose();
   }
@@ -203,74 +175,12 @@ class _SignUpPageState extends State<SignUpPage> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _phoneNumberController,
-                            decoration: InputDecoration(
-                              labelText: 'Phone Number',
-                              floatingLabelBehavior: FloatingLabelBehavior.never, // Prevent label from moving up
-                              filled: true,
-                              fillColor: Colors.white.withOpacity(0.2),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10.0), // Change to 10.0 for squared off corners
-                                borderSide: BorderSide.none, // Remove the black border
-                              ),
-                              prefixIcon: const Icon(Icons.phone), // Add phone icon
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter your phone number';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 10),
-                          SizedBox(
-                            width: screenWidth * 0.9,
-                            child: DropdownButtonFormField<String>(
-                              isExpanded: true,
-                              value: _selectedCountry,
-                              decoration: InputDecoration(
-                                isDense: false,
-                                labelText: 'Country',
-                                floatingLabelBehavior: FloatingLabelBehavior.never, // Prevent label from moving up
-                                filled: true,
-                                fillColor: Colors.white.withOpacity(0.2),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10.0), // Change to 10.0 for squared off corners
-                                  borderSide: BorderSide.none, // Remove the black border
-                                ),
-                                prefixIcon: const Icon(Icons.public), // Add country icon
-                              ),
-                              icon: const Icon(Icons.arrow_drop_down, size: 24),
-                              items: getCountryNames().map((String country) {
-                                return DropdownMenuItem<String>(
-                                  value: country,
-                                  child: Text(country),
-                                );
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  _selectedCountry = newValue;
-                                  _selectedTimezone = getCountryListWithTimezones()
-                                      .firstWhere((element) => element['country'] == newValue)['timezone'];
-                                });
-                                _validateForm();
-                              },
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please select your country';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
                           const SizedBox(height: 20),
                           ValueListenableBuilder<bool>(
                             valueListenable: _isFormValid,
                             builder: (context, isFormValid, child) {
                               return ElevatedButton(
-                                onPressed: isFormValid ? _signUp : null,
+                                onPressed: isFormValid ? _navigateToCountrySelection : null,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.black, // Set the background color to black
                                   foregroundColor: Colors.white, // Set the text color to white
@@ -281,7 +191,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 ),
                                 child: _isLoading
                                     ? const Center(child: CircularProgressIndicator())
-                                    : const Text('SIGN UP'),
+                                    : const Text('NEXT'),
                               );
                             },
                           ),

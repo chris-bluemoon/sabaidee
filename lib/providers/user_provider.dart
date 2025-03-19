@@ -580,39 +580,43 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
     });
   }
   Future<void> removeRelationship(String followerUid, String status) async {
-    if (_user != null) {
-      _user?.watching.removeWhere((follower) => follower['uid'] == followerUid);
+  log('Removing relationship for user: ${_user?.uid} with followerUid: $followerUid');
+  if (_user != null) {
+    // Find the relationship entry with the matching followerUid and status
+    final relationship = _user!.watching.firstWhere(
+      (watching) => watching['uid'] == followerUid && watching['status'] == status,
+      orElse: () => {},
+    );
 
-      await _firestore.collection('users').doc(_user!.uid).update({
-        'watching': FieldValue.arrayRemove([
-          {'uid': followerUid, 'status': 'pending'}
-        ]),
-      });
-      await _firestore.collection('users').doc(followerUid).update({
-        'followers': FieldValue.arrayRemove([
-          {'uid': _user!.uid, 'status': 'pending'}
-        ]),
-      });
-      notifyListeners();
-    }
-  }
-  Future<void> removeRelationship2(String followerUid, String status) async {
-    if (_user != null) {
-      _user?.followers.removeWhere((follower) => follower['uid'] == followerUid);
+    await _firestore.collection('users').doc(_user!.uid).update({
+      'watching': FieldValue.arrayRemove([relationship]),
+    });
 
-      await _firestore.collection('users').doc(_user!.uid).update({
-        'followers': FieldValue.arrayRemove([
-          {'uid': followerUid, 'status': 'pending'}
-        ]),
-      });
-      await _firestore.collection('users').doc(followerUid).update({
-        'watching': FieldValue.arrayRemove([
-          {'uid': _user!.uid, 'status': 'pending'}
-        ]),
-      });
-      notifyListeners();
+    // Remove the follower entry from the other user
+    final followerDoc = await _firestore.collection('users').doc(followerUid).get();
+    if (followerDoc.exists) {
+      final followerData = followerDoc.data();
+      final followerRelationship = (followerData?['followers'] as List<dynamic>).firstWhere(
+        (follower) => follower['uid'] == _user!.uid && follower['status'] == status,
+        orElse: () => null,
+      );
+
+      if (followerRelationship != null) {
+        log('Removing relationship for user: $followerUid with followerUid: ${_user?.uid}');
+        await _firestore.collection('users').doc(followerUid).update({
+          'followers': FieldValue.arrayRemove([followerRelationship]),
+        });
+      } else {
+        log('No relationship found for user: $followerUid with followerUid: ${_user?.uid}');
+      }
     }
-  }
+      // Remove the relationship from the provider _user
+      _user!.watching.removeWhere((watching) => watching['uid'] == followerUid && watching['status'] == status);
+
+
+    notifyListeners();
+    }
+}
   Future<void> createRelationship(String followerUid, String status) async {
     if (_user != null) {
       _user!.watching.add({'uid': followerUid, 'status': status, 'createdAt': DateTime.now().toIso8601String()});

@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:intl/intl.dart'; // Import intl package for date formatting
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
 import 'package:provider/provider.dart';
@@ -169,20 +170,6 @@ class _MyFollowersPageState extends State<MyFollowersPage> {
     return followersWithNames;
   }
 
-  Future<void> _removeFollower(BuildContext context, String followerUid) async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final currentUserUid = userProvider.user?.uid;
-
-    if (currentUserUid == null) {
-      print('Current user is not logged in.');
-      return;
-    }
-
-    // Remove the follower from the user's followers list
-    await userProvider.removeRelationship2(followerUid, 'pending');
-    setState(() {}); // Refresh the screen
-  }
-
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
@@ -299,57 +286,37 @@ class _MyFollowersPageState extends State<MyFollowersPage> {
                         return ListView(
                           padding: const EdgeInsets.all(16.0),
                           children: followersWithNames.map((follower) {
+                            final createdAt = follower['createdAt'] != 'Unknown'
+                                ? DateFormat.yMMMd().format(DateTime.parse(follower['createdAt']!))
+                                : 'Unknown';
                             return Padding(
                               padding: EdgeInsets.only(bottom: screenHeight * 0.02), // Add padding between containers
-                              child: Dismissible(
-                                key: Key(follower['uid']!),
-                                direction: DismissDirection.endToStart,
-                                onDismissed: (direction) async {
-                                  await _removeFollower(context, follower['uid']!);
-                                },
-                                background: Container(
-                                  color: Colors.red,
-                                  alignment: Alignment.centerRight,
-                                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                                  child: const Icon(Icons.delete_outline, color: Colors.white),
-                                ),
-                                child: GlassmorphismContainer(
-                                  height: screenWidth * 0.15, // Adjust height based on screen size
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(12.0, 6.0, 6.0, 0.0), // Increase the left padding slightly
-                                        child: Text(
-                                          follower['name']!,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: screenWidth * 0.05, // Set the font size relative to the screen width
-                                          ),
+                              child: GlassmorphismContainer(
+                                height: screenWidth * 0.15, // Adjust height based on screen size
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(12.0, 6.0, 6.0, 0.0), // Increase the left padding slightly
+                                      child: Text(
+                                        follower['name']!,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: screenWidth * 0.05, // Set the font size relative to the screen width
                                         ),
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(12.0, 0.0, 6.0, 6.0), // Increase the left padding slightly
-                                        child: Text(
-                                          'Following since: ${follower['createdAt']!}',
-                                          style: TextStyle(
-                                            fontSize: screenWidth * 0.035, // Set the font size relative to the screen width
-                                            color: Colors.grey,
-                                          ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(12.0, 0.0, 6.0, 6.0), // Increase the left padding slightly
+                                      child: Text(
+                                        'Following since $createdAt',
+                                        style: TextStyle(
+                                          fontSize: screenWidth * 0.035, // Set the font size relative to the screen width
+                                          color: Colors.black,
                                         ),
                                       ),
-                                      Align(
-                                        alignment: Alignment.centerRight,
-                                        child: IconButton(
-                                          icon: const Icon(Icons.delete_outline, color: Colors.black),
-                                          iconSize: screenWidth * 0.07, // Set the icon size relative to the screen width
-                                          onPressed: () async {
-                                            await _removeFollower(context, follower['uid']!);
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             );

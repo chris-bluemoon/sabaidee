@@ -109,15 +109,34 @@ class _CountrySelectionPageState extends State<CountrySelectionPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       DropdownButtonFormField<String>(
+                        isExpanded: true,
                         value: _selectedCountry, // Set the initial value
                         decoration: const InputDecoration(
-                          labelText: 'Country',
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.black), // Set the border color to black
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.black), // Set the border color to black
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.black), // Set the border color to black
+                          ),
                         ),
                         items: getCountryList2()
                             .map((country) => DropdownMenuItem(
                                   value: country['country'],
-                                  child: Text(country['country'] ?? ''),
+                                  child: Row(
+                                    children: [
+                                      Image.asset(
+                                        'assets/flags/${country['filename']}' ?? '', // Assuming 'flag' contains the path to the flag image
+                                        width: 34,
+                                        height: 24,
+                                        fit: BoxFit.cover,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(country['country'] ?? ''),
+                                    ],
+                                  ),
                                 ))
                             .toList(),
                         onChanged: (value) {

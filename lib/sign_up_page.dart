@@ -1,10 +1,6 @@
-import 'dart:developer';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:sabaidee/home_page.dart';
-import 'package:sabaidee/providers/user_provider.dart';
 import 'package:sabaidee/country_selection_page.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -19,7 +15,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
+  final bool _isLoading = false;
   final ValueNotifier<bool> _isFormValid = ValueNotifier<bool>(false);
 
   void _validateForm() {

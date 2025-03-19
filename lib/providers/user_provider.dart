@@ -251,12 +251,14 @@ void setCheckInStatus(DateTime dateTime, String status) async {
       for (var watching in _user!.watching) {
         final watchingUid = watching['uid'];
         final status = watching['status'];
+        final createdAt = watching['createdAt'];
         final userDoc = await _firestore.collection('users').doc(watchingUid).get();
         if (userDoc.exists) {
           final userData = userDoc.data()!;
           watchingNamesAndStatuses[watchingUid!] = {
             'name': userData['name'],
             'status': status!,
+            'createdAt': createdAt!,
           };
         }
       }
@@ -613,16 +615,16 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
   }
   Future<void> createRelationship(String followerUid, String status) async {
     if (_user != null) {
-      _user!.watching.add({'uid': followerUid, 'status': status});
+      _user!.watching.add({'uid': followerUid, 'status': status, 'createdAt': DateTime.now().toIso8601String()});
 
-      // Update Firestore for the current user
+      // Update FirestfetchWatchingNamesAndStatusesore for the current user
       await _firestore.collection('users').doc(_user!.uid).update({
-        'watching': FieldValue.arrayUnion([{'uid': followerUid, 'status': status}]),
+        'watching': FieldValue.arrayUnion([{'uid': followerUid, 'status': status, 'createdAt': DateTime.now().toIso8601String()}]),
       });
 
       // Update Firestore for the follower user
       await _firestore.collection('users').doc(followerUid).update({
-        'followers': FieldValue.arrayUnion([{'uid': _user!.uid, 'status': status}]),
+        'followers': FieldValue.arrayUnion([{'uid': _user!.uid, 'status': status, 'createdAt': DateTime.now().toIso8601String()}]),
       });
 
       notifyListeners();

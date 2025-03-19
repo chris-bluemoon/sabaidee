@@ -160,7 +160,11 @@ class _MyFollowersPageState extends State<MyFollowersPage> {
     List<Map<String, String>> followersWithNames = [];
     for (var follower in followers) {
       final name = await _getUserNameFromUid(follower['uid']!);
-      followersWithNames.add({'uid': follower['uid']!, 'name': name ?? 'Unknown'});
+      followersWithNames.add({
+        'uid': follower['uid']!,
+        'name': name ?? 'Unknown',
+        'createdAt': follower['createdAt'] ?? 'Unknown'
+      });
     }
     return followersWithNames;
   }
@@ -175,7 +179,6 @@ class _MyFollowersPageState extends State<MyFollowersPage> {
     }
 
     // Remove the follower from the user's followers list
-    // await userProvider.removeFollower(followerUid);
     await userProvider.removeRelationship2(followerUid, 'pending');
     setState(() {}); // Refresh the screen
   }
@@ -238,6 +241,7 @@ class _MyFollowersPageState extends State<MyFollowersPage> {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
                       } else if (snapshot.hasError) {
+                        print('Error loading followers: ${snapshot.error}');
                         return const Center(child: Text('Error loading followers'));
                       } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                         return Center(
@@ -311,11 +315,11 @@ class _MyFollowersPageState extends State<MyFollowersPage> {
                                 ),
                                 child: GlassmorphismContainer(
                                   height: screenWidth * 0.15, // Adjust height based on screen size
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Padding(
-                                        padding: const EdgeInsets.fromLTRB(12.0, 6.0, 6.0, 6.0), // Increase the left padding slightly
+                                        padding: const EdgeInsets.fromLTRB(12.0, 6.0, 6.0, 0.0), // Increase the left padding slightly
                                         child: Text(
                                           follower['name']!,
                                           style: TextStyle(
@@ -324,12 +328,25 @@ class _MyFollowersPageState extends State<MyFollowersPage> {
                                           ),
                                         ),
                                       ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete_outline, color: Colors.black),
-                                        iconSize: screenWidth * 0.07, // Set the icon size relative to the screen width
-                                        onPressed: () async {
-                                          await _removeFollower(context, follower['uid']!);
-                                        },
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(12.0, 0.0, 6.0, 6.0), // Increase the left padding slightly
+                                        child: Text(
+                                          'Following since: ${follower['createdAt']!}',
+                                          style: TextStyle(
+                                            fontSize: screenWidth * 0.035, // Set the font size relative to the screen width
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: IconButton(
+                                          icon: const Icon(Icons.delete_outline, color: Colors.black),
+                                          iconSize: screenWidth * 0.07, // Set the icon size relative to the screen width
+                                          onPressed: () async {
+                                            await _removeFollower(context, follower['uid']!);
+                                          },
+                                        ),
                                       ),
                                     ],
                                   ),

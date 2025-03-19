@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/providers/user_provider.dart';
 
@@ -149,7 +150,6 @@ class MyWatchList extends StatelessWidget {
 
     // Remove the follower from the user's watching list
     print('Follower ID $followerUid.');
-    // await userProvider.removeFollower(followerUid);
     await userProvider.removeRelationship(followerUid, 'pending');
   }
 
@@ -203,7 +203,7 @@ class MyWatchList extends StatelessWidget {
               children: [
                 SizedBox(height: screenHeight * 0.04), // Reduce space below the app bar
                 Expanded(
-                  child: FutureBuilder<Map<String, Map<String, String>>>(
+                  child: FutureBuilder<Map<String, Map<String, dynamic>>>(
                     future: userProvider.fetchWatchingNamesAndStatuses(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
@@ -246,7 +246,10 @@ class MyWatchList extends StatelessWidget {
                             final watching = watchings[index];
                             final watchingUid = watching['uid'];
                             final watchingName = watchingNamesAndStatuses[watchingUid]?['name'] ?? 'Unknown';
-                            final watchingStatus = watchingNamesAndStatuses[watchingUid]?['status'] ?? 'Unknown';
+                            final createdAtString = watchingNamesAndStatuses[watchingUid]?['createdAt'];
+                            final createdAtTimestamp = DateTime.parse(createdAtString);
+                            final formattedCreatedAt = DateFormat("yyyy-MM-dd").format(createdAtTimestamp);
+                            final createdAt = formattedCreatedAt;
                             return Padding(
                               padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: screenHeight * 0.01), // Add horizontal padding and vertical padding between containers
                               child: Dismissible(
@@ -262,26 +265,41 @@ class MyWatchList extends StatelessWidget {
                                   child: const Icon(Icons.delete_outline, color: Colors.white),
                                 ),
                                 child: GlassmorphismContainer(
-                                  height: screenWidth * 0.15, // Adjust height based on screen size
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  height: screenWidth * 0.25, // Increase height to prevent overflow
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Padding(
-                                        padding: const EdgeInsets.fromLTRB(12.0, 6.0, 6.0, 6.0), // Increase the left padding slightly
-                                        child: Text(
-                                          watchingName,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: screenWidth * 0.05, // Set the font size relative to the screen width
-                                          ),
+                                        padding: const EdgeInsets.fromLTRB(12.0, 6.0, 6.0, 0.0), // Increase the left padding slightly
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              watchingName,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: screenWidth * 0.05, // Set the font size relative to the screen width
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(Icons.delete_outline, color: Colors.black),
+                                              iconSize: screenWidth * 0.07, // Set the icon size relative to the screen width
+                                              onPressed: () async {
+                                                await _removeFollower(context, watchingUid);
+                                              },
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete_outline, color: Colors.black),
-                                        iconSize: screenWidth * 0.07, // Set the icon size relative to the screen width
-                                        onPressed: () async {
-                                          await _removeFollower(context, watchingUid);
-                                        },
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(12.0, 0.0, 6.0, 6.0), // Increase the left padding slightly
+                                        child: Text(
+                                          'Following since: $createdAt',
+                                          style: TextStyle(
+                                            fontSize: screenWidth * 0.035, // Set the font size relative to the screen width
+                                            color: Colors.black,
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ),

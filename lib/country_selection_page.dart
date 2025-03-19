@@ -26,11 +26,19 @@ class CountrySelectionPage extends StatefulWidget {
 class _CountrySelectionPageState extends State<CountrySelectionPage> {
   String? _selectedCountry = 'United Kingdom'; // Set default value to 'UK'
   bool _isLoading = false;
+  String? _selectedTimeZone = 'UTC+00:00'; // Define the _selectedTimeZone variable
 
   Future<void> _submit() async {
     setState(() {
       _isLoading = true;
     });
+
+    // Get the selected country's timezone
+    final selectedCountry = getCountryList2().firstWhere(
+      (country) => country['country'] == _selectedCountry,
+      orElse: () => {'timezone': 'UTC+00:00'},
+    );
+
     try {
       await Provider.of<UserProvider>(context, listen: false).signUp(
         widget.email,
@@ -39,7 +47,7 @@ class _CountrySelectionPageState extends State<CountrySelectionPage> {
         '123', // Default phone number
         {
           'country': _selectedCountry ?? '',
-          'timezone': 'default',
+          'timezone': selectedCountry['timezone'] ?? 'UTC+00:00',
         },
       );
       Navigator.of(context).pushReplacement(
@@ -142,6 +150,12 @@ class _CountrySelectionPageState extends State<CountrySelectionPage> {
                         onChanged: (value) {
                           setState(() {
                             _selectedCountry = value;
+                            // Update the selected timezone based on the selected country
+                            final selectedCountry = getCountryList2().firstWhere(
+                              (country) => country['country'] == value,
+                              orElse: () => {'timezone': 'UTC+00:00'},
+                            );
+                            _selectedTimeZone = selectedCountry['timezone'];
                           });
                         },
                         validator: (value) {

@@ -100,7 +100,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         child: Row(
                           children: [
                             Icon(Icons.person_outline, size: screenWidth * 0.055, color: Colors.black),
-                            const SizedBox(width: 8.0),
+                            SizedBox(width: screenWidth * 0.04), // Make the gap relative to the screen size
                             Expanded(
                               child: Align(
                                 alignment: Alignment.centerLeft,
@@ -125,13 +125,13 @@ class _ProfilePageState extends State<ProfilePage> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16.0),
+                      SizedBox(height: screenHeight * 0.02), // Adjust height based on screen size
                       GlassmorphismContainer(
                         height: screenHeight * 0.08, // Adjust height based on screen size
                         child: Row(
                           children: [
                             Icon(Icons.phone_outlined, size: screenWidth * 0.055, color: Colors.black),
-                            const SizedBox(width: 8.0),
+                            SizedBox(width: screenWidth * 0.04), // Make the gap relative to the screen size
                             Expanded(
                               child: Align(
                                 alignment: Alignment.centerLeft,
@@ -156,13 +156,13 @@ class _ProfilePageState extends State<ProfilePage> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16.0),
+                      SizedBox(height: screenHeight * 0.02), // Adjust height based on screen size
                       GlassmorphismContainer(
                         height: screenHeight * 0.08, // Adjust height based on screen size
                         child: Row(
                           children: [
                             Icon(Icons.email_outlined, size: screenWidth * 0.055, color: Colors.black),
-                            const SizedBox(width: 8.0),
+                            SizedBox(width: screenWidth * 0.04), // Make the gap relative to the screen size
                             Expanded(
                               child: Align(
                                 alignment: Alignment.centerLeft,
@@ -178,13 +178,13 @@ class _ProfilePageState extends State<ProfilePage> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16.0),
+                      SizedBox(height: screenHeight * 0.02), // Adjust height based on screen size
                       GlassmorphismContainer(
                         height: screenHeight * 0.08, // Adjust height based on screen size
                         child: Row(
                           children: [
                             Icon(Icons.location_on_outlined, size: screenWidth * 0.055, color: Colors.black), // Change to location icon
-                            const SizedBox(width: 8.0),
+                            SizedBox(width: screenWidth * 0.04), // Make the gap relative to the screen size
                             Expanded(
                               child: DropdownButtonFormField<String>(
                                 value: _selectedCountry,
@@ -207,7 +207,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                               width: screenWidth * 0.055, // Set the width relative to the screen width
                                               height: screenWidth * 0.055, // Set the height relative to the screen width
                                             ),
-                                            const SizedBox(width: 8.0),
+                                            SizedBox(width: screenWidth * 0.02), // Make the gap relative to the screen size
                                             Text(country['country']!, style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.04)),
                                           ],
                                         ),
@@ -278,7 +278,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                                 child: Text('SAVE', style: TextStyle(fontSize: screenWidth * 0.04)),
                               ),
-                              const SizedBox(width: 16.0),
+                              SizedBox(width: screenWidth * 0.04), // Make the gap relative to the screen size
                               ElevatedButton(
                                 onPressed: () {
                                   setState(() {

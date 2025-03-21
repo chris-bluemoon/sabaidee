@@ -116,12 +116,6 @@ class _SettingsPageState extends State<SettingsPage> {
                               setState(() {
                                 _notificationsEnabled = value;
                               });
-                              // Handle switch state change
-                              if (_notificationsEnabled) {
-                                // Enable notifications
-                              } else {
-                                // Disable notifications
-                              }
                             },
                             activeTrackColor: Colors.black,
                             inactiveTrackColor: Colors.black,

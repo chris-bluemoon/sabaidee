@@ -67,13 +67,17 @@ class UserProvider with ChangeNotifier {
         if (firebaseUser != null) {
           final userDoc = await _firestore.collection('users').doc(firebaseUser.uid).get();
           if (!userDoc.exists) {
-            // Create a new user record in Firestore
+            // Create a new user record in Firestore with placeholder values
             await _firestore.collection('users').doc(firebaseUser.uid).set({
               'email': firebaseUser.email,
-              'name': 'TBC',
+              'name': firebaseUser.displayName ?? 'TBC',
+              'phoneNumber': 'TBC',
+              'country': {'name': 'TBC'},
               'checkInTimes': [],
               'followers': [],
               'watching': [],
+              'fcmToken': 'TBC',
+              'referralCode': _generateRandomCode(),
             });
           }
 

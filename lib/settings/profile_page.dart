@@ -47,7 +47,7 @@ class _ProfilePageState extends State<ProfilePage> {
           'PROFILE',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: screenWidth * 0.045, // Set the font size relative to the screen width
+            fontSize: screenWidth * 0.05, // Set the font size relative to the screen width
           ),
         ),
         leading: IconButton(

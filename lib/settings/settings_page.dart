@@ -56,7 +56,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   GlassmorphismContainer(
                     child: ListView.separated(
                       shrinkWrap: true,
-                      padding: const EdgeInsets.symmetric(vertical: 0), // Reduce padding above and below
+                      padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01), // Reduce padding above and below
                       itemCount: 4, // Show 4 items
                       itemBuilder: (context, index) {
                         if (index == 0) {
@@ -107,7 +107,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   GlassmorphismContainer(
                     child: ListView(
                       shrinkWrap: true,
-                      padding: const EdgeInsets.symmetric(vertical: 4.0), // Reduce padding above and below
+                      padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01), // Reduce padding above and below
                       children: [
                         ListTile(
                           leading: Icon(Icons.notifications_outlined, size: screenWidth * 0.055),
@@ -131,11 +131,11 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   const Spacer(), // Add a spacer to push the Sign Out option to the bottom
                   Padding(
-                    padding: EdgeInsets.only(bottom: screenHeight * 0.05), // Add padding to avoid overlap with bottom nav bar
+                    padding: EdgeInsets.only(bottom: screenHeight * 0.08), // Add more padding to avoid overlap with bottom nav bar
                     child: GlassmorphismContainer(
                       child: ListView(
                         shrinkWrap: true,
-                        padding: const EdgeInsets.symmetric(vertical: 4.0), // Reduce padding above and below
+                        padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01), // Reduce padding above and below
                         children: [
                           ListTile(
                             leading: Icon(Icons.logout_outlined, size: screenWidth * 0.055),

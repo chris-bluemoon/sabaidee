@@ -100,12 +100,12 @@ class MySchedulePage extends StatelessWidget {
           ),
           // Main content
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(screenHeight * 0.02),
             child: Column(
               children: [
-                SizedBox(height: screenHeight * 0.08), // Add space below the app bar
+                SizedBox(height: screenHeight * 0.12), // Add more space below the app bar
                 Padding(
-                  padding: const EdgeInsets.all(12.0), // Decrease the padding slightly
+                  padding: EdgeInsets.all(screenHeight * 0.015), // Adjust the padding slightly
                   child: Text(
                     'Set up to 4 check-ins per day. You can change the amount of time to check in under settings, the default is 15 minutes. Additions to the schedule are effective the next day.',
                     style: TextStyle(fontSize: screenWidth * 0.04), // Adjust text size relative to screen width
@@ -143,7 +143,7 @@ class MySchedulePage extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.fromLTRB(10.0, 5.0, 5.0, 5.0), // Reduce the left padding slightly
+                                  padding: EdgeInsets.fromLTRB(screenWidth * 0.025, screenHeight * 0.01, screenWidth * 0.01, screenHeight * 0.01), // Adjust the padding
                                   child: Text(
                                     '$formattedStartTime to $formattedEndTime',
                                     style: TextStyle(

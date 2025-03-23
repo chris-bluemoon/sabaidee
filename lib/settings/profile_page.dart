@@ -83,7 +83,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           // Main content
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(screenHeight * 0.02),
             child: Column(
               children: [
                 SizedBox(height: appBarHeight + screenHeight * 0.08), // Add more space below the app bar
@@ -208,7 +208,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const Spacer(), // Add a spacer to push the buttons to the bottom
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
+                  padding: EdgeInsets.only(bottom: screenHeight * 0.05), // Add more padding to the bottom
                   child: Center(
                     child: _isEditing
                         ? Row(
@@ -239,7 +239,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20), // Match the border radius of the GlassmorphismContainer
                                   ),
-                                  padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 12.0), // Add padding for a consistent look
+                                  padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.04, vertical: screenHeight * 0.015), // Add padding for a consistent look
                                 ),
                                 child: Text('SAVE', style: TextStyle(fontSize: screenWidth * 0.04)),
                               ),
@@ -256,7 +256,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20), // Match the border radius of the GlassmorphismContainer
                                   ),
-                                  padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 12.0), // Add padding for a consistent look
+                                  padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.04, vertical: screenHeight * 0.015), // Add padding for a consistent look
                                 ),
                                 child: Text('CANCEL', style: TextStyle(fontSize: screenWidth * 0.04)),
                               ),
@@ -274,7 +274,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20), // Match the border radius of the GlassmorphismContainer
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 12.0), // Add padding for a consistent look
+                              padding: EdgeInsets.symmetric(horizontal: screenHeight * 0.04, vertical: screenHeight * 0.015), // Add padding for a consistent look
                             ),
                             child: Text('EDIT', style: TextStyle(fontSize: screenWidth * 0.04)),
                           ),

@@ -44,7 +44,6 @@ class _CountrySelectionPageState extends State<CountrySelectionPage> {
         widget.email,
         widget.password,
         widget.name,
-        '123', // Default phone number
         {
           'country': _selectedCountry ?? '',
           'timezone': selectedCountry['timezone'] ?? 'UTC+00:00',

@@ -8,7 +8,6 @@ class User {
   final String uid;
   final String email;
   String name;
-  String phoneNumber;
   Map<String, String> country; // Change country to a map with timezone
   final List<CheckInTime> checkInTimes;
   final List<Map<String, String>> followers;
@@ -20,7 +19,6 @@ class User {
     required this.uid,
     required this.email,
     required this.name,
-    required this.phoneNumber,
     required this.country,
     required this.checkInTimes,
     required this.followers,
@@ -35,7 +33,6 @@ class User {
       uid: doc.id,
       email: data['email'],
       name: data['name'],
-      phoneNumber: data['phoneNumber'],
       country: Map<String, String>.from(data['country']),
       checkInTimes: (data['checkInTimes'] as List)
           .map((item) => CheckInTime.fromMap(item as Map<String, dynamic>))
@@ -51,7 +48,6 @@ class User {
     return {
       'email': email,
       'name': name,
-      'phoneNumber': phoneNumber,
       'country': country,
       'checkInTimes': checkInTimes.map((checkInTime) => checkInTime.toMap()).toList(),
       'followers': followers,

@@ -15,7 +15,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
-  late TextEditingController _phoneController;
   String? _selectedCountry;
   bool _isEditing = false;
 
@@ -24,14 +23,12 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     _nameController = TextEditingController(text: userProvider.user?.name ?? '');
-    _phoneController = TextEditingController(text: userProvider.user?.phoneNumber ?? '');
     _selectedCountry = userProvider.user?.country['country']; // Initialize _selectedCountry
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _phoneController.dispose();
     super.dispose();
   }
 
@@ -115,37 +112,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
                                       return 'Please enter your name';
-                                    }
-                                    return null;
-                                  },
-                                  enabled: _isEditing,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: screenHeight * 0.02), // Adjust height based on screen size
-                      GlassmorphismContainer(
-                        height: screenHeight * 0.08, // Adjust height based on screen size
-                        child: Row(
-                          children: [
-                            Icon(Icons.phone_outlined, size: screenWidth * 0.055, color: Colors.black),
-                            SizedBox(width: screenWidth * 0.04), // Make the gap relative to the screen size
-                            Expanded(
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: TextFormField(
-                                  controller: _phoneController,
-                                  decoration: InputDecoration(
-                                    hintText: 'Phone',
-                                    hintStyle: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.04),
-                                    border: InputBorder.none,
-                                  ),
-                                  style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.04),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Please enter your phone number';
                                     }
                                     return null;
                                   },
@@ -253,7 +219,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                   if (_formKey.currentState?.validate() ?? false) {
                                     userProvider.updateUser(
                                       name: _nameController.text,
-                                      phoneNumber: _phoneController.text,
                                       country: {
                                         'country': _selectedCountry ?? '',
                                         'timezone': getCountryList2()

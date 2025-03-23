@@ -28,29 +28,6 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  
-  Future<void> addCheckInTime(DateTime dateTime) async {
-    if (_user != null) {
-      final checkInTime = CheckInTime(
-        dateTime: dateTime,
-        status: 'pending',
-        duration: const Duration(minutes: 15), // Set default duration to 15 minutes
-      );
-      log('Adding check-in time for user: ${checkInTime.dateTime.toIso8601String()}');
-      _user!.checkInTimes.add(checkInTime);
-
-      // Update Firestore
-      await _firestore.collection('users').doc(_user!.uid).update({
-        'checkInTimes': FieldValue.arrayUnion([{
-          'dateTime': checkInTime.dateTime.toIso8601String(),
-          'status': 'pending',
-          'duration': checkInTime.duration.inMinutes, // Store duration in minutes
-        }])
-      });
-
-      notifyListeners();
-    }
-  }
   Future<void> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -71,7 +48,6 @@ class UserProvider with ChangeNotifier {
             await _firestore.collection('users').doc(firebaseUser.uid).set({
               'email': firebaseUser.email,
               'name': firebaseUser.displayName ?? 'TBC',
-              'phoneNumber': 'TBC',
               'country': {'name': 'TBC'},
               'checkInTimes': [],
               'followers': [],
@@ -82,11 +58,69 @@ class UserProvider with ChangeNotifier {
           }
 
           // Fetch user data from Firestore
-          await _fetchUserData(firebaseUser.uid);
+          await fetchUserData(firebaseUser.uid);
         }
       }
     } catch (error) {
       print('Google sign-in failed: $error');
+    }
+  }
+
+  Future<void> fetchUserData(String uid) async {
+    final userDoc = await _firestore.collection('users').doc(uid).get();
+    if (userDoc.exists) {
+      final userData = userDoc.data()!;
+      _user = myUser.User(
+        uid: uid,
+        email: userData['email'] ?? '',
+        name: userData['name'] ?? '',
+        country: userData['country'] is String ? {'name': userData['country']} : Map<String, String>.from(userData['country']),
+        checkInTimes: (userData['checkInTimes'] as List).map((time) {
+          return CheckInTime(
+            dateTime: DateTime.parse(time['dateTime']),
+            status: time['status'],
+            duration: Duration(minutes: time['duration']),
+          );
+        }).toList(),
+        followers: (userData['followers'] as List).map((follower) => Map<String, String>.from(follower)).toList(),
+        watching: (userData['watching'] as List).map((watching) => Map<String, String>.from(watching)).toList(),
+        fcmToken: userData['fcmToken'] ?? '',
+        referralCode: userData['referralCode'] ?? '',
+      );
+      log('User data from firestore: ${userDoc.data()}, uid provided: $uid');
+      notifyListeners();
+    }
+    if (_user == null) {
+      log('User data is null, does the UID exist in the database?');
+    }
+  }
+
+  String _generateRandomCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final random = mymath.Random();
+    return List.generate(6, (index) => chars[random.nextInt(chars.length)]).join();
+  }
+
+  Future<void> addCheckInTime(DateTime dateTime) async {
+    if (_user != null) {
+      final checkInTime = CheckInTime(
+        dateTime: dateTime,
+        status: 'pending',
+        duration: const Duration(minutes: 15), // Set default duration to 15 minutes
+      );
+      log('Adding check-in time for user: ${checkInTime.dateTime.toIso8601String()}');
+      _user!.checkInTimes.add(checkInTime);
+
+      // Update Firestore
+      await _firestore.collection('users').doc(_user!.uid).update({
+        'checkInTimes': FieldValue.arrayUnion([{
+          'dateTime': checkInTime.dateTime.toIso8601String(),
+          'status': 'pending',
+          'duration': checkInTime.duration.inMinutes, // Store duration in minutes
+        }])
+      });
+
+      notifyListeners();
     }
   }
 
@@ -135,13 +169,7 @@ void setCheckInStatus(DateTime dateTime, String status) async {
   }
 }
 
-  String _generateRandomCode() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    final random = mymath.Random();
-    return List.generate(6, (index) => chars[random.nextInt(chars.length)]).join();
-  }
-
-  Future<void> signUp(String email, String password, String name, String phoneNumber, Map<String, String> country) async {
+  Future<void> signUp(String email, String password, String name, Map<String, String> country) async {
     try {
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
       final fcmToken = await FirebaseMessaging.instance.getToken();
@@ -150,7 +178,6 @@ void setCheckInStatus(DateTime dateTime, String status) async {
         uid: userCredential.user!.uid,
         email: email,
         name: name,
-        phoneNumber: phoneNumber,
         country: country,
         checkInTimes: [],
         followers: [],
@@ -163,7 +190,6 @@ void setCheckInStatus(DateTime dateTime, String status) async {
       await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
         'email': email,
         'name': name,
-        'phoneNumber': phoneNumber,
         'country': country,
         'checkInTimes': [],
         'followers': [],
@@ -178,41 +204,10 @@ void setCheckInStatus(DateTime dateTime, String status) async {
     }
   }
 
-  Future<void> fetchUserData(String uid) async {
-    final userDoc = await _firestore.collection('users').doc(uid).get();
-    log('User data from firestore: ${userDoc.data()}, uid provided: $uid');
-    if (userDoc.exists) {
-      final userData = userDoc.data()!;
-      _user = myUser.User(
-        uid: uid,
-        email: userData['email'],
-        name: userData['name'],
-        phoneNumber: userData['phoneNumber'],
-        country: Map<String, String>.from(userData['country']),
-        checkInTimes: (userData['checkInTimes'] as List).map((time) {
-          return CheckInTime(
-            dateTime: DateTime.parse(time['dateTime']),
-            status: time['status'],
-            duration: Duration(minutes: time['duration']),
-          );
-        }).toList(),
-        followers: (userData['followers'] as List).map((follower) => Map<String, String>.from(follower)).toList(),
-        watching: (userData['watching'] as List).map((watching) => Map<String, String>.from(watching)).toList(),
-        fcmToken: userData['fcmToken'],
-        referralCode: userData['referralCode'],
-      );
-      log('User data from firestore: ${_user.toString()}');
-      notifyListeners();
-    }
-    if (_user == null) {
-      log('User data is null, does the UID exist in the database?');
-    }
-  }
-
   Future<void> signIn(String email, String password) async {
     try {
       UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
-      await _fetchUserData(userCredential.user!.uid);
+      await fetchUserData(userCredential.user!.uid);
     } on FirebaseAuthException catch (e) {
       if (e.code == 'network-request-failed') {
         throw Exception('Network error: Please check your internet connection.');
@@ -296,7 +291,6 @@ Future<void> _fetchUserData(String uid) async {
     uid: uid,
     email: userDoc['email'],
     name: userDoc['name'],
-    phoneNumber: userDoc['phoneNumber'],
     country: userDoc['country'] is String ? {'name': userDoc['country']} : Map<String, String>.from(userDoc['country']),
     checkInTimes: (userDoc['checkInTimes'] as List).map((time) {
       return CheckInTime(
@@ -567,19 +561,17 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
     notifyListeners();
   }
   // Add the updateUser method
-  Future<void> updateUser({required String name, required String phoneNumber, required Map<String, String> country}) async {
+  Future<void> updateUser({required String name, required Map<String, String> country}) async {
     if (_user == null) return;
 
     // Update the user information in the provider
     _user?.name = name;
-    _user?.phoneNumber = phoneNumber;
     _user?.country = country;
     notifyListeners();
 
     // Update the user information in the database
     await FirebaseFirestore.instance.collection('users').doc(_user?.uid).update({
       'name': name,
-      'phoneNumber': phoneNumber,
       'country': country,
     });
   }
@@ -645,7 +637,6 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
         uid: _user!.uid,
         email: _user!.email,
         name: _user!.name,
-        phoneNumber: _user!.phoneNumber,
         country: _user!.country,
         checkInTimes: _user!.checkInTimes,
         followers: _user!.followers,

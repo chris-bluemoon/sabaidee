@@ -101,7 +101,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
                           child: Text(
-                            'No Check In Time Set Up',
+                            'No check in times set up',
                             style: TextStyle(fontSize: screenWidth * 0.12, fontWeight: FontWeight.bold),
                             textAlign: TextAlign.center,
                           ),

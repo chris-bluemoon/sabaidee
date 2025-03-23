@@ -45,7 +45,12 @@ class _SettingsPageState extends State<SettingsPage> {
           // Main content
           Center(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20.0, 50.0, 20.0, 50.0), // Add margin at the top of the page
+              padding: EdgeInsets.fromLTRB(
+                screenWidth * 0.05, // Adjust left padding
+                screenHeight * 0.1, // Adjust top padding
+                screenWidth * 0.05, // Adjust right padding
+                screenHeight * 0.05, // Adjust bottom padding
+              ), // Add margin at the top of the page
               child: Column(
                 children: [
                   GlassmorphismContainer(

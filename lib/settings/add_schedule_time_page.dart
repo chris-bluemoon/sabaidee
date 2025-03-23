@@ -141,7 +141,7 @@ class _AddScheduleTimePageState extends State<AddScheduleTimePage> {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                SizedBox(height: screenHeight * 0.08), // Add space below the app bar
+                SizedBox(height: screenHeight * 0.12), // Add more space below the app bar
                 Expanded(
                   child: GridView.builder(
                     padding: const EdgeInsets.all(16.0),

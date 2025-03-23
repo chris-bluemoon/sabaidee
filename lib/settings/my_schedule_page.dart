@@ -107,7 +107,7 @@ class MySchedulePage extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.all(screenHeight * 0.015), // Adjust the padding slightly
                   child: Text(
-                    'Set up to 4 check-ins per day. You can change the amount of time to check in under settings, the default is 15 minutes. Additions to the schedule are effective the next day.',
+                    'Set up to 4 check-ins per day. Make sure to check check in within 30 minutes after your check-in opens. Additions to the schedule are effective the next day.',
                     style: TextStyle(fontSize: screenWidth * 0.04), // Adjust text size relative to screen width
                     textAlign: TextAlign.center,
                   ),

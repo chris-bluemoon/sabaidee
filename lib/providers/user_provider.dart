@@ -106,7 +106,7 @@ class UserProvider with ChangeNotifier {
       final checkInTime = CheckInTime(
         dateTime: dateTime,
         status: 'pending',
-        duration: const Duration(minutes: 15), // Set default duration to 15 minutes
+        duration: const Duration(minutes: 30), // Set default duration to 15 minutes
       );
       log('Adding check-in time for user: ${checkInTime.dateTime.toIso8601String()}');
       _user!.checkInTimes.add(checkInTime);

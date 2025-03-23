@@ -158,27 +158,48 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                             onTap: () async {
                               final userProvider = Provider.of<UserProvider>(context, listen: false);
-                              try {
-                                await userProvider.deleteAccountAndData();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Account deleted successfully.',
-                                      style: TextStyle(fontSize: screenWidth * 0.04),
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: const Text('Confirm Deletion', textAlign: TextAlign.center),
+                                    content: const Text('Are you sure you want to delete your account? This action cannot be undone.', textAlign: TextAlign.center),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(false),
+                                        child: const Text('CANCEL', style: TextStyle(color: Colors.black)),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(true),
+                                        child: const Text('DELETE', style: TextStyle(color: Colors.black)),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+
+                              if (confirm == true) {
+                                try {
+                                  Navigator.of(context).popUntil((route) => route.isFirst);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Logged out and all data deleted.',
+                                        style: TextStyle(fontSize: screenWidth * 0.04),
+                                      ),
                                     ),
-                                  ),
-                                );
-                                await Future.delayed(const Duration(seconds: 2)); // Wait for 2 seconds before logging out
-                                Navigator.of(context).popUntil((route) => route.isFirst);
-                              } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Failed to delete account: $e',
-                                      style: TextStyle(fontSize: screenWidth * 0.04),
+                                  );
+                                  await userProvider.deleteAccountAndData();
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Failed to delete account: $e',
+                                        style: TextStyle(fontSize: screenWidth * 0.04),
+                                      ),
                                     ),
-                                  ),
-                                );
+                                  );
+                                }
                               }
                             },
                           ),

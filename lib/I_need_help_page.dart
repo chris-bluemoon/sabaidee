@@ -18,11 +18,27 @@ class INeedHelpPage extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(
-          'EMERGENCY CONTACTS',
-          style: TextStyle(
-            fontWeight: FontWeight.bold, // Make the text bold
-            fontSize: screenWidth * 0.05, // Set the size relative to the screen width
+        title: RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'EMERGENCY\n',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold, // Make the text bold
+                  fontSize: screenWidth * 0.05, // Set the size relative to the screen width
+                  color: Colors.black, // Set the text color to black
+                ),
+              ),
+              TextSpan(
+                text: 'CONTACTS',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold, // Make the text bold
+                  fontSize: screenWidth * 0.05, // Set the size relative to the screen width
+                  color: Colors.black, // Set the text color to black
+                ),
+              ),
+            ],
           ),
         ),
         centerTitle: true, // Center the title
@@ -32,6 +48,7 @@ class INeedHelpPage extends StatelessWidget {
           icon: Icon(
             Icons.chevron_left,
             size: screenWidth * 0.08, // Set the size relative to the screen width
+            color: Colors.black, // Set the icon color to black
           ),
           onPressed: () {
             Navigator.of(context).pop();

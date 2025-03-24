@@ -58,7 +58,7 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
                 if (followerData.fcmToken) {
                   const followerPayload = {
                     notification: {
-                      title: `Your friend ${userData.name} missed their check-in.`,
+                      title: `${userData.name} missed a check-in.`,
                       body: `Please check in on them!`,
                     },
                     token: followerData.fcmToken,
@@ -88,7 +88,7 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
         if (userData.fcmToken) {
           const notificationBody = userData.followers && Array.isArray(userData.followers) && userData.followers.length > 0
             ? 'Please check in now!'
-            : 'Check in now and add some followers so they can be alerted to any future missed check ins.';
+            : 'Check in now and add some followers so they can be alerted to any future missed check-ins.';
 
           const payload = {
             notification: {

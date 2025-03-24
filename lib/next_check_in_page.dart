@@ -82,279 +82,282 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
             ),
           ),
           // Main content
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Consumer<UserProvider>(
-              builder: (context, userProvider, child) {
-                if (_isLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
+          RefreshIndicator(
+            onRefresh: _fetchUserData,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Consumer<UserProvider>(
+                builder: (context, userProvider, child) {
+                  if (_isLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
 
-                final checkInTimes = userProvider.user?.checkInTimes.where((time) => (time.status == 'pending' || time.status == 'open')).toList();
-                if (userProvider.user?.checkInTimes.isEmpty ?? true) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
-                          child: Text(
-                            'No check in times set up',
-                            style: TextStyle(fontSize: screenWidth * 0.12, fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        SizedBox(height: screenWidth * 0.02),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
-                          child: Text(
-                            'Go to Settings and add a Schedule',
-                            style: TextStyle(fontSize: screenWidth * 0.06, fontWeight: FontWeight.normal),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ],
-                    )
-                  );
-                }
-
-                // Initialize timezone data
-                tz.initializeTimeZones();
-
-                // Map the user's timezone offset to a valid timezone location name
-                final timezoneMapping = {
-                  'UTC+00:00': 'UTC',
-                  'UTC+01:00': 'Europe/London',
-                  'UTC+02:00': 'Europe/Berlin',
-                  'UTC+03:00': 'Europe/Moscow',
-                  'UTC+04:00': 'Asia/Dubai',
-                  'UTC+05:00': 'Asia/Karachi',
-                  'UTC+06:00': 'Asia/Dhaka',
-                  'UTC+07:00': 'Asia/Bangkok',
-                  'UTC+08:00': 'Asia/Singapore',
-                  'UTC+09:00': 'Asia/Tokyo',
-                  'UTC+10:00': 'Australia/Sydney',
-                  'UTC+11:00': 'Pacific/Noumea',
-                  'UTC+12:00': 'Pacific/Auckland',
-                  'UTC-01:00': 'Atlantic/Azores',
-                  'UTC-02:00': 'America/Noronha',
-                  'UTC-03:00': 'America/Argentina/Buenos_Aires',
-                  'UTC-04:00': 'America/Halifax',
-                  'UTC-05:00': 'America/New_York',
-                  'UTC-06:00': 'America/Chicago',
-                  'UTC-07:00': 'America/Denver',
-                  'UTC-08:00': 'America/Los_Angeles',
-                  'UTC-09:00': 'America/Anchorage',
-                  'UTC-10:00': 'Pacific/Honolulu',
-                  'UTC-11:00': 'Pacific/Midway',
-                  'UTC-12:00': 'Etc/GMT+12',
-                };
-
-                final userTimezone = userProvider.user?.country['timezone'] ?? 'UTC';
-                final locationName = timezoneMapping[userTimezone] ?? 'UTC';
-                final location = tz.getLocation(locationName);
-
-                // Find the next check-in time
-                final now = DateTime.now().toUtc();
-                final futureCheckInTimes = checkInTimes?.where((checkInTime) => checkInTime.dateTime.isAfter(now.subtract(Duration(minutes: checkInTime.duration.inMinutes)))).toList() ?? [];
-
-                CheckInTime? nextOrOpenCheckInTime;
-                if (futureCheckInTimes.isNotEmpty) {
-                  nextOrOpenCheckInTime = futureCheckInTimes.reduce((a, b) => a.dateTime.isBefore(b.dateTime) ? a : b);
-                  log('nextOrOpenCheckInTime: ${nextOrOpenCheckInTime.dateTime}');
-                } else {
-                  log('futureCheckInTimes is empty');
-                }
-
-                if (nextOrOpenCheckInTime == null) {
-                  log('No upcoming check-in times');
-                }
-
-                final localStartTime = nextOrOpenCheckInTime != null ? tz.TZDateTime.from(nextOrOpenCheckInTime.dateTime, location) : null;
-                final localEndTime = localStartTime != null && nextOrOpenCheckInTime != null ? localStartTime.add(nextOrOpenCheckInTime.duration) : null;
-                final formattedStartTime = localStartTime != null ? DateFormat('h:mm a').format(localStartTime) : '';
-                final formattedEndTime = localEndTime != null ? DateFormat('h:mm a').format(localEndTime) : '';
-                log(nextOrOpenCheckInTime?.status ?? 'No check-in time set up');
-
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SizedBox(height: screenWidth * 0.1),
-                      Row(
+                  final checkInTimes = userProvider.user?.checkInTimes.where((time) => (time.status == 'pending' || time.status == 'open')).toList();
+                  if (userProvider.user?.checkInTimes.isEmpty ?? true) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            formattedDate,
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.05, // Adjust font size based on screen width
-                              fontWeight: FontWeight.bold,
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
+                            child: Text(
+                              'No check in times set up',
+                              style: TextStyle(fontSize: screenWidth * 0.12, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          SizedBox(height: screenWidth * 0.02),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
+                            child: Text(
+                              'Go to Settings and add a Schedule',
+                              style: TextStyle(fontSize: screenWidth * 0.06, fontWeight: FontWeight.normal),
+                              textAlign: TextAlign.center,
                             ),
                           ),
                         ],
-                      ),
-                      SizedBox(height: screenWidth * 0.1),
-                      nextOrOpenCheckInTime != null && nextOrOpenCheckInTime.status == 'open'
-                          ? GlassmorphismContainer(
-                              child: Column(
-                                children: [
-                                  const Spacer(),
-                                  Text(
-                                    'Check In Now',
-                                    style: TextStyle(fontSize: screenWidth * 0.07, fontWeight: FontWeight.normal),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  SizedBox(height: screenWidth * 0.02),
-                                  Text(
-                                    formattedStartTime,
-                                    style: TextStyle(fontSize: screenWidth * 0.1, fontWeight: FontWeight.bold),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  Icon(Icons.arrow_downward_outlined, size: screenWidth * 0.1),
-                                  Text(
-                                    formattedEndTime,
-                                    style: TextStyle(fontSize: screenWidth * 0.1, fontWeight: FontWeight.bold),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  SizedBox(height: screenWidth * 0.05), // Add a SizedBox to increase the gap
-                                  ElevatedButton.icon(
-                                    onPressed: () async {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Checked in successfully',
-                                            style: TextStyle(fontSize: screenWidth * 0.04), // Adjust text size relative to screen width
-                                          ),
-                                        ),
-                                      );
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            title: const Text('Check In Success!'),
-                                            content: const Text('You have successfully checked in.'),
-                                            actions: <Widget>[
-                                              TextButton(
-                                                child: const Text('OK'),
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                },
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                      // Set the status of the check-in time to "checked in"
-                                      if (nextOrOpenCheckInTime != null) {
-                                        userProvider.setCheckInStatus(nextOrOpenCheckInTime.dateTime, 'checked in');
-                                        log('Check-in time status updated to "checked in"');
-                                        // Calculate the new check-in time 24 hours in the future
-                                        DateTime newCheckInTime = nextOrOpenCheckInTime.dateTime.add(const Duration(hours: 24));
-                                        userProvider.addCheckInTime(newCheckInTime);
-                                      }
-                                    },
-                                    icon: Padding(
-                                      padding: EdgeInsets.only(right: screenWidth * 0.02), // Add padding between icon and text
-                                      child: Icon(Icons.check_circle_outline, size: screenWidth * 0.09), // Increase icon size
-                                    ),
-                                    label: Text(
-                                      'CHECK IN',
-                                      style: TextStyle(fontSize: screenWidth * 0.05), // Adjust font size
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.blue, // Button color
-                                      foregroundColor: Colors.white, // Text color
-                                      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1, vertical: screenWidth * 0.04), // Adjust padding
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20), // More rounded corners
-                                      ),
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                ],
+                      )
+                    );
+                  }
+
+                  // Initialize timezone data
+                  tz.initializeTimeZones();
+
+                  // Map the user's timezone offset to a valid timezone location name
+                  final timezoneMapping = {
+                    'UTC+00:00': 'UTC',
+                    'UTC+01:00': 'Europe/London',
+                    'UTC+02:00': 'Europe/Berlin',
+                    'UTC+03:00': 'Europe/Moscow',
+                    'UTC+04:00': 'Asia/Dubai',
+                    'UTC+05:00': 'Asia/Karachi',
+                    'UTC+06:00': 'Asia/Dhaka',
+                    'UTC+07:00': 'Asia/Bangkok',
+                    'UTC+08:00': 'Asia/Singapore',
+                    'UTC+09:00': 'Asia/Tokyo',
+                    'UTC+10:00': 'Australia/Sydney',
+                    'UTC+11:00': 'Pacific/Noumea',
+                    'UTC+12:00': 'Pacific/Auckland',
+                    'UTC-01:00': 'Atlantic/Azores',
+                    'UTC-02:00': 'America/Noronha',
+                    'UTC-03:00': 'America/Argentina/Buenos_Aires',
+                    'UTC-04:00': 'America/Halifax',
+                    'UTC-05:00': 'America/New_York',
+                    'UTC-06:00': 'America/Chicago',
+                    'UTC-07:00': 'America/Denver',
+                    'UTC-08:00': 'America/Los_Angeles',
+                    'UTC-09:00': 'America/Anchorage',
+                    'UTC-10:00': 'Pacific/Honolulu',
+                    'UTC-11:00': 'Pacific/Midway',
+                    'UTC-12:00': 'Etc/GMT+12',
+                  };
+
+                  final userTimezone = userProvider.user?.country['timezone'] ?? 'UTC';
+                  final locationName = timezoneMapping[userTimezone] ?? 'UTC';
+                  final location = tz.getLocation(locationName);
+
+                  // Find the next check-in time
+                  final now = DateTime.now().toUtc();
+                  final futureCheckInTimes = checkInTimes?.where((checkInTime) => checkInTime.dateTime.isAfter(now.subtract(Duration(minutes: checkInTime.duration.inMinutes)))).toList() ?? [];
+
+                  CheckInTime? nextOrOpenCheckInTime;
+                  if (futureCheckInTimes.isNotEmpty) {
+                    nextOrOpenCheckInTime = futureCheckInTimes.reduce((a, b) => a.dateTime.isBefore(b.dateTime) ? a : b);
+                    log('nextOrOpenCheckInTime: ${nextOrOpenCheckInTime.dateTime}');
+                  } else {
+                    log('futureCheckInTimes is empty');
+                  }
+
+                  if (nextOrOpenCheckInTime == null) {
+                    log('No upcoming check-in times');
+                  }
+
+                  final localStartTime = nextOrOpenCheckInTime != null ? tz.TZDateTime.from(nextOrOpenCheckInTime.dateTime, location) : null;
+                  final localEndTime = localStartTime != null && nextOrOpenCheckInTime != null ? localStartTime.add(nextOrOpenCheckInTime.duration) : null;
+                  final formattedStartTime = localStartTime != null ? DateFormat('h:mm a').format(localStartTime) : '';
+                  final formattedEndTime = localEndTime != null ? DateFormat('h:mm a').format(localEndTime) : '';
+                  log(nextOrOpenCheckInTime?.status ?? 'No check-in time set up');
+
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(height: screenWidth * 0.1),
+                        Row(
+                          children: [
+                            Text(
+                              formattedDate,
+                              style: TextStyle(
+                                fontSize: screenWidth * 0.05, // Adjust font size based on screen width
+                                fontWeight: FontWeight.bold,
                               ),
-                            )
-                          : GlassmorphismContainer(
-                              child: Column(
-                                children: [
-                                  SizedBox(height: screenWidth * 0.04), // Add consistent space
-                                  Text(
-                                    'Next Check In',
-                                    style: TextStyle(fontSize: screenWidth * 0.07, fontWeight: FontWeight.normal),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  SizedBox(height: screenWidth * 0.02),
-                                  nextOrOpenCheckInTime != null
-                                      ? Column(
-                                          children: [
-                                            Text(
-                                              formattedStartTime,
-                                              style: TextStyle(fontSize: screenWidth * 0.1, fontWeight: FontWeight.bold),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                            Icon(Icons.arrow_downward_outlined, size: screenWidth * 0.1),
-                                            Text(
-                                              formattedEndTime,
-                                              style: TextStyle(fontSize: screenWidth * 0.1, fontWeight: FontWeight.bold),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ],
-                                        )
-                                      : Column(
-                                          children: [
-                                            Padding(
-                                              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
-                                              child: Text(
-                                                'Error loading Check In Time',
-                                                style: TextStyle(fontSize: screenWidth * 0.12, fontWeight: FontWeight.bold),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                  if (nextOrOpenCheckInTime != null && nextOrOpenCheckInTime.dateTime.day == DateTime.now().add(const Duration(days: 1)).day)
-                                    SizedBox(height: screenWidth * 0.02), // Add consistent space
-                                  if (nextOrOpenCheckInTime != null && nextOrOpenCheckInTime.dateTime.day == DateTime.now().add(const Duration(days: 1)).day)
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: screenWidth * 0.1),
+                        nextOrOpenCheckInTime != null && nextOrOpenCheckInTime.status == 'open'
+                            ? GlassmorphismContainer(
+                                child: Column(
+                                  children: [
+                                    const Spacer(),
                                     Text(
-                                      '(Tomorrow)',
-                                      style: TextStyle(fontSize: screenWidth * 0.08, fontWeight: FontWeight.normal),
+                                      'Check In Now',
+                                      style: TextStyle(fontSize: screenWidth * 0.07, fontWeight: FontWeight.normal),
                                       textAlign: TextAlign.center,
                                     ),
-                                  SizedBox(height: screenWidth * 0.02), // Add consistent space
-                                ],
+                                    SizedBox(height: screenWidth * 0.02),
+                                    Text(
+                                      formattedStartTime,
+                                      style: TextStyle(fontSize: screenWidth * 0.1, fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    Icon(Icons.arrow_downward_outlined, size: screenWidth * 0.1),
+                                    Text(
+                                      formattedEndTime,
+                                      style: TextStyle(fontSize: screenWidth * 0.1, fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    SizedBox(height: screenWidth * 0.05), // Add a SizedBox to increase the gap
+                                    ElevatedButton.icon(
+                                      onPressed: () async {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Checked in successfully',
+                                              style: TextStyle(fontSize: screenWidth * 0.04), // Adjust text size relative to screen width
+                                            ),
+                                          ),
+                                        );
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: const Text('Check In Success!'),
+                                              content: const Text('You have successfully checked in.'),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  child: const Text('OK'),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                        // Set the status of the check-in time to "checked in"
+                                        if (nextOrOpenCheckInTime != null) {
+                                          userProvider.setCheckInStatus(nextOrOpenCheckInTime.dateTime, 'checked in');
+                                          log('Check-in time status updated to "checked in"');
+                                          // Calculate the new check-in time 24 hours in the future
+                                          DateTime newCheckInTime = nextOrOpenCheckInTime.dateTime.add(const Duration(hours: 24));
+                                          userProvider.addCheckInTime(newCheckInTime);
+                                        }
+                                      },
+                                      icon: Padding(
+                                        padding: EdgeInsets.only(right: screenWidth * 0.02), // Add padding between icon and text
+                                        child: Icon(Icons.check_circle_outline, size: screenWidth * 0.09), // Increase icon size
+                                      ),
+                                      label: Text(
+                                        'CHECK IN',
+                                        style: TextStyle(fontSize: screenWidth * 0.05), // Adjust font size
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blue, // Button color
+                                        foregroundColor: Colors.white, // Text color
+                                        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1, vertical: screenWidth * 0.04), // Adjust padding
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(20), // More rounded corners
+                                        ),
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                  ],
+                                ),
+                              )
+                            : GlassmorphismContainer(
+                                child: Column(
+                                  children: [
+                                    SizedBox(height: screenWidth * 0.04), // Add consistent space
+                                    Text(
+                                      'Next Check In',
+                                      style: TextStyle(fontSize: screenWidth * 0.07, fontWeight: FontWeight.normal),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    SizedBox(height: screenWidth * 0.02),
+                                    nextOrOpenCheckInTime != null
+                                        ? Column(
+                                            children: [
+                                              Text(
+                                                formattedStartTime,
+                                                style: TextStyle(fontSize: screenWidth * 0.1, fontWeight: FontWeight.bold),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                              Icon(Icons.arrow_downward_outlined, size: screenWidth * 0.1),
+                                              Text(
+                                                formattedEndTime,
+                                                style: TextStyle(fontSize: screenWidth * 0.1, fontWeight: FontWeight.bold),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ],
+                                          )
+                                        : Column(
+                                            children: [
+                                              Padding(
+                                                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
+                                                child: Text(
+                                                  'Error loading Check In Time',
+                                                  style: TextStyle(fontSize: screenWidth * 0.12, fontWeight: FontWeight.bold),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                    if (nextOrOpenCheckInTime != null && nextOrOpenCheckInTime.dateTime.day == DateTime.now().add(const Duration(days: 1)).day)
+                                      SizedBox(height: screenWidth * 0.02), // Add consistent space
+                                    if (nextOrOpenCheckInTime != null && nextOrOpenCheckInTime.dateTime.day == DateTime.now().add(const Duration(days: 1)).day)
+                                      Text(
+                                        '(Tomorrow)',
+                                        style: TextStyle(fontSize: screenWidth * 0.08, fontWeight: FontWeight.normal),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    SizedBox(height: screenWidth * 0.02), // Add consistent space
+                                  ],
+                                ),
                               ),
+                        SizedBox(height: screenWidth * 0.15),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const INeedHelpPage(),
+                              ),
+                            );
+                          },
+                          icon: Padding(
+                            padding: EdgeInsets.only(right: screenWidth * 0.02), // Add padding between icon and text
+                            child: Icon(Icons.local_hospital, size: screenWidth * 0.09), // Increase icon size
+                          ),
+                          label: Text(
+                            'I NEED HELP!',
+                            style: TextStyle(fontSize: screenWidth * 0.05), // Adjust font size
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red, // Button color
+                            foregroundColor: Colors.white, // Button color
+                            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1, vertical: screenWidth * 0.04), // Adjust padding
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20), // More rounded corners
                             ),
-                      SizedBox(height: screenWidth * 0.15),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const INeedHelpPage(),
-                            ),
-                          );
-                        },
-                        icon: Padding(
-                          padding: EdgeInsets.only(right: screenWidth * 0.02), // Add padding between icon and text
-                          child: Icon(Icons.local_hospital, size: screenWidth * 0.09), // Increase icon size
-                        ),
-                        label: Text(
-                          'I NEED HELP!',
-                          style: TextStyle(fontSize: screenWidth * 0.05), // Adjust font size
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red, // Button color
-                          foregroundColor: Colors.white, // Button color
-                          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1, vertical: screenWidth * 0.04), // Adjust padding
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20), // More rounded corners
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ],

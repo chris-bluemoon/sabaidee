@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,8 +7,15 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/providers/user_provider.dart';
 
-class MyWatchList extends StatelessWidget {
+class MyWatchList extends StatefulWidget {
   const MyWatchList({super.key});
+
+  @override
+  _MyWatchListState createState() => _MyWatchListState();
+}
+
+class _MyWatchListState extends State<MyWatchList> {
+  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
   Future<List<Map<String, dynamic>>> _fetchRegisteredUsers(String currentUserUid) async {
     final usersSnapshot = await FirebaseFirestore.instance.collection('users').get();
@@ -26,7 +34,11 @@ class MyWatchList extends StatelessWidget {
 
     if (currentUserUid == null) {
       print('Current user is not logged in.');
-      _showDialog(context, 'Error', 'Current user is not logged in.');
+      if (mounted) {
+        _scaffoldMessengerKey.currentState?.showSnackBar(
+          const SnackBar(content: Text('Current user is not logged in.')),
+        );
+      }
       return;
     }
 
@@ -41,11 +53,19 @@ class MyWatchList extends StatelessWidget {
 
         if (watchingAlreadyExists) {
           print('Watching already exists.');
-          _showDialog(context, 'Follower Already Exists', 'This user is already added as a follower.');
+          if (mounted) {
+            _scaffoldMessengerKey.currentState?.showSnackBar(
+              const SnackBar(content: Text('You are already watching this person.')),
+            );
+          }
         } else {
-          userProvider.createRelationship(user['uid'], 'pending');
+          await userProvider.createRelationship(user['uid'], 'pending');
           print('User added as a follower.');
-          _showDialog(context, 'Follower Added', 'The user has been added as a follower.');
+          if (mounted) {
+            _scaffoldMessengerKey.currentState?.showSnackBar(
+              const SnackBar(content: Text('User added as a follower.')),
+            );
+          }
         }
         break;
       }
@@ -53,7 +73,11 @@ class MyWatchList extends StatelessWidget {
 
     if (!userFound) {
       print('User not found');
-      _showDialog(context, 'Invalid Code', 'The referral code you entered is invalid.', isError: true);
+      if (mounted) {
+        _scaffoldMessengerKey.currentState?.showSnackBar(
+          const SnackBar(content: Text('User not found')),
+        );
+      }
     }
   }
 
@@ -63,6 +87,41 @@ class MyWatchList extends StatelessWidget {
       return userDoc.data()?['name'];
     }
     return null;
+  }
+
+  Future<String?> _getLastCheckInStatus(String uid) async {
+    try {
+      log('Fetching last check-in status for UID: $uid');
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (userDoc.exists) {
+        log('User document exists for UID: $uid');
+        final statuses = userDoc.data()?['checkInTimes'] as List<dynamic>?;
+        log('Statuses: $statuses');
+        if (statuses != null && statuses.isNotEmpty) {
+          log('Filtering out pending statuses');
+          final filteredStatuses = statuses.where((status) => status['status'] != 'pending').toList();
+          if (filteredStatuses.isNotEmpty) {
+            log('Returning last check-in status');
+            filteredStatuses.sort((a, b) {
+              final aTimestamp = a['dateTime'] is Timestamp ? a['dateTime'] as Timestamp : Timestamp.fromDate(DateTime.parse(a['dateTime']));
+              final bTimestamp = b['dateTime'] is Timestamp ? b['dateTime'] as Timestamp : Timestamp.fromDate(DateTime.parse(b['dateTime']));
+              return bTimestamp.compareTo(aTimestamp);
+            });
+            log('HERE: ${filteredStatuses.first['status'].toString()}');
+            return filteredStatuses.first['status'] as String?;
+          } else {
+            log('Filtered statuses list is empty');
+          }
+        } else {
+          log('Statuses list is empty or null');
+        }
+      } else {
+        log('User document does not exist for UID: $uid');
+      }
+    } catch (e) {
+      log('Error fetching last check-in status: $e');
+    }
+    return 'Unknown';
   }
 
   void _showReferralCodeDialog(BuildContext context) {
@@ -113,44 +172,28 @@ class MyWatchList extends StatelessWidget {
     );
   }
 
-  void _showDialog(BuildContext context, String title, String content, {bool isError = false}) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(
-            content,
-            style: TextStyle(color: isError ? Colors.red : Colors.black),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                'OK',
-                style: TextStyle(color: Colors.black),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Future<void> _removeFollower(BuildContext context, String followerUid) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final currentUserUid = userProvider.user?.uid;
 
     if (currentUserUid == null) {
       print('Current user is not logged in.');
+      if (mounted) {
+        _scaffoldMessengerKey.currentState?.showSnackBar(
+          const SnackBar(content: Text('Current user is not logged in.')),
+        );
+      }
       return;
     }
 
     // Remove the follower from the user's watching list
     print('Follower ID $followerUid.');
     await userProvider.removeRelationship(followerUid, 'pending');
+    if (mounted) {
+      _scaffoldMessengerKey.currentState?.showSnackBar(
+        const SnackBar(content: Text('Follower removed.')),
+      );
+    }
   }
 
   @override
@@ -161,177 +204,208 @@ class MyWatchList extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: Text('FOLLOWING', style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenWidth * 0.05)),
-        leading: IconButton(
-          icon: Icon(
-            Icons.chevron_left,
-            size: screenWidth * 0.08, // Set the size relative to the screen width
-          ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        backgroundColor: Colors.transparent,
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: Stack(
-        children: [
-          // Background image
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/bg3.png',
-              fit: BoxFit.cover,
+    return ScaffoldMessenger(
+      key: _scaffoldMessengerKey,
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          title: Text('FOLLOWING', style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenWidth * 0.05)),
+          leading: IconButton(
+            icon: Icon(
+              Icons.chevron_left,
+              size: screenWidth * 0.08, // Set the size relative to the screen width
             ),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
           ),
-          // Glassmorphism effect
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                color: Colors.black.withOpacity(0.1),
+          backgroundColor: Colors.transparent,
+          centerTitle: true,
+          elevation: 0,
+        ),
+        body: Stack(
+          children: [
+            // Background image
+            Positioned.fill(
+              child: Image.asset(
+                'assets/images/bg3.png',
+                fit: BoxFit.cover,
               ),
             ),
-          ),
-          // Main content
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                SizedBox(height: screenHeight * 0.04), // Reduce space below the app bar
-                Expanded(
-                  child: FutureBuilder<Map<String, Map<String, dynamic>>>(
-                    future: userProvider.fetchWatchingNamesAndStatuses(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return const Center(child: Text('Something went wrong'));
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(16.0), // Add padding around the text
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center, // Center the text vertically
-                              children: [
-                                Text(
-                                  'Not Currently Following Anyone',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 24, // Increase the font size
-                                    fontWeight: FontWeight.bold, // Make the text bold
+            // Glassmorphism effect
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  color: Colors.black.withOpacity(0.1),
+                ),
+              ),
+            ),
+            // Main content
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  SizedBox(height: screenHeight * 0.04), // Reduce space below the app bar
+                  Expanded(
+                    child: FutureBuilder<Map<String, Map<String, dynamic>>>(
+                      future: userProvider.fetchWatchingNamesAndStatuses(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        } else if (snapshot.hasError) {
+                          return const Center(child: Text('Something went wrong'));
+                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0), // Add padding around the text
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center, // Center the text vertically
+                                children: [
+                                  Text(
+                                    'Not Currently Following Anyone',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 24, // Increase the font size
+                                      fontWeight: FontWeight.bold, // Make the text bold
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: 8.0), // Add some space between the texts
-                                Text(
-                                  '(Click add button below to add a friend who has provided an invitation code)',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 16, // Set the font size
-                                    color: Colors.black54, // Set the text color
+                                  SizedBox(height: 8.0), // Add some space between the texts
+                                  Text(
+                                    '(Click add button below to add a friend who has provided an invitation code)',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 16, // Set the font size
+                                      color: Colors.black54, // Set the text color
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      } else {
-                        final watchingNamesAndStatuses = snapshot.data!;
-                        return ListView.builder(
-                          itemCount: watchings.length,
-                          itemBuilder: (context, index) {
-                            final watching = watchings[index];
-                            final watchingUid = watching['uid'];
-                            final watchingName = watchingNamesAndStatuses[watchingUid]?['name'] ?? 'Unknown';
-                            final createdAtString = watchingNamesAndStatuses[watchingUid]?['createdAt'];
-                            final createdAtTimestamp = DateTime.parse(createdAtString);
-                            final formattedCreatedAt = DateFormat("yyyy-MM-dd").format(createdAtTimestamp);
-                            final createdAt = formattedCreatedAt;
-                            return Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: screenHeight * 0.01), // Add horizontal padding and vertical padding between containers
-                              child: Dismissible(
-                                key: Key(watchingUid!),
-                                direction: DismissDirection.endToStart,
-                                onDismissed: (direction) async {
-                                  await _removeFollower(context, watchingUid);
-                                },
-                                background: Container(
-                                  color: Colors.red,
-                                  alignment: Alignment.centerRight,
-                                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                                  child: const Icon(Icons.delete_outline, color: Colors.white),
-                                ),
-                                child: GlassmorphismContainer(
-                                  height: screenWidth * 0.25, // Increase height to prevent overflow
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.fromLTRB(12.0, 6.0, 6.0, 0.0), // Increase the left padding slightly
-                                              child: Text(
-                                                watchingName,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: screenWidth * 0.05, // Set the font size relative to the screen width
+                          );
+                        } else {
+                          final watchingNamesAndStatuses = snapshot.data!;
+                          return ListView.builder(
+                            itemCount: watchings.length,
+                            itemBuilder: (context, index) {
+                              final watching = watchings[index];
+                              final watchingUid = watching['uid'];
+                              final watchingName = watchingNamesAndStatuses[watchingUid]?['name'] ?? 'Unknown';
+                              final createdAtString = watchingNamesAndStatuses[watchingUid]?['createdAt'];
+                              final createdAtTimestamp = DateTime.parse(createdAtString);
+                              final formattedCreatedAt = DateFormat("yyyy-MM-dd").format(createdAtTimestamp);
+                              final createdAt = formattedCreatedAt;
+                              return FutureBuilder<String?>(
+                                future: _getLastCheckInStatus(watchingUid!),
+                                builder: (context, statusSnapshot) {
+                                  log('FutureBuilder state: ${statusSnapshot.connectionState}');
+                                  if (statusSnapshot.connectionState == ConnectionState.waiting) {
+                                    return const Center(child: CircularProgressIndicator());
+                                  } else if (statusSnapshot.hasError) {
+                                    log('Error in FutureBuilder: ${statusSnapshot.error}');
+                                    return const Center(child: Text('Error fetching status'));
+                                  } else {
+                                    final lastCheckInStatus = statusSnapshot.data ?? 'Unknown snapshot data';
+                                    log('Last check in Status: ${lastCheckInStatus.toString()}');
+                                    final displayStatus = (lastCheckInStatus == 'missed' || lastCheckInStatus == 'checked in')
+                                        ? lastCheckInStatus.toUpperCase()
+                                        : 'UNKNOWN';
+                                    return Padding(
+                                      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: screenHeight * 0.01), // Add horizontal padding and vertical padding between containers
+                                      child: Dismissible(
+                                        key: Key(watchingUid),
+                                        direction: DismissDirection.endToStart,
+                                        onDismissed: (direction) async {
+                                          await _removeFollower(context, watchingUid);
+                                        },
+                                        background: Container(
+                                          color: Colors.red,
+                                          alignment: Alignment.centerRight,
+                                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                                          child: const Icon(Icons.delete_outline, color: Colors.white),
+                                        ),
+                                        child: GlassmorphismContainer(
+                                          height: screenWidth * 0.25, // Increase height to prevent overflow
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  children: [
+                                                    Padding(
+                                                      padding: const EdgeInsets.fromLTRB(12.0, 6.0, 6.0, 0.0), // Increase the left padding slightly
+                                                      child: Text(
+                                                        watchingName,
+                                                        style: TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: screenWidth * 0.05, // Set the font size relative to the screen width
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      padding: const EdgeInsets.fromLTRB(12.0, 0.0, 6.0, 6.0), // Increase the left padding slightly
+                                                      child: Text(
+                                                        'Following since: $createdAt',
+                                                        style: TextStyle(
+                                                          fontSize: screenWidth * 0.035, // Set the font size relative to the screen width
+                                                          color: Colors.black,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      padding: const EdgeInsets.fromLTRB(12.0, 0.0, 6.0, 6.0), // Increase the left padding slightly
+                                                      child: Text(
+                                                        'Last check-in status: $displayStatus',
+                                                        style: TextStyle(
+                                                          fontSize: screenWidth * 0.035, // Set the font size relative to the screen width
+                                                          color: Colors.black,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
-                                            ),
-                                            Padding(
-                                              padding: const EdgeInsets.fromLTRB(12.0, 0.0, 6.0, 6.0), // Increase the left padding slightly
-                                              child: Text(
-                                                'Following since: $createdAt',
-                                                style: TextStyle(
-                                                  fontSize: screenWidth * 0.035, // Set the font size relative to the screen width
-                                                  color: Colors.black,
-                                                ),
+                                              Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  IconButton(
+                                                    icon: const Icon(Icons.delete_outline, color: Colors.black),
+                                                    iconSize: screenWidth * 0.07, // Set the icon size relative to the screen width
+                                                    onPressed: () async {
+                                                      await _removeFollower(context, watchingUid);
+                                                    },
+                                                  ),
+                                                ],
                                               ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                      Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(Icons.delete_outline, color: Colors.black),
-                                            iconSize: screenWidth * 0.07, // Set the icon size relative to the screen width
-                                            onPressed: () async {
-                                              await _removeFollower(context, watchingUid);
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      }
-                    },
+                                    );
+                                  }
+                                },
+                              );
+                            },
+                          );
+                        }
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showReferralCodeDialog(context);
-        },
-        backgroundColor: Colors.white,
-        child: const Icon(Icons.add, color: Colors.black),
+          ],
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            _showReferralCodeDialog(context);
+          },
+          backgroundColor: Colors.white,
+          child: const Icon(Icons.add, color: Colors.black),
+        ),
       ),
     );
   }

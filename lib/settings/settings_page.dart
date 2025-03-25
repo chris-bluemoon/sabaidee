@@ -80,7 +80,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             context,
                             'Who Am I Following?',
                             Icons.remove_red_eye_outlined, // Change to a pair of glasses icon
-                            const MyWatchList(),
+                            MyWatchList(),
                             screenWidth,
                           );
                         } else if (index == 3) {

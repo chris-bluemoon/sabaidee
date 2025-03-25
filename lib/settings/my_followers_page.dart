@@ -36,8 +36,8 @@ class _MyFollowersPageState extends State<MyFollowersPage> {
     final message = Message()
       ..from = const Address('info@unearthedcollections.com', 'Chris')
       ..recipients.add('chris.milner@gmail.com')
-      ..subject = 'Instructions to Install the App'
-      ..text = 'Please install the app and use the following code to register: $code';
+      ..subject = 'Sabaidee App Referral Code'
+      ..text = 'Please install the app and use the following code to add a friend under Who Am I Following? : $code';
 
     try {
       final sendReport = await send(message, smtpServer);

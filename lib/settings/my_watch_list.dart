@@ -91,23 +91,18 @@ class _MyWatchListState extends State<MyWatchList> {
 
   Future<String?> _getLastCheckInStatus(String uid) async {
     try {
-      log('Fetching last check-in status for UID: $uid');
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
       if (userDoc.exists) {
-        log('User document exists for UID: $uid');
         final statuses = userDoc.data()?['checkInTimes'] as List<dynamic>?;
         log('Statuses: $statuses');
         if (statuses != null && statuses.isNotEmpty) {
-          log('Filtering out pending statuses');
           final filteredStatuses = statuses.where((status) => status['status'] != 'pending').toList();
           if (filteredStatuses.isNotEmpty) {
-            log('Returning last check-in status');
             filteredStatuses.sort((a, b) {
               final aTimestamp = a['dateTime'] is Timestamp ? a['dateTime'] as Timestamp : Timestamp.fromDate(DateTime.parse(a['dateTime']));
               final bTimestamp = b['dateTime'] is Timestamp ? b['dateTime'] as Timestamp : Timestamp.fromDate(DateTime.parse(b['dateTime']));
               return bTimestamp.compareTo(aTimestamp);
             });
-            log('HERE: ${filteredStatuses.first['status'].toString()}');
             return filteredStatuses.first['status'] as String?;
           } else {
             log('Filtered statuses list is empty');
@@ -121,7 +116,7 @@ class _MyWatchListState extends State<MyWatchList> {
     } catch (e) {
       log('Error fetching last check-in status: $e');
     }
-    return 'Unknown';
+    return 'TBC';
   }
 
   void _showReferralCodeDialog(BuildContext context) {
@@ -298,7 +293,6 @@ class _MyWatchListState extends State<MyWatchList> {
                               return FutureBuilder<String?>(
                                 future: _getLastCheckInStatus(watchingUid!),
                                 builder: (context, statusSnapshot) {
-                                  log('FutureBuilder state: ${statusSnapshot.connectionState}');
                                   if (statusSnapshot.connectionState == ConnectionState.waiting) {
                                     return const Center(child: CircularProgressIndicator());
                                   } else if (statusSnapshot.hasError) {
@@ -306,10 +300,9 @@ class _MyWatchListState extends State<MyWatchList> {
                                     return const Center(child: Text('Error fetching status'));
                                   } else {
                                     final lastCheckInStatus = statusSnapshot.data ?? 'Unknown snapshot data';
-                                    log('Last check in Status: ${lastCheckInStatus.toString()}');
                                     final displayStatus = (lastCheckInStatus == 'missed' || lastCheckInStatus == 'checked in')
                                         ? lastCheckInStatus.toUpperCase()
-                                        : 'UNKNOWN';
+                                        : 'TBC';
                                     return Padding(
                                       padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: screenHeight * 0.01), // Add horizontal padding and vertical padding between containers
                                       child: Dismissible(
@@ -335,7 +328,12 @@ class _MyWatchListState extends State<MyWatchList> {
                                                   mainAxisAlignment: MainAxisAlignment.center,
                                                   children: [
                                                     Padding(
-                                                      padding: const EdgeInsets.fromLTRB(12.0, 6.0, 6.0, 0.0), // Increase the left padding slightly
+                                                      padding: EdgeInsets.fromLTRB(
+                                                        screenWidth * 0.02, // Reduced left padding
+                                                        screenHeight * 0.01, // Top padding
+                                                        screenWidth * 0.015, // Right padding
+                                                        0.0, // Bottom padding
+                                                      ),
                                                       child: Text(
                                                         watchingName,
                                                         style: TextStyle(
@@ -345,7 +343,12 @@ class _MyWatchListState extends State<MyWatchList> {
                                                       ),
                                                     ),
                                                     Padding(
-                                                      padding: const EdgeInsets.fromLTRB(12.0, 0.0, 6.0, 6.0), // Increase the left padding slightly
+                                                      padding: EdgeInsets.fromLTRB(
+                                                        screenWidth * 0.02, // Reduced left padding
+                                                        0.0, // Top padding
+                                                        screenWidth * 0.015, // Right padding
+                                                        screenHeight * 0.01, // Bottom padding
+                                                      ),
                                                       child: Text(
                                                         'Following since: $createdAt',
                                                         style: TextStyle(
@@ -355,7 +358,12 @@ class _MyWatchListState extends State<MyWatchList> {
                                                       ),
                                                     ),
                                                     Padding(
-                                                      padding: const EdgeInsets.fromLTRB(12.0, 0.0, 6.0, 6.0), // Increase the left padding slightly
+                                                      padding: EdgeInsets.fromLTRB(
+                                                        screenWidth * 0.02, // Reduced left padding
+                                                        0.0, // Top padding
+                                                        screenWidth * 0.015, // Right padding
+                                                        screenHeight * 0.01, // Bottom padding
+                                                      ),
                                                       child: Text(
                                                         'Last check-in status: $displayStatus',
                                                         style: TextStyle(

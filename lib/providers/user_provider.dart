@@ -74,20 +74,27 @@ class UserProvider with ChangeNotifier {
         uid: uid,
         email: userData['email'] ?? '',
         name: userData['name'] ?? '',
-        country: userData['country'] is String ? {'name': userData['country']} : Map<String, String>.from(userData['country']),
+        country: userData['country'] is String
+            ? {'name': userData['country']}
+            : Map<String, String>.from(userData['country']),
         checkInTimes: (userData['checkInTimes'] as List).map((time) {
           return CheckInTime(
             dateTime: DateTime.parse(time['dateTime']),
             status: time['status'],
             duration: Duration(minutes: time['duration']),
+            emoji: time['emoji'], // Parse the emoji field
           );
         }).toList(),
-        followers: (userData['followers'] as List).map((follower) => Map<String, String>.from(follower)).toList(),
-        watching: (userData['watching'] as List).map((watching) => Map<String, String>.from(watching)).toList(),
+        followers: (userData['followers'] as List)
+            .map((follower) => Map<String, String>.from(follower))
+            .toList(),
+        watching: (userData['watching'] as List)
+            .map((watching) => Map<String, String>.from(watching))
+            .toList(),
         fcmToken: userData['fcmToken'] ?? '',
         referralCode: userData['referralCode'] ?? '',
       );
-      log('User data from firestore: ${userDoc.data()}, uid provided: $uid');
+      log('User data from Firestore: ${userDoc.data()}, uid provided: $uid');
       notifyListeners();
     }
     if (_user == null) {
@@ -106,18 +113,22 @@ class UserProvider with ChangeNotifier {
       final checkInTime = CheckInTime(
         dateTime: dateTime,
         status: 'pending',
-        duration: const Duration(minutes: 30), // Set default duration to 15 minutes
+        duration: const Duration(minutes: 30), // Set default duration to 30 minutes
+        emoji: null, // Initialize emoji as null
       );
       log('Adding check-in time for user: ${checkInTime.dateTime.toIso8601String()}');
       _user!.checkInTimes.add(checkInTime);
 
       // Update Firestore
       await _firestore.collection('users').doc(_user!.uid).update({
-        'checkInTimes': FieldValue.arrayUnion([{
-          'dateTime': checkInTime.dateTime.toIso8601String(),
-          'status': 'pending',
-          'duration': checkInTime.duration.inMinutes, // Store duration in minutes
-        }])
+        'checkInTimes': FieldValue.arrayUnion([
+          {
+            'dateTime': checkInTime.dateTime.toIso8601String(),
+            'status': 'pending',
+            'duration': checkInTime.duration.inMinutes,
+            'emoji': checkInTime.emoji, // Add emoji field
+          }
+        ])
       });
 
       notifyListeners();
@@ -147,24 +158,23 @@ class UserProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-void setCheckInStatus(DateTime dateTime, String status) async {
+void setCheckInStatus(DateTime dateTime, String status, {String? emoji}) async {
   if (_user != null) {
     for (var checkInTime in _user!.checkInTimes) {
-      log('Setting status to $status for user stored checkInTime: ${checkInTime.dateTime.toString()}');
-      log('With time supplied by next_check_page: ${dateTime.toString()}');
       if (checkInTime.dateTime == dateTime) {
         checkInTime.status = status;
+        if (emoji != null) {
+          checkInTime.emoji = emoji; // Update the emoji field if provided
+        }
         break;
       }
     }
+
     // Update Firestore
     await _firestore.collection('users').doc(_user!.uid).update({
-      'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
-        'dateTime': checkInTime.dateTime.toIso8601String(),
-        'status': checkInTime.status,
-        'duration': checkInTime.duration.inMinutes, // Ensure duration is included
-      }).toList(),
+      'checkInTimes': _user!.checkInTimes.map((checkInTime) => checkInTime.toMap()).toList(),
     });
+
     notifyListeners();
   }
 }

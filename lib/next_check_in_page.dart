@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:ui';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -222,38 +223,111 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                     SizedBox(height: screenWidth * 0.05), // Add a SizedBox to increase the gap
                                     ElevatedButton.icon(
                                       onPressed: () async {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'Checked in successfully',
-                                              style: TextStyle(fontSize: screenWidth * 0.04), // Adjust text size relative to screen width
-                                            ),
-                                          ),
-                                        );
-                                        showDialog(
+                                        // Show a dialog with a range of emojis
+                                        final selectedEmoji = await showDialog<String>(
                                           context: context,
                                           builder: (BuildContext context) {
                                             return AlertDialog(
-                                              title: const Text('Check In Success!'),
-                                              content: const Text('You have successfully checked in.'),
+                                              title: const Text('How are you feeling?'),
+                                              content: Wrap(
+                                                spacing: 10,
+                                                children: [
+                                                  GestureDetector(
+                                                    onTap: () => Navigator.of(context).pop('😊'),
+                                                    child: const Text('😊', style: TextStyle(fontSize: 30)),
+                                                  ),
+                                                  GestureDetector(
+                                                    onTap: () => Navigator.of(context).pop('😢'),
+                                                    child: const Text('😢', style: TextStyle(fontSize: 30)),
+                                                  ),
+                                                  GestureDetector(
+                                                    onTap: () => Navigator.of(context).pop('😡'),
+                                                    child: const Text('😡', style: TextStyle(fontSize: 30)),
+                                                  ),
+                                                  GestureDetector(
+                                                    onTap: () => Navigator.of(context).pop('😴'),
+                                                    child: const Text('😴', style: TextStyle(fontSize: 30)),
+                                                  ),
+                                                  GestureDetector(
+                                                    onTap: () => Navigator.of(context).pop('😃'),
+                                                    child: const Text('😃', style: TextStyle(fontSize: 30)),
+                                                  ),
+                                                ],
+                                              ),
                                               actions: <Widget>[
                                                 TextButton(
-                                                  child: const Text('OK'),
+                                                  child: const Text('Cancel'),
                                                   onPressed: () {
-                                                    Navigator.of(context).pop();
+                                                    Navigator.of(context).pop(null);
                                                   },
                                                 ),
                                               ],
                                             );
                                           },
                                         );
-                                        // Set the status of the check-in time to "checked in"
-                                        if (nextOrOpenCheckInTime != null) {
-                                          userProvider.setCheckInStatus(nextOrOpenCheckInTime.dateTime, 'checked in');
-                                          log('Check-in time status updated to "checked in"');
-                                          // Calculate the new check-in time 24 hours in the future
-                                          DateTime newCheckInTime = nextOrOpenCheckInTime.dateTime.add(const Duration(hours: 24));
-                                          userProvider.addCheckInTime(newCheckInTime);
+
+                                        if (selectedEmoji != null) {
+                                          final userProvider = Provider.of<UserProvider>(context, listen: false);
+                                          final userId = userProvider.user?.uid;
+
+                                          if (userId != null && nextOrOpenCheckInTime != null) {
+                                            try {
+                                              // Update the specific check-in time with the emoji in Firestore
+                                              await FirebaseFirestore.instance
+                                                  .collection('users')
+                                                  .doc(userId)
+                                                  .update({
+                                                'checkInTimes': FieldValue.arrayUnion([
+                                                  {
+                                                    'dateTime': nextOrOpenCheckInTime.dateTime.toIso8601String(),
+                                                    'status': 'checked in',
+                                                    'emoji': selectedEmoji,
+                                                  }
+                                                ])
+                                              });
+
+                                              // Update the local state
+                                              userProvider.setCheckInStatus(
+                                                nextOrOpenCheckInTime.dateTime,
+                                                'checked in',
+                                                emoji: selectedEmoji, // Pass the selected emoji as an optional parameter
+                                              );
+                                              log('Check-in time status updated to "checked in" with emoji: $selectedEmoji');
+
+                                              // Show success dialog
+                                              showDialog(
+                                                context: context,
+                                                builder: (BuildContext context) {
+                                                  return AlertDialog(
+                                                    title: const Text('Check In Success!'),
+                                                    content: Text('You have successfully checked in with "$selectedEmoji".'),
+                                                    actions: <Widget>[
+                                                      TextButton(
+                                                        child: const Text('OK'),
+                                                        onPressed: () {
+                                                          Navigator.of(context).pop();
+                                                        },
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+
+                                              // Add the next check-in time
+                                              DateTime newCheckInTime = nextOrOpenCheckInTime.dateTime.add(const Duration(hours: 24));
+                                              userProvider.addCheckInTime(newCheckInTime);
+                                            } catch (e) {
+                                              log('Error updating check-in time: $e');
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    'Failed to check in. Please try again.',
+                                                    style: TextStyle(fontSize: screenWidth * 0.04),
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          }
                                         }
                                       },
                                       icon: Padding(

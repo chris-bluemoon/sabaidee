@@ -112,10 +112,26 @@ class ActivityPage extends StatelessWidget {
                           padding: EdgeInsets.only(bottom: screenHeight * 0.02), // Add padding between containers
                           child: GlassmorphismContainer(
                             child: ListTile(
-                              leading: Icon(statusIcon as IconData?, color: statusColor as Color?, size: screenWidth * 0.1), // Set the icon size relative to the screen width
-                              title: Text(
-                                translatedStatus,
-                                style: TextStyle(fontSize: screenWidth * 0.045, fontWeight: FontWeight.bold),
+                              leading: Icon(
+                                statusIcon as IconData?,
+                                color: statusColor as Color?,
+                                size: screenWidth * 0.1, // Set the icon size relative to the screen width
+                              ),
+                              title: Row(
+                                children: [
+                                  Text(
+                                    translatedStatus,
+                                    style: TextStyle(fontSize: screenWidth * 0.045, fontWeight: FontWeight.bold),
+                                  ),
+                                  if (checkIn.emoji != null) // Check if emoji is not null
+                                    Padding(
+                                      padding: EdgeInsets.only(left: screenWidth * 0.08), // Increase spacing between status and emoji
+                                      child: Text(
+                                        checkIn.emoji!,
+                                        style: TextStyle(fontSize: screenWidth * 0.05), // Set emoji font size
+                                      ),
+                                    ),
+                                ],
                               ),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,

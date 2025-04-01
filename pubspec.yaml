@@ -16,6 +16,7 @@ dependencies:
     sdk: flutter
   flutter_dotenv: ^5.2.1
   flutter_local_notifications: ^18.0.0
+  flutter_native_splash: ^2.4.5
   glassmorphism: ^3.0.0
   google_sign_in: ^6.2.2
   intl: ^0.20.2
@@ -34,6 +35,14 @@ flutter:
 
   assets:
     - .env
+    - assets/
     - assets/logos/
     - assets/flags/
     - assets/images/
+
+flutter_native_splash:
+  color: "#ffffff" # Background color
+  image: assets/logos/logo_no_background_1152x1152.png # Path to your logo image
+  android: true
+  ios: true
+  web: false

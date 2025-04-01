@@ -1,8 +1,10 @@
-import 'dart:developer';
+import 'dart:convert';
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/I_need_help_page.dart';
@@ -166,20 +168,18 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                   CheckInTime? nextOrOpenCheckInTime;
                   if (futureCheckInTimes.isNotEmpty) {
                     nextOrOpenCheckInTime = futureCheckInTimes.reduce((a, b) => a.dateTime.isBefore(b.dateTime) ? a : b);
-                    log('nextOrOpenCheckInTime: ${nextOrOpenCheckInTime.dateTime}');
                   } else {
-                    log('futureCheckInTimes is empty');
+                    print('futureCheckInTimes is empty');
                   }
 
                   if (nextOrOpenCheckInTime == null) {
-                    log('No upcoming check-in times');
+                    print('No upcoming check-in times');
                   }
 
                   final localStartTime = nextOrOpenCheckInTime != null ? tz.TZDateTime.from(nextOrOpenCheckInTime.dateTime, location) : null;
                   final localEndTime = localStartTime != null && nextOrOpenCheckInTime != null ? localStartTime.add(nextOrOpenCheckInTime.duration) : null;
                   final formattedStartTime = localStartTime != null ? DateFormat('h:mm a').format(localStartTime) : '';
                   final formattedEndTime = localEndTime != null ? DateFormat('h:mm a').format(localEndTime) : '';
-                  log(nextOrOpenCheckInTime?.status ?? 'No check-in time set up');
 
                   return Center(
                     child: Column(
@@ -223,110 +223,153 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                     SizedBox(height: screenWidth * 0.05), // Add a SizedBox to increase the gap
                                     ElevatedButton.icon(
                                       onPressed: () async {
-                                        // Show a dialog with a range of emojis
-                                        final selectedEmoji = await showDialog<String>(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              title: const Text('How are you feeling?'),
-                                              content: Wrap(
-                                                spacing: 10,
-                                                children: [
-                                                  GestureDetector(
-                                                    onTap: () => Navigator.of(context).pop('😊'),
-                                                    child: const Text('😊', style: TextStyle(fontSize: 30)),
-                                                  ),
-                                                  GestureDetector(
-                                                    onTap: () => Navigator.of(context).pop('😢'),
-                                                    child: const Text('😢', style: TextStyle(fontSize: 30)),
-                                                  ),
-                                                  GestureDetector(
-                                                    onTap: () => Navigator.of(context).pop('😡'),
-                                                    child: const Text('😡', style: TextStyle(fontSize: 30)),
-                                                  ),
-                                                  GestureDetector(
-                                                    onTap: () => Navigator.of(context).pop('😴'),
-                                                    child: const Text('😴', style: TextStyle(fontSize: 30)),
-                                                  ),
-                                                  GestureDetector(
-                                                    onTap: () => Navigator.of(context).pop('😃'),
-                                                    child: const Text('😃', style: TextStyle(fontSize: 30)),
-                                                  ),
-                                                ],
-                                              ),
-                                              actions: <Widget>[
-                                                TextButton(
-                                                  child: const Text('Cancel'),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop(null);
-                                                  },
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
+                                        final userProvider = Provider.of<UserProvider>(context, listen: false);
+                                        final userId = userProvider.user?.uid;
 
-                                        if (selectedEmoji != null) {
-                                          final userProvider = Provider.of<UserProvider>(context, listen: false);
-                                          final userId = userProvider.user?.uid;
+                                        if (userId != null && nextOrOpenCheckInTime != null) {
+                                          try {
+                                            String? selectedEmoji;
 
-                                          if (userId != null && nextOrOpenCheckInTime != null) {
-                                            try {
-                                              // Update the specific check-in time with the emoji in Firestore
-                                              await FirebaseFirestore.instance
-                                                  .collection('users')
-                                                  .doc(userId)
-                                                  .update({
-                                                'checkInTimes': FieldValue.arrayUnion([
-                                                  {
-                                                    'dateTime': nextOrOpenCheckInTime.dateTime.toIso8601String(),
-                                                    'status': 'checked in',
-                                                    'emoji': selectedEmoji,
-                                                  }
-                                                ])
-                                              });
-
-                                              // Update the local state
-                                              userProvider.setCheckInStatus(
-                                                nextOrOpenCheckInTime.dateTime,
-                                                'checked in',
-                                                emoji: selectedEmoji, // Pass the selected emoji as an optional parameter
-                                              );
-                                              log('Check-in time status updated to "checked in" with emoji: $selectedEmoji');
-
-                                              // Show success dialog
-                                              showDialog(
+                                            // Check if emojis are enabled
+                                            if (userProvider.user?.emojisEnabled ?? false) {
+                                              // Show a dialog with a range of emojis
+                                              selectedEmoji = await showDialog<String>(
                                                 context: context,
                                                 builder: (BuildContext context) {
                                                   return AlertDialog(
-                                                    title: const Text('Check In Success!'),
-                                                    content: Text('You have successfully checked in with "$selectedEmoji".'),
+                                                    title: const Text('How are you feeling?'),
+                                                    content: Wrap(
+                                                      spacing: 10,
+                                                      children: [
+                                                        GestureDetector(
+                                                          onTap: () => Navigator.of(context).pop('😊'),
+                                                          child: const Text('😊', style: TextStyle(fontSize: 30)),
+                                                        ),
+                                                        GestureDetector(
+                                                          onTap: () => Navigator.of(context).pop('😢'),
+                                                          child: const Text('😢', style: TextStyle(fontSize: 30)),
+                                                        ),
+                                                        GestureDetector(
+                                                          onTap: () => Navigator.of(context).pop('😡'),
+                                                          child: const Text('😡', style: TextStyle(fontSize: 30)),
+                                                        ),
+                                                        GestureDetector(
+                                                          onTap: () => Navigator.of(context).pop('😴'),
+                                                          child: const Text('😴', style: TextStyle(fontSize: 30)),
+                                                        ),
+                                                        GestureDetector(
+                                                          onTap: () => Navigator.of(context).pop('😃'),
+                                                          child: const Text('😃', style: TextStyle(fontSize: 30)),
+                                                        ),
+                                                      ],
+                                                    ),
                                                     actions: <Widget>[
                                                       TextButton(
-                                                        child: const Text('OK'),
+                                                        child: const Text('Cancel'),
                                                         onPressed: () {
-                                                          Navigator.of(context).pop();
+                                                          Navigator.of(context).pop(null);
                                                         },
                                                       ),
                                                     ],
                                                   );
                                                 },
                                               );
-
-                                              // Add the next check-in time
-                                              DateTime newCheckInTime = nextOrOpenCheckInTime.dateTime.add(const Duration(hours: 24));
-                                              userProvider.addCheckInTime(newCheckInTime);
-                                            } catch (e) {
-                                              log('Error updating check-in time: $e');
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    'Failed to check in. Please try again.',
-                                                    style: TextStyle(fontSize: screenWidth * 0.04),
-                                                  ),
-                                                ),
-                                              );
                                             }
+
+                                            // Update Firestore with or without emoji
+                                            final checkInData = {
+                                              'dateTime': nextOrOpenCheckInTime.dateTime.toIso8601String(),
+                                              'status': 'checked in',
+                                            };
+                                            if (selectedEmoji != null) {
+                                              checkInData['emoji'] = selectedEmoji;
+                                            }
+
+                                            await FirebaseFirestore.instance
+                                                .collection('users')
+                                                .doc(userId)
+                                                .update({
+                                              'checkInTimes': FieldValue.arrayUnion([checkInData]),
+                                            });
+
+                                            // Update the local state
+                                            userProvider.setCheckInStatus(
+                                              nextOrOpenCheckInTime.dateTime,
+                                              'checked in',
+                                              emoji: selectedEmoji, // Pass the selected emoji as an optional parameter
+                                            );
+
+                                            // Load a random quote from the quotes.json file
+                                            final String quotesJson = await rootBundle.loadString('assets/quotes.json');
+                                            final List<dynamic> quotes = json.decode(quotesJson);
+                                            final randomQuoteData = quotes[Random().nextInt(quotes.length)];
+                                            final randomQuote = randomQuoteData['quote']; // Extract the "quote" text
+                                            final author = randomQuoteData['author']; // Extract the "author" text
+
+                                            // Show success dialog with a large green tick, the random quote, and the author
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return AlertDialog(
+                                                  title: const Icon(
+                                                    Icons.check_circle,
+                                                    color: Colors.green,
+                                                    size: 80, // Large green tick
+                                                  ),
+                                                  content: Column(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      const SizedBox(height: 16), // Add spacing
+                                                      Text(
+                                                        randomQuote, // Display the quote text
+                                                        style: const TextStyle(fontStyle: FontStyle.italic),
+                                                        textAlign: TextAlign.center,
+                                                      ),
+                                                      const SizedBox(height: 8), // Add spacing between quote and author
+                                                      Text(
+                                                        '- $author', // Display the author text
+                                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                                        textAlign: TextAlign.center,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  actionsAlignment: MainAxisAlignment.center, // Center the button
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.of(context).pop();
+                                                      },
+                                                      style: TextButton.styleFrom(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12), // Larger button size
+                                                        backgroundColor: Colors.blue, // Button background color
+                                                        foregroundColor: Colors.white, // Button text color
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.circular(20), // Rounded corners
+                                                          side: const BorderSide(color: Colors.blue, width: 2), // Border around the button
+                                                        ),
+                                                      ),
+                                                      child: const Text(
+                                                        'OK',
+                                                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold), // Larger font size
+                                                      ),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+
+                                            // Add the next check-in time
+                                            DateTime newCheckInTime = nextOrOpenCheckInTime.dateTime.add(const Duration(hours: 24));
+                                            userProvider.addCheckInTime(newCheckInTime);
+                                          } catch (e) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Failed to check in. Please try again.',
+                                                  style: TextStyle(fontSize: screenWidth * 0.04),
+                                                ),
+                                              ),
+                                            );
                                           }
                                         }
                                       },

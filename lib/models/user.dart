@@ -1,5 +1,3 @@
-
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'check_in_time.dart'; // Add this import if CheckInTime is defined in another file
@@ -14,6 +12,7 @@ class User {
   final List<Map<String, String>> watching;
   final String? fcmToken;
   final String referralCode;
+  bool emojisEnabled; // Add the emojisEnabled field
 
   User({
     required this.uid,
@@ -25,6 +24,7 @@ class User {
     required this.watching,
     this.fcmToken,
     required this.referralCode,
+    required this.emojisEnabled, // Initialize the emojisEnabled field
   });
 
   factory User.fromFirestore(DocumentSnapshot doc) {
@@ -41,6 +41,7 @@ class User {
       watching: List<Map<String, String>>.from(data['watching']),
       fcmToken: data['fcmToken'],
       referralCode: data['referralCode'],
+      emojisEnabled: data['emojisEnabled'] ?? true, // Default to true if not set
     );
   }
 
@@ -54,6 +55,7 @@ class User {
       'watching': watching,
       'fcmToken': fcmToken,
       'referralCode': referralCode,
+      'emojisEnabled': emojisEnabled, // Include emojisEnabled in the map
     };
   }
 }

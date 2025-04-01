@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/providers/user_provider.dart';
@@ -17,6 +18,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool _notificationsEnabled = true; // Initial value, adjust as needed
+  bool _emojisEnabled = true; // Add a new state variable for emojis
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +82,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             context,
                             'Who Am I Following?',
                             Icons.remove_red_eye_outlined, // Change to a pair of glasses icon
-                            MyWatchList(),
+                            const MyWatchList(),
                             screenWidth,
                           );
                         } else if (index == 3) {
@@ -121,6 +123,35 @@ class _SettingsPageState extends State<SettingsPage> {
                               setState(() {
                                 _notificationsEnabled = value;
                               });
+                            },
+                            activeTrackColor: Colors.black,
+                            inactiveTrackColor: Colors.black,
+                          ),
+                        ),
+                        const Divider(color: Colors.grey, height: 1), // Add a divider between switches
+                        ListTile(
+                          leading: Icon(Icons.emoji_emotions_outlined, size: screenWidth * 0.055),
+                          title: Text(
+                            'Emojis',
+                            style: TextStyle(fontSize: screenWidth * 0.04),
+                          ),
+                          trailing: Switch(
+                            value: _emojisEnabled, // Add a new state variable for emojis
+                            onChanged: (bool value) async {
+                              setState(() {
+                                _emojisEnabled = value;
+                              });
+
+                              // Update the _user object and Firestore
+                              final userProvider = Provider.of<UserProvider>(context, listen: false);
+                              if (userProvider.user != null) {
+                                userProvider.user!.emojisEnabled = value; // Update the local _user object
+                                print('Setting firebase emojisEnabled to $value for user ${userProvider.user!.uid}');
+                                await FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(userProvider.user!.uid)
+                                    .update({'emojisEnabled': value}); // Update Firestore
+                              }
                             },
                             activeTrackColor: Colors.black,
                             inactiveTrackColor: Colors.black,

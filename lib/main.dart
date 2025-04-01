@@ -6,11 +6,12 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/firebase_options.dart';
 import 'package:sabaidee/home_page.dart';
 import 'package:sabaidee/providers/user_provider.dart';
-import 'package:sabaidee/sign_in_page.dart';
+import 'package:sabaidee/sign_up_page.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -28,10 +29,15 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  FlutterNativeSplash.preserve(widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
+
   await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  FlutterNativeSplash.remove();
 
   FirebaseMessaging messaging = FirebaseMessaging.instance;
 
@@ -107,70 +113,22 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => UserProvider(),
-      child: MediaQuery(
-        data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)),
-        child: MaterialApp(
-          navigatorKey: navigatorKey,
-          title: 'Sabaidee',
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-          ),
-          home: const AuthWrapper(),
-          // home: const SplashPage(),
+    log(auth.FirebaseAuth.instance.currentUser?.uid ?? 'No user logged in');
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+      ],
+      child: MaterialApp(
+        navigatorKey: navigatorKey,
+        debugShowCheckedModeBanner: false,
+        title: 'Sabaidee',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
         ),
+        home: auth.FirebaseAuth.instance.currentUser == null
+            ? const SignUpPage() // Default to Sign Up page if not logged in
+            : const HomePage(),
       ),
-    );
-  }
-}
-
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
-
-  Future<void> _fetchAndSetUser(BuildContext context, String uid) async {
-    try {
-      await Provider.of<UserProvider>(context, listen: false).fetchUserData(uid);
-    } catch (e) {
-      log('Failed to fetch and set user: $e');
-    }
-  }
-
-  Future<void> _updateFcmToken(BuildContext context) async {
-    try {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final fcmToken = await FirebaseMessaging.instance.getToken();
-      if (fcmToken != null && userProvider.user != null) {
-        await userProvider.updateFcmToken(userProvider.user!.uid, fcmToken);
-        log('FCM token updated: $fcmToken');
-      }
-    } catch (e) {
-      log('Failed to update FCM token: $e');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<auth.User?>(
-      stream: auth.FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return const Center(child: Text('Something went wrong'));
-        } else if (snapshot.hasData) {
-          // User is logged in
-          log('User is logged in as ${snapshot.data!.uid}');
-          WidgetsBinding.instance.addPostFrameCallback((_) async {
-            await _fetchAndSetUser(context, snapshot.data!.uid);
-            await _updateFcmToken(context);
-          });
-          return const HomePage();
-        } else {
-          // User is not logged in
-          return const SignInPage();
-        }
-      },
     );
   }
 }

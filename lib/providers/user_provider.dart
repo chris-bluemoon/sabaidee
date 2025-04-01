@@ -54,6 +54,7 @@ class UserProvider with ChangeNotifier {
               'watching': [],
               'fcmToken': 'TBC',
               'referralCode': _generateRandomCode(),
+              'emojisEnabled': true, // Default to true
             });
           }
 
@@ -93,6 +94,7 @@ class UserProvider with ChangeNotifier {
             .toList(),
         fcmToken: userData['fcmToken'] ?? '',
         referralCode: userData['referralCode'] ?? '',
+        emojisEnabled: userData['emojisEnabled'] ?? true, // Default to true if not set
       );
       log('User data from Firestore: ${userDoc.data()}, uid provided: $uid');
       notifyListeners();
@@ -194,6 +196,7 @@ void setCheckInStatus(DateTime dateTime, String status, {String? emoji}) async {
         watching: [],
         fcmToken: fcmToken,
         referralCode: _generateRandomCode(),
+        emojisEnabled: true, // Default to true
       );
 
       // Add user to Firestore
@@ -206,6 +209,7 @@ void setCheckInStatus(DateTime dateTime, String status, {String? emoji}) async {
         'watching': [],
         'fcmToken': fcmToken,
         'referralCode': _generateRandomCode(),
+        'emojisEnabled': true, // Default to true
       });
 
       notifyListeners();
@@ -313,6 +317,7 @@ Future<void> _fetchUserData(String uid) async {
     referralCode: userDoc['referralCode'],
     followers: (userDoc['followers'] as List).map((follower) => Map<String, String>.from(follower)).toList(),
     watching: (userDoc['watching'] as List).map((watching) => Map<String, String>.from(watching)).toList(),
+    emojisEnabled: userDoc['emojisEnabled'] ?? true, // Provide a default value if not present
   );
   notifyListeners();
 }
@@ -571,18 +576,22 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
     notifyListeners();
   }
   // Add the updateUser method
-  Future<void> updateUser({required String name, required Map<String, String> country}) async {
+  Future<void> updateUser({required String name, required Map<String, String> country, bool? emojisEnabled}) async {
     if (_user == null) return;
 
     // Update the user information in the provider
     _user?.name = name;
     _user?.country = country;
+    if (emojisEnabled != null) {
+      _user?.emojisEnabled = emojisEnabled;
+    }
     notifyListeners();
 
     // Update the user information in the database
     await FirebaseFirestore.instance.collection('users').doc(_user?.uid).update({
       'name': name,
       'country': country,
+      if (emojisEnabled != null) 'emojisEnabled': emojisEnabled,
     });
   }
   Future<void> removeRelationship(String followerUid, String status) async {
@@ -653,6 +662,7 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
         watching: _user!.watching,
         fcmToken: token,
         referralCode: _user!.referralCode,
+        emojisEnabled: _user!.emojisEnabled, // Add the required parameter
       );
       await _firestore.collection('users').doc(_user!.uid).update({
         'fcmToken': token,

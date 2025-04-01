@@ -13,6 +13,7 @@ class User {
   final String? fcmToken;
   final String referralCode;
   bool emojisEnabled; // Add the emojisEnabled field
+  bool quotesEnabled; // Add the quotesEnabled field
 
   User({
     required this.uid,
@@ -25,6 +26,7 @@ class User {
     this.fcmToken,
     required this.referralCode,
     required this.emojisEnabled, // Initialize the emojisEnabled field
+    required this.quotesEnabled, // Initialize the quotesEnabled field
   });
 
   factory User.fromFirestore(DocumentSnapshot doc) {
@@ -42,6 +44,7 @@ class User {
       fcmToken: data['fcmToken'],
       referralCode: data['referralCode'],
       emojisEnabled: data['emojisEnabled'] ?? true, // Default to true if not set
+      quotesEnabled: data['quotesEnabled'] ?? true, // Default to true if not set
     );
   }
 
@@ -56,6 +59,7 @@ class User {
       'fcmToken': fcmToken,
       'referralCode': referralCode,
       'emojisEnabled': emojisEnabled, // Include emojisEnabled in the map
+      'quotesEnabled': quotesEnabled, // Include quotesEnabled in the map
     };
   }
 }

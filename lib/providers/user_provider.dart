@@ -55,6 +55,7 @@ class UserProvider with ChangeNotifier {
               'fcmToken': 'TBC',
               'referralCode': _generateRandomCode(),
               'emojisEnabled': true, // Default to true
+              'quotesEnabled': true, // Default to true
             });
           }
 
@@ -70,32 +71,7 @@ class UserProvider with ChangeNotifier {
   Future<void> fetchUserData(String uid) async {
     final userDoc = await _firestore.collection('users').doc(uid).get();
     if (userDoc.exists) {
-      final userData = userDoc.data()!;
-      _user = myUser.User(
-        uid: uid,
-        email: userData['email'] ?? '',
-        name: userData['name'] ?? '',
-        country: userData['country'] is String
-            ? {'name': userData['country']}
-            : Map<String, String>.from(userData['country']),
-        checkInTimes: (userData['checkInTimes'] as List).map((time) {
-          return CheckInTime(
-            dateTime: DateTime.parse(time['dateTime']),
-            status: time['status'],
-            duration: Duration(minutes: time['duration']),
-            emoji: time['emoji'], // Parse the emoji field
-          );
-        }).toList(),
-        followers: (userData['followers'] as List)
-            .map((follower) => Map<String, String>.from(follower))
-            .toList(),
-        watching: (userData['watching'] as List)
-            .map((watching) => Map<String, String>.from(watching))
-            .toList(),
-        fcmToken: userData['fcmToken'] ?? '',
-        referralCode: userData['referralCode'] ?? '',
-        emojisEnabled: userData['emojisEnabled'] ?? true, // Default to true if not set
-      );
+      _user = myUser.User.fromFirestore(userDoc);
       log('User data from Firestore: ${userDoc.data()}, uid provided: $uid');
       notifyListeners();
     }
@@ -140,46 +116,39 @@ class UserProvider with ChangeNotifier {
   void _resetCheckInStatuses() async {
     if (_user != null) {
       for (var checkInTime in _user!.checkInTimes) {
-          checkInTime.status = 'pending';
-      await _firestore.collection('users').doc(_user!.uid).update({
-        'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
-          'hour': checkInTime.dateTime.hour,
-          'minute': checkInTime.dateTime.minute,
-          'status': checkInTime.status,
-        }).toList(),
-      });
+        checkInTime.status = 'pending';
+        await _firestore.collection('users').doc(_user!.uid).update({
+          'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
+            'hour': checkInTime.dateTime.hour,
+            'minute': checkInTime.dateTime.minute,
+            'status': checkInTime.status,
+          }).toList(),
+        });
       }
-            // Update Firestore
-      await _firestore.collection('users').doc(_user!.uid).update({
-        'checkInTimes': _user!.checkInTimes.map((checkInTime) => {
-          'hour': checkInTime.dateTime.hour,
-          'minute': checkInTime.dateTime.minute,
-          'status': checkInTime.status,
-        }).toList(),
-      });
       notifyListeners();
     }
   }
-void setCheckInStatus(DateTime dateTime, String status, {String? emoji}) async {
-  if (_user != null) {
-    for (var checkInTime in _user!.checkInTimes) {
-      if (checkInTime.dateTime == dateTime) {
-        checkInTime.status = status;
-        if (emoji != null) {
-          checkInTime.emoji = emoji; // Update the emoji field if provided
+
+  void setCheckInStatus(DateTime dateTime, String status, {String? emoji}) async {
+    if (_user != null) {
+      for (var checkInTime in _user!.checkInTimes) {
+        if (checkInTime.dateTime == dateTime) {
+          checkInTime.status = status;
+          if (emoji != null) {
+            checkInTime.emoji = emoji; // Update the emoji field if provided
+          }
+          break;
         }
-        break;
       }
+
+      // Update Firestore
+      await _firestore.collection('users').doc(_user!.uid).update({
+        'checkInTimes': _user!.checkInTimes.map((checkInTime) => checkInTime.toMap()).toList(),
+      });
+
+      notifyListeners();
     }
-
-    // Update Firestore
-    await _firestore.collection('users').doc(_user!.uid).update({
-      'checkInTimes': _user!.checkInTimes.map((checkInTime) => checkInTime.toMap()).toList(),
-    });
-
-    notifyListeners();
   }
-}
 
   Future<void> signUp(String email, String password, String name, Map<String, String> country) async {
     try {
@@ -197,6 +166,7 @@ void setCheckInStatus(DateTime dateTime, String status, {String? emoji}) async {
         fcmToken: fcmToken,
         referralCode: _generateRandomCode(),
         emojisEnabled: true, // Default to true
+        quotesEnabled: true, // Default to true
       );
 
       // Add user to Firestore
@@ -210,6 +180,7 @@ void setCheckInStatus(DateTime dateTime, String status, {String? emoji}) async {
         'fcmToken': fcmToken,
         'referralCode': _generateRandomCode(),
         'emojisEnabled': true, // Default to true
+        'quotesEnabled': true, // Default to true
       });
 
       notifyListeners();
@@ -258,6 +229,7 @@ void setCheckInStatus(DateTime dateTime, String status, {String? emoji}) async {
     }
     return followerEmails;
   }
+
   Future<Map<String, Map<String, String>>> fetchWatchingNamesAndStatuses() async {
     final Map<String, Map<String, String>> watchingNamesAndStatuses = {};
     if (_user != null) {
@@ -279,6 +251,7 @@ void setCheckInStatus(DateTime dateTime, String status, {String? emoji}) async {
     log('Number of watching names and statuses: ${watchingNamesAndStatuses.length}');
     return watchingNamesAndStatuses;
   }
+
   Future<Map<String, Map<String, String>>> fetchFollowerNamesAndStatuses() async {
     final Map<String, Map<String, String>> followerNamesAndStatuses = {};
     if (_user != null) {
@@ -298,38 +271,21 @@ void setCheckInStatus(DateTime dateTime, String status, {String? emoji}) async {
     return followerNamesAndStatuses;
   }
 
-Future<void> _fetchUserData(String uid) async {
-  // Fetch user data from your database and set the _user object
-  DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
-  _user = myUser.User(
-    uid: uid,
-    email: userDoc['email'],
-    name: userDoc['name'],
-    country: userDoc['country'] is String ? {'name': userDoc['country']} : Map<String, String>.from(userDoc['country']),
-    checkInTimes: (userDoc['checkInTimes'] as List).map((time) {
-      return CheckInTime(
-        dateTime: DateTime.parse(time['dateTime']),
-        status: time['status'],
-        duration: Duration(minutes: time['duration']), // Provide a default value if duration is null
-      );
-    }).toList(),
-    fcmToken: userDoc['fcmToken'],
-    referralCode: userDoc['referralCode'],
-    followers: (userDoc['followers'] as List).map((follower) => Map<String, String>.from(follower)).toList(),
-    watching: (userDoc['watching'] as List).map((watching) => Map<String, String>.from(watching)).toList(),
-    emojisEnabled: userDoc['emojisEnabled'] ?? true, // Provide a default value if not present
-  );
-  notifyListeners();
-}
+  Future<void> _fetchUserData(String uid) async {
+    // Fetch user data from your database and set the _user object
+    DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
+    _user = myUser.User.fromFirestore(userDoc);
+    notifyListeners();
+  }
 
   List<CheckInTime> get scheduleTimes {
-      return _user?.checkInTimes ?? [];
+    return _user?.checkInTimes ?? [];
   }
-  
+
   List<CheckInTime> get pendingOrOpenCheckInTimes {
     return _user?.checkInTimes.where((time) => time.status == 'pending' || time.status == 'open').toList() ?? [];
   }
-  
+
   Future<void> deleteAccountAndData() async {
     if (_user != null) {
       try {
@@ -348,183 +304,138 @@ Future<void> _fetchUserData(String uid) async {
     }
   }
 
-Future<void> deleteCheckInTime(CheckInTime checkInTime) async {
-  if (_user != null) {
-    // Remove the check-in time from the local list
-    _user!.checkInTimes.removeWhere((existingCheckInTime) => existingCheckInTime.dateTime == checkInTime.dateTime);
+  Future<void> deleteCheckInTime(CheckInTime checkInTime) async {
+    if (_user != null) {
+      // Remove the check-in time from the local list
+      _user!.checkInTimes.removeWhere((existingCheckInTime) => existingCheckInTime.dateTime == checkInTime.dateTime);
 
-    // Update Firestore
-    log('About to delete check-in time for user: ${checkInTime.dateTime.toIso8601String()}');
-    log('Deleting check-in time for user: ${checkInTime.dateTime.toIso8601String()}');
-    await _firestore.collection('users').doc(_user!.uid).update({
-      'checkInTimes': FieldValue.arrayRemove([{
-        'dateTime': checkInTime.dateTime.toIso8601String(),
-        'status': checkInTime.status, // Use the status from the CheckInTime object
-        'duration': checkInTime.duration.inMinutes // Use the duration from the CheckInTime object
-      }])
-    });
+      // Update Firestore
+      log('About to delete check-in time for user: ${checkInTime.dateTime.toIso8601String()}');
+      log('Deleting check-in time for user: ${checkInTime.dateTime.toIso8601String()}');
+      await _firestore.collection('users').doc(_user!.uid).update({
+        'checkInTimes': FieldValue.arrayRemove([{
+          'dateTime': checkInTime.dateTime.toIso8601String(),
+          'status': checkInTime.status, // Use the status from the CheckInTime object
+          'duration': checkInTime.duration.inMinutes // Use the duration from the CheckInTime object
+        }])
+      });
 
-    notifyListeners();
+      notifyListeners();
+    }
   }
-}
 
   void _startTimer() async {
     log('Starting timer');
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) async {
-        _checkForOpenCheckInTimes();
-        _checkForMissedCheckInTimes();
-
-        // _checkForMissedCheckInTimes();
-        // _checkForMissedCheckInTimesFromWatching();
-        // log('Raising notification');
-        // await _showNotification();
+      _checkForOpenCheckInTimes();
+      _checkForMissedCheckInTimes();
     });
   }
-void _checkForOpenCheckInTimes() async {
-  if (_user != null) {
-    final now = DateTime.now().toUtc();
-    final userDoc = await _firestore.collection('users').doc(_user!.uid).get();
-    if (userDoc.exists) {
-      final userData = userDoc.data()!;
-      final checkInTimes = (userData['checkInTimes'] as List).map((time) {
-        return CheckInTime(
-          dateTime: DateTime.parse(time['dateTime']),
-          status: time['status'],
-          duration: Duration(minutes: time['duration']), // Parse duration from minutes
-        );
-      }).toList();
 
-      for (var checkInTime in checkInTimes) {
-        if (checkInTime.dateTime.isBefore(now) && !checkInTime.dateTime.isAfter(now.add(Duration(minutes: checkInTime.duration.inMinutes))) && checkInTime.status == 'pending') {
-          log('Setting status to open for user stored checkInTime: ${checkInTime.dateTime.toString()}');
-          setCheckInStatus(checkInTime.dateTime, 'open');
-          notifyListeners(); // Notify listeners about the change
+  void _checkForOpenCheckInTimes() async {
+    if (_user != null) {
+      final now = DateTime.now().toUtc();
+      final userDoc = await _firestore.collection('users').doc(_user!.uid).get();
+      if (userDoc.exists) {
+        final userData = userDoc.data()!;
+        final checkInTimes = (userData['checkInTimes'] as List).map((time) {
+          return CheckInTime(
+            dateTime: DateTime.parse(time['dateTime']),
+            status: time['status'],
+            duration: Duration(minutes: time['duration']), // Parse duration from minutes
+          );
+        }).toList();
+
+        for (var checkInTime in checkInTimes) {
+          if (checkInTime.dateTime.isBefore(now) && !checkInTime.dateTime.isAfter(now.add(Duration(minutes: checkInTime.duration.inMinutes))) && checkInTime.status == 'pending') {
+            log('Setting status to open for user stored checkInTime: ${checkInTime.dateTime.toString()}');
+            setCheckInStatus(checkInTime.dateTime, 'open');
+            notifyListeners(); // Notify listeners about the change
+          }
         }
       }
     }
   }
-}
 
-void _checkForMissedCheckInTimes() async {
-  if (_user != null) {
-    final now = DateTime.now();
-    // Create a copy of the list to avoid concurrent modification
-    final checkInTimesCopy = List.from(_user!.checkInTimes);
-    log('Missed Check In');
-    for (var checkInTime in checkInTimesCopy) {
-      if ((checkInTime.status == 'open' || checkInTime.status == 'pending' || checkInTime.status == 'missed') && now.isAfter(checkInTime.dateTime.add(const Duration(minutes: 5)))) {
-        // if (checkInTime.status != 'missed') {
-        //   setCheckInStatus(checkInTime.dateTime, 'missed');
-        //   DateTime newCheckInTime = checkInTime.dateTime.add(const Duration(hours: 24));
-        //   addCheckInTime(newCheckInTime);
-        // }
+  void _checkForMissedCheckInTimes() async {
+    if (_user != null) {
+      final now = DateTime.now();
+      // Create a copy of the list to avoid concurrent modification
+      final checkInTimesCopy = List.from(_user!.checkInTimes);
+      log('Missed Check In');
+      for (var checkInTime in checkInTimesCopy) {
+        if ((checkInTime.status == 'open' || checkInTime.status == 'pending' || checkInTime.status == 'missed') && now.isAfter(checkInTime.dateTime.add(const Duration(minutes: 5)))) {
           if (navigatorKey.currentContext != null) {
-          showDialog(
-            barrierDismissible: false,
-            context: navigatorKey.currentContext!,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('Missed Check-In ${checkInTime.status}'),
-                content: Text('You have missed a check-in time at ${checkInTime.dateTime.hour.toString().padLeft(2, '0')}:${checkInTime.dateTime.minute.toString().padLeft(2, '0')}.'), actions: <Widget>[ TextButton( child: const Text('OK'), onPressed: () { 
-                  setCheckInStatus(checkInTime.dateTime, 'acknowledged'); 
-                  addCheckInTime(checkInTime.dateTime.add(const Duration(hours: 24)));
-                  Navigator.of(context).pop();
-                  },
-                  ),
-                ],
-              );
-            },);
-        } else {
-          log('Navigator context is null, cannot show alert');
+            showDialog(
+              barrierDismissible: false,
+              context: navigatorKey.currentContext!,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Missed Check-In ${checkInTime.status}'),
+                  content: Text('You have missed a check-in time at ${checkInTime.dateTime.hour.toString().padLeft(2, '0')}:${checkInTime.dateTime.minute.toString().padLeft(2, '0')}.'),
+                  actions: <Widget>[
+                    TextButton(
+                      child: const Text('OK'),
+                      onPressed: () {
+                        setCheckInStatus(checkInTime.dateTime, 'acknowledged');
+                        addCheckInTime(checkInTime.dateTime.add(const Duration(hours: 24)));
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          } else {
+            log('Navigator context is null, cannot show alert');
+          }
         }
       }
     }
   }
-}
 
-  // Future<void> _checkForMissedCheckInTimes() async {
-  //   log('Checking for missed check-in times');
-  //   final now = TimeOfDay.now();
-  //   final nextPendingCheckInTime = this.nextPendingCheckInTime;
-  //   log('Checking time - now: ${now.hour}:${now.minute}, nextPendingCheckInTime: ${nextPendingCheckInTime?.dateTime.hour}:${nextPendingCheckInTime?.dateTime.minute}');
-  //   if (nextPendingCheckInTime != null) {
-  //     if (nextPendingCheckInTime.dateTime.hour < now.hour || (nextPendingCheckInTime.dateTime.hour == now.hour && nextPendingCheckInTime.dateTime.minute < now.minute)) {
-  //       setCheckInStatus(nextPendingCheckInTime.dateTime, 'missed');
-  //       // await _showNotification('Missed Check-In', 'You have missed a check-in time at ${nextPendingCheckInTime.time.hour}:${nextPendingCheckInTime.time.minute}');
-  //       _showAlert('You missed a Check-In!');
-  //     }
-  //   }
-  // }
-  
-  // Future<void> _showNotification(title, description) async {
-  //   const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-  //     'missed_check_in_channel',
-  //     'Missed Check-In',
-  //     channelDescription: 'Generic notification for missed check-in times',
-  //     importance: Importance.max,
-  //     priority: Priority.high,
-  //     ticker: 'ticker',
-  //   );
-  //   const DarwinNotificationDetails iosPlatformChannelSpecifics = DarwinNotificationDetails(
-  //     presentAlert: true,
-  //     presentBadge: true,
-  //     presentSound: true,
-  //   );
-  //   const NotificationDetails platformChannelSpecifics = NotificationDetails(
-  //     android: androidPlatformChannelSpecifics,
-  //     iOS: iosPlatformChannelSpecifics,
-  //   );
-  //   await flutterLocalNotificationsPlugin.show(
-  //     0,
-  //     title,
-  //     description,
-  //     platformChannelSpecifics,
-  //     payload: 'missed_check_in',
-  //   );
-  // }
+  Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTime) async {
+    // Delay the execution to ensure the context is available
+    if (navigatorKey.currentContext != null) {
+      showDialog(
+        context: navigatorKey.currentContext!,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(title),
+            content: const Text('Missed a check-in time!'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () async {
+                  final userDoc = await _firestore.collection('users').doc(watchingUid).get();
+                  if (userDoc.exists) {
+                    final userData = userDoc.data()!;
+                    final checkInTimes = (userData['checkInTimes'] as List<dynamic>).map((e) => CheckInTime.fromMap(e)).toList();
 
-Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTime) async {
-  // Delay the execution to ensure the context is available
-  if (navigatorKey.currentContext != null) {
-    showDialog(
-      context: navigatorKey.currentContext!,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: const Text('Missed a check-in time!'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () async {
-                final userDoc = await _firestore.collection('users').doc(watchingUid).get();
-                if (userDoc.exists) {
-                  final userData = userDoc.data()!;
-                  final checkInTimes = (userData['checkInTimes'] as List<dynamic>).map((e) => CheckInTime.fromMap(e)).toList();
-
-                  for (var time in checkInTimes) {
-                    if (time.dateTime == checkInTime.dateTime) {
-                      time.status = 'acknowledgedByWatcher';
-                      break;
+                    for (var time in checkInTimes) {
+                      if (time.dateTime == checkInTime.dateTime) {
+                        time.status = 'acknowledgedByWatcher';
+                        break;
+                      }
                     }
+
+                    // Update Firestore
+                    await _firestore.collection('users').doc(watchingUid).update({
+                      'checkInTimes': checkInTimes.map((time) => time.toMap()).toList(),
+                    });
                   }
 
-                  // Update Firestore
-                  await _firestore.collection('users').doc(watchingUid).update({
-                    'checkInTimes': checkInTimes.map((time) => time.toMap()).toList(),
-                  });
-                }
-
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  } else {
-    log('Navigator context is null, cannot show alert');
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      log('Navigator context is null, cannot show alert');
+    }
   }
-}
 
   CheckInTime? get nextPendingCheckInTime {
     final pendingCheckInTimes = _user?.checkInTimes.where((time) => time.status == 'pending').toList() ?? [];
@@ -547,10 +458,11 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
   List<Map<String, String>> get watching {
     return _user?.watching ?? [];
   }
+
   List<Map<String, String>> get followers {
     return _user?.followers ?? [];
   }
-  
+
   Future<void> removeFollower(String uid) async {
     _user?.followers.removeWhere((follower) => follower['uid'] == uid);
     // Update Firestore for the current user
@@ -575,8 +487,8 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
 
     notifyListeners();
   }
-  // Add the updateUser method
-  Future<void> updateUser({required String name, required Map<String, String> country, bool? emojisEnabled}) async {
+
+  Future<void> updateUser({required String name, required Map<String, String> country, bool? emojisEnabled, bool? quotesEnabled}) async {
     if (_user == null) return;
 
     // Update the user information in the provider
@@ -585,6 +497,9 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
     if (emojisEnabled != null) {
       _user?.emojisEnabled = emojisEnabled;
     }
+    if (quotesEnabled != null) {
+      _user?.quotesEnabled = quotesEnabled;
+    }
     notifyListeners();
 
     // Update the user information in the database
@@ -592,51 +507,53 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
       'name': name,
       'country': country,
       if (emojisEnabled != null) 'emojisEnabled': emojisEnabled,
+      if (quotesEnabled != null) 'quotesEnabled': quotesEnabled,
     });
   }
+
   Future<void> removeRelationship(String followerUid, String status) async {
-  log('Removing relationship for user: ${_user?.uid} with followerUid: $followerUid');
-  if (_user != null) {
-    // Find the relationship entry with the matching followerUid and status
-    final relationship = _user!.watching.firstWhere(
-      (watching) => watching['uid'] == followerUid && watching['status'] == status,
-      orElse: () => {},
-    );
-
-    await _firestore.collection('users').doc(_user!.uid).update({
-      'watching': FieldValue.arrayRemove([relationship]),
-    });
-
-    // Remove the follower entry from the other user
-    final followerDoc = await _firestore.collection('users').doc(followerUid).get();
-    if (followerDoc.exists) {
-      final followerData = followerDoc.data();
-      final followerRelationship = (followerData?['followers'] as List<dynamic>).firstWhere(
-        (follower) => follower['uid'] == _user!.uid && follower['status'] == status,
-        orElse: () => null,
+    log('Removing relationship for user: ${_user?.uid} with followerUid: $followerUid');
+    if (_user != null) {
+      // Find the relationship entry with the matching followerUid and status
+      final relationship = _user!.watching.firstWhere(
+        (watching) => watching['uid'] == followerUid && watching['status'] == status,
+        orElse: () => {},
       );
 
-      if (followerRelationship != null) {
-        log('Removing relationship for user: $followerUid with followerUid: ${_user?.uid}');
-        await _firestore.collection('users').doc(followerUid).update({
-          'followers': FieldValue.arrayRemove([followerRelationship]),
-        });
-      } else {
-        log('No relationship found for user: $followerUid with followerUid: ${_user?.uid}');
+      await _firestore.collection('users').doc(_user!.uid).update({
+        'watching': FieldValue.arrayRemove([relationship]),
+      });
+
+      // Remove the follower entry from the other user
+      final followerDoc = await _firestore.collection('users').doc(followerUid).get();
+      if (followerDoc.exists) {
+        final followerData = followerDoc.data();
+        final followerRelationship = (followerData?['followers'] as List<dynamic>).firstWhere(
+          (follower) => follower['uid'] == _user!.uid && follower['status'] == status,
+          orElse: () => null,
+        );
+
+        if (followerRelationship != null) {
+          log('Removing relationship for user: $followerUid with followerUid: ${_user?.uid}');
+          await _firestore.collection('users').doc(followerUid).update({
+            'followers': FieldValue.arrayRemove([followerRelationship]),
+          });
+        } else {
+          log('No relationship found for user: $followerUid with followerUid: ${_user?.uid}');
+        }
       }
-    }
       // Remove the relationship from the provider _user
       _user!.watching.removeWhere((watching) => watching['uid'] == followerUid && watching['status'] == status);
 
-
-    notifyListeners();
+      notifyListeners();
     }
-}
+  }
+
   Future<void> createRelationship(String followerUid, String status) async {
     if (_user != null) {
       _user!.watching.add({'uid': followerUid, 'status': status, 'createdAt': DateTime.now().toIso8601String()});
 
-      // Update FirestfetchWatchingNamesAndStatusesore for the current user
+      // Update Firestore for the current user
       await _firestore.collection('users').doc(_user!.uid).update({
         'watching': FieldValue.arrayUnion([{'uid': followerUid, 'status': status, 'createdAt': DateTime.now().toIso8601String()}]),
       });
@@ -663,6 +580,7 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
         fcmToken: token,
         referralCode: _user!.referralCode,
         emojisEnabled: _user!.emojisEnabled, // Add the required parameter
+        quotesEnabled: _user!.quotesEnabled, // Add the required parameter
       );
       await _firestore.collection('users').doc(_user!.uid).update({
         'fcmToken': token,
@@ -675,7 +593,7 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
     log('Checking for missed check-in times from watching ${_user?.watching.length} users');
     if (_user != null) {
       for (var watching in _user!.watching) {
-        log('Checking for user $watching'); 
+        log('Checking for user $watching');
         final watchingUid = watching['uid'];
         if (watchingUid != null) {
           final userDoc = await _firestore.collection('users').doc(watchingUid).get();
@@ -687,8 +605,6 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
               if (checkInTime.status == 'missed') {
                 // Missed check-in time found
                 log('User $watchingUid missed check-in time at ${checkInTime.dateTime.hour}:${checkInTime.dateTime.minute}');
-                // await _showNotification('Missed Check-In', 'User $watchingUid missed a check-in time at ${checkInTime.time.hour}:${checkInTime.time.minute}');
-                log('User $watchingUid missed check-in time at ${checkInTime.dateTime.hour}:${checkInTime.dateTime.minute}');
                 _showAlert('User $watchingUid missed check-in time', watchingUid, checkInTime);
               }
             }
@@ -698,23 +614,10 @@ Future<void> _showAlert(String title, String watchingUid, CheckInTime checkInTim
     }
   }
 
-  // Future<void> addWatching(String watchingUid, String status) async {
-  //   if (_user != null) {
-  //     _user!.watching.add({'uid': watchingUid, 'status': status});
-
-  //     // Update Firestore
-  //     await _firestore.collection('users').doc(_user!.uid).update({
-  //       'watching': FieldValue.arrayUnion([{'uid': watchingUid, 'status': status}]),
-  //     });
-
-  //     notifyListeners();
-  //   }
-  // }
-    void handleNotification(RemoteMessage message) {
+  void handleNotification(RemoteMessage message) {
     // Handle the notification and update the state
     // For example, you can fetch new data from Firestore and update the user
     _fetchUserData(_user!.uid);
-  // notifyListeners();
   }
 }
 

@@ -8,6 +8,7 @@ import 'package:sabaidee/settings/my_followers_page.dart';
 import 'package:sabaidee/settings/my_schedule_page.dart';
 import 'package:sabaidee/settings/my_watch_list.dart';
 import 'package:sabaidee/settings/profile_page.dart'; // Import the ProfilePage
+import 'package:sabaidee/sign_in_page.dart'; 
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -18,7 +19,16 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool _notificationsEnabled = true; // Initial value, adjust as needed
-  bool _emojisEnabled = true; // Add a new state variable for emojis
+  bool _emojisEnabled = true; // Default value, will be updated in initState
+  bool _quotesEnabled = true; // Default value for quotes
+
+  @override
+  void initState() {
+    super.initState();
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    _emojisEnabled = userProvider.user?.emojisEnabled ?? true; // Load emojisEnabled from _user
+    _quotesEnabled = userProvider.user?.quotesEnabled ?? true; // Load quotesEnabled from _user
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,128 +55,158 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           // Main content
-          Center(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                screenWidth * 0.05, // Adjust left padding
-                screenHeight * 0.1, // Adjust top padding
-                screenWidth * 0.05, // Adjust right padding
-                screenHeight * 0.05, // Adjust bottom padding
-              ), // Add margin at the top of the page
-              child: Column(
-                children: [
-                  GlassmorphismContainer(
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01), // Reduce padding above and below
-                      itemCount: 4, // Show 4 items
-                      itemBuilder: (context, index) {
-                        if (index == 0) {
-                          return _buildSettingsOption(
-                            context,
-                            'My Schedule',
-                            Icons.schedule_outlined,
-                            const MySchedulePage(),
-                            screenWidth,
-                          );
-                        } else if (index == 1) {
-                          return _buildSettingsOption(
-                            context,
-                            'My Followers',
-                            Icons.people_outline,
-                            const MyFollowersPage(),
-                            screenWidth,
-                          );
-                        } else if (index == 2) {
-                          return _buildSettingsOption(
-                            context,
-                            'Who Am I Following?',
-                            Icons.remove_red_eye_outlined, // Change to a pair of glasses icon
-                            const MyWatchList(),
-                            screenWidth,
-                          );
-                        } else if (index == 3) {
-                          return _buildSettingsOption(
-                            context,
-                            'Profile',
-                            Icons.person_outline,
-                            const ProfilePage(), // Navigate to ProfilePage
-                            screenWidth,
-                          );
-                        }
-                        return Container(); // Return an empty container for any other index
-                      },
-                      separatorBuilder: (context, index) => Column(
+          SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  screenWidth * 0.05, // Adjust left padding
+                  screenHeight * 0.05, // Adjust top padding
+                  screenWidth * 0.05, // Adjust right padding
+                  screenHeight * 0.05, // Adjust bottom padding
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GlassmorphismContainer(
+                      child: SizedBox(
+                        height: screenHeight * 0.4, // Constrain the height of the ListView
+                        child: ListView.separated(
+                          physics: const NeverScrollableScrollPhysics(), // Disable internal scrolling
+                          padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
+                          itemCount: 4, // Show 4 items
+                          itemBuilder: (context, index) {
+                            if (index == 0) {
+                              return _buildSettingsOption(
+                                context,
+                                'My Schedule',
+                                Icons.schedule_outlined,
+                                const MySchedulePage(),
+                                screenWidth,
+                              );
+                            } else if (index == 1) {
+                              return _buildSettingsOption(
+                                context,
+                                'My Followers',
+                                Icons.people_outline,
+                                const MyFollowersPage(),
+                                screenWidth,
+                              );
+                            } else if (index == 2) {
+                              return _buildSettingsOption(
+                                context,
+                                'Who Am I Following?',
+                                Icons.remove_red_eye_outlined,
+                                const MyWatchList(),
+                                screenWidth,
+                              );
+                            } else if (index == 3) {
+                              return _buildSettingsOption(
+                                context,
+                                'Profile',
+                                Icons.person_outline,
+                                const ProfilePage(),
+                                screenWidth,
+                              );
+                            }
+                            return Container();
+                          },
+                          separatorBuilder: (context, index) => Column(
+                            children: [
+                              SizedBox(height: screenHeight * 0.01),
+                              const Divider(color: Colors.grey, height: 1),
+                              SizedBox(height: screenHeight * 0.01),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: screenHeight * 0.05),
+                    GlassmorphismContainer(
+                      child: ListView(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(), // Disable internal scrolling
+                        padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
                         children: [
-                          SizedBox(height: screenHeight * 0.01), // Add separation between items
-                          const Divider(color: Colors.grey, height: 1), // Add a separator line
-                          SizedBox(height: screenHeight * 0.01), // Add separation between items
+                          ListTile(
+                            leading: Icon(Icons.notifications_outlined, size: screenWidth * 0.055),
+                            title: Text(
+                              'Notifications',
+                              style: TextStyle(fontSize: screenWidth * 0.04),
+                            ),
+                            trailing: Switch(
+                              value: _notificationsEnabled,
+                              onChanged: (bool value) {
+                                setState(() {
+                                  _notificationsEnabled = value;
+                                });
+                              },
+                              activeTrackColor: Colors.black,
+                              inactiveTrackColor: Colors.black,
+                            ),
+                          ),
+                          const Divider(color: Colors.grey, height: 1),
+                          ListTile(
+                            leading: Icon(Icons.emoji_emotions_outlined, size: screenWidth * 0.055),
+                            title: Text(
+                              'Emojis',
+                              style: TextStyle(fontSize: screenWidth * 0.04),
+                            ),
+                            trailing: Switch(
+                              value: _emojisEnabled,
+                              onChanged: (bool value) async {
+                                setState(() {
+                                  _emojisEnabled = value;
+                                });
+
+                                final userProvider = Provider.of<UserProvider>(context, listen: false);
+                                if (userProvider.user != null) {
+                                  userProvider.user!.emojisEnabled = value;
+                                  await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(userProvider.user!.uid)
+                                      .update({'emojisEnabled': value});
+                                }
+                              },
+                              activeTrackColor: Colors.black,
+                              inactiveTrackColor: Colors.black,
+                            ),
+                          ),
+                          const Divider(color: Colors.grey, height: 1),
+                          ListTile(
+                            leading: Icon(Icons.format_quote_outlined, size: screenWidth * 0.055),
+                            title: Text(
+                              'Quotes',
+                              style: TextStyle(fontSize: screenWidth * 0.04),
+                            ),
+                            trailing: Switch(
+                              value: _quotesEnabled,
+                              onChanged: (bool value) async {
+                                setState(() {
+                                  _quotesEnabled = value;
+                                });
+
+                                final userProvider = Provider.of<UserProvider>(context, listen: false);
+                                if (userProvider.user != null) {
+                                  userProvider.user!.quotesEnabled = value;
+                                  await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(userProvider.user!.uid)
+                                      .update({'quotesEnabled': value});
+                                }
+                              },
+                              activeTrackColor: Colors.black,
+                              inactiveTrackColor: Colors.black,
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ),
-                  SizedBox(height: screenHeight * 0.05), // Add some space between the containers
-                  GlassmorphismContainer(
-                    child: ListView(
-                      shrinkWrap: true,
-                      padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01), // Reduce padding above and below
-                      children: [
-                        ListTile(
-                          leading: Icon(Icons.notifications_outlined, size: screenWidth * 0.055),
-                          title: Text(
-                            'Notifications',
-                            style: TextStyle(fontSize: screenWidth * 0.04),
-                          ),
-                          trailing: Switch(
-                            value: _notificationsEnabled,
-                            onChanged: (bool value) {
-                              setState(() {
-                                _notificationsEnabled = value;
-                              });
-                            },
-                            activeTrackColor: Colors.black,
-                            inactiveTrackColor: Colors.black,
-                          ),
-                        ),
-                        const Divider(color: Colors.grey, height: 1), // Add a divider between switches
-                        ListTile(
-                          leading: Icon(Icons.emoji_emotions_outlined, size: screenWidth * 0.055),
-                          title: Text(
-                            'Emojis',
-                            style: TextStyle(fontSize: screenWidth * 0.04),
-                          ),
-                          trailing: Switch(
-                            value: _emojisEnabled, // Add a new state variable for emojis
-                            onChanged: (bool value) async {
-                              setState(() {
-                                _emojisEnabled = value;
-                              });
-
-                              // Update the _user object and Firestore
-                              final userProvider = Provider.of<UserProvider>(context, listen: false);
-                              if (userProvider.user != null) {
-                                userProvider.user!.emojisEnabled = value; // Update the local _user object
-                                print('Setting firebase emojisEnabled to $value for user ${userProvider.user!.uid}');
-                                await FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(userProvider.user!.uid)
-                                    .update({'emojisEnabled': value}); // Update Firestore
-                              }
-                            },
-                            activeTrackColor: Colors.black,
-                            inactiveTrackColor: Colors.black,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Spacer(), // Add a spacer to push the Sign Out option to the bottom
-                  Padding(
-                    padding: EdgeInsets.only(bottom: screenHeight * 0.08), // Add more padding to avoid overlap with bottom nav bar
-                    child: GlassmorphismContainer(
+                    SizedBox(height: screenHeight * 0.05),
+                    GlassmorphismContainer(
                       child: ListView(
                         shrinkWrap: true,
-                        padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01), // Reduce padding above and below
+                        physics: const NeverScrollableScrollPhysics(), // Disable internal scrolling
+                        padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
                         children: [
                           ListTile(
                             leading: Icon(Icons.logout_outlined, size: screenWidth * 0.055),
@@ -178,7 +218,10 @@ class _SettingsPageState extends State<SettingsPage> {
                             textColor: Colors.black,
                             onTap: () {
                               Provider.of<UserProvider>(context, listen: false).signOut();
-                              Navigator.of(context).popUntil((route) => route.isFirst);
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(builder: (context) => const SignInPage()),
+                                (route) => false, // Remove all previous routes
+                              );
                             },
                           ),
                           ListTile(
@@ -237,8 +280,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         ],
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

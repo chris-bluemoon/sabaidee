@@ -11,7 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:sabaidee/firebase_options.dart';
 import 'package:sabaidee/home_page.dart';
 import 'package:sabaidee/providers/user_provider.dart';
-import 'package:sabaidee/sign_up_page.dart';
+import 'package:sabaidee/sign_in_page.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -118,16 +118,33 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
-      child: MaterialApp(
-        navigatorKey: navigatorKey,
-        debugShowCheckedModeBanner: false,
-        title: 'Sabaidee',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        home: auth.FirebaseAuth.instance.currentUser == null
-            ? const SignUpPage() // Default to Sign Up page if not logged in
-            : const HomePage(),
+      child: Builder(
+        builder: (context) {
+          return MaterialApp(
+            navigatorKey: navigatorKey,
+            debugShowCheckedModeBanner: false,
+            title: 'Sabaidee',
+            theme: ThemeData(
+              primarySwatch: Colors.blue,
+            ),
+            home: auth.FirebaseAuth.instance.currentUser == null
+                ? const SignInPage() // Default to Sign In page if not logged in
+                : FutureBuilder(
+                    future: Provider.of<UserProvider>(context, listen: false)
+                        .fetchUserData(auth.FirebaseAuth.instance.currentUser!.uid),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator()); // Show a loading indicator while fetching data
+                      } else if (snapshot.hasError) {
+                        log('Error fetching user data: ${snapshot.error}');
+                        return const SignInPage(); // Redirect to Sign In page if there's an error
+                      } else {
+                        return const HomePage(); // Navigate to HomePage after fetching user data
+                      }
+                    },
+                  ),
+          );
+        },
       ),
     );
   }

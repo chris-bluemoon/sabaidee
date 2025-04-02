@@ -167,6 +167,8 @@ class UserProvider with ChangeNotifier {
         referralCode: _generateRandomCode(),
         emojisEnabled: true, // Default to true
         quotesEnabled: true, // Default to true
+        address: '', // Add empty address
+        phoneNumber: '', // Add empty phone number
       );
 
       // Add user to Firestore
@@ -181,6 +183,8 @@ class UserProvider with ChangeNotifier {
         'referralCode': _generateRandomCode(),
         'emojisEnabled': true, // Default to true
         'quotesEnabled': true, // Default to true
+        'address': '', // Add empty address
+        'phoneNumber': '', // Add empty phone number
       });
 
       notifyListeners();
@@ -306,19 +310,29 @@ class UserProvider with ChangeNotifier {
 
   Future<void> deleteCheckInTime(CheckInTime checkInTime) async {
     if (_user != null) {
+      // Log the object being removed
+      final checkInTimeToRemove = {
+        'dateTime': checkInTime.dateTime.toIso8601String(),
+        'status': checkInTime.status,
+        'duration': checkInTime.duration.inMinutes,
+        'emoji': null, // Set emoji to null for deletion
+        // if (checkInTime.emoji != null) 'emoji': checkInTime.emoji, // Include emoji if it exists
+      };
+
+      log('Attempting to delete check-in time: $checkInTimeToRemove');
+
       // Remove the check-in time from the local list
       _user!.checkInTimes.removeWhere((existingCheckInTime) => existingCheckInTime.dateTime == checkInTime.dateTime);
 
       // Update Firestore
-      log('About to delete check-in time for user: ${checkInTime.dateTime.toIso8601String()}');
-      log('Deleting check-in time for user: ${checkInTime.dateTime.toIso8601String()}');
-      await _firestore.collection('users').doc(_user!.uid).update({
-        'checkInTimes': FieldValue.arrayRemove([{
-          'dateTime': checkInTime.dateTime.toIso8601String(),
-          'status': checkInTime.status, // Use the status from the CheckInTime object
-          'duration': checkInTime.duration.inMinutes // Use the duration from the CheckInTime object
-        }])
-      });
+      try {
+        await _firestore.collection('users').doc(_user!.uid).update({
+          'checkInTimes': FieldValue.arrayRemove([checkInTimeToRemove]),
+        });
+        log('Successfully deleted check-in time from Firestore: $checkInTimeToRemove');
+      } catch (e) {
+        log('Failed to delete check-in time from Firestore: $e');
+      }
 
       notifyListeners();
     }
@@ -488,12 +502,25 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateUser({required String name, required Map<String, String> country, bool? emojisEnabled, bool? quotesEnabled}) async {
+  Future<void> updateUser({
+    required String name,
+    required Map<String, String> country,
+    String? address, // Add address as an optional parameter
+    String? phoneNumber, // Add phone number as an optional parameter
+    bool? emojisEnabled,
+    bool? quotesEnabled,
+  }) async {
     if (_user == null) return;
 
     // Update the user information in the provider
     _user?.name = name;
     _user?.country = country;
+    if (address != null) {
+      _user?.address = address;
+    }
+    if (phoneNumber != null) {
+      _user?.phoneNumber = phoneNumber;
+    }
     if (emojisEnabled != null) {
       _user?.emojisEnabled = emojisEnabled;
     }
@@ -502,10 +529,12 @@ class UserProvider with ChangeNotifier {
     }
     notifyListeners();
 
-    // Update the user information in the database
+    // Update the user information in Firestore
     await FirebaseFirestore.instance.collection('users').doc(_user?.uid).update({
       'name': name,
       'country': country,
+      if (address != null) 'address': address, // Update address if provided
+      if (phoneNumber != null) 'phoneNumber': phoneNumber, // Update phone number if provided
       if (emojisEnabled != null) 'emojisEnabled': emojisEnabled,
       if (quotesEnabled != null) 'quotesEnabled': quotesEnabled,
     });

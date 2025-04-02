@@ -6,27 +6,31 @@ class User {
   final String uid;
   final String email;
   String name;
-  Map<String, String> country; // Change country to a map with timezone
+  String? address; // Add address field
+  String? phoneNumber; // Add phone number field
+  Map<String, String> country;
   final List<CheckInTime> checkInTimes;
   final List<Map<String, String>> followers;
   final List<Map<String, String>> watching;
   final String? fcmToken;
   final String referralCode;
-  bool emojisEnabled; // Add the emojisEnabled field
-  bool quotesEnabled; // Add the quotesEnabled field
+  bool emojisEnabled;
+  bool quotesEnabled;
 
   User({
     required this.uid,
     required this.email,
     required this.name,
+    this.address,
+    this.phoneNumber,
     required this.country,
     required this.checkInTimes,
     required this.followers,
     required this.watching,
     this.fcmToken,
     required this.referralCode,
-    required this.emojisEnabled, // Initialize the emojisEnabled field
-    required this.quotesEnabled, // Initialize the quotesEnabled field
+    required this.emojisEnabled,
+    required this.quotesEnabled,
   });
 
   factory User.fromFirestore(DocumentSnapshot doc) {
@@ -35,6 +39,8 @@ class User {
       uid: doc.id,
       email: data['email'],
       name: data['name'],
+      address: data['address'], // Load address from Firestore
+      phoneNumber: data['phoneNumber'], // Load phone number from Firestore
       country: Map<String, String>.from(data['country']),
       checkInTimes: (data['checkInTimes'] as List)
           .map((item) => CheckInTime.fromMap(item as Map<String, dynamic>))
@@ -43,8 +49,8 @@ class User {
       watching: List<Map<String, String>>.from(data['watching']),
       fcmToken: data['fcmToken'],
       referralCode: data['referralCode'],
-      emojisEnabled: data['emojisEnabled'] ?? true, // Default to true if not set
-      quotesEnabled: data['quotesEnabled'] ?? true, // Default to true if not set
+      emojisEnabled: data['emojisEnabled'] ?? true,
+      quotesEnabled: data['quotesEnabled'] ?? true,
     );
   }
 
@@ -52,14 +58,16 @@ class User {
     return {
       'email': email,
       'name': name,
+      'address': address, // Include address in Firestore
+      'phoneNumber': phoneNumber, // Include phone number in Firestore
       'country': country,
       'checkInTimes': checkInTimes.map((checkInTime) => checkInTime.toMap()).toList(),
       'followers': followers,
       'watching': watching,
       'fcmToken': fcmToken,
       'referralCode': referralCode,
-      'emojisEnabled': emojisEnabled, // Include emojisEnabled in the map
-      'quotesEnabled': quotesEnabled, // Include quotesEnabled in the map
+      'emojisEnabled': emojisEnabled,
+      'quotesEnabled': quotesEnabled,
     };
   }
 }

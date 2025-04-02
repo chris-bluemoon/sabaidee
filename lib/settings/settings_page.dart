@@ -8,7 +8,8 @@ import 'package:sabaidee/settings/my_followers_page.dart';
 import 'package:sabaidee/settings/my_schedule_page.dart';
 import 'package:sabaidee/settings/my_watch_list.dart';
 import 'package:sabaidee/settings/profile_page.dart'; // Import the ProfilePage
-import 'package:sabaidee/sign_in_page.dart'; 
+import 'package:sabaidee/sign_in_page.dart'; // Import the SignInPage
+import 'package:sabaidee/sign_up_page.dart'; // Import the SignUpPage
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -237,7 +238,10 @@ class _SettingsPageState extends State<SettingsPage> {
                                 builder: (context) {
                                   return AlertDialog(
                                     title: const Text('Confirm Deletion', textAlign: TextAlign.center),
-                                    content: const Text('Are you sure you want to delete your account? This action cannot be undone.', textAlign: TextAlign.center),
+                                    content: const Text(
+                                      'Are you sure you want to delete your account? This action cannot be undone.',
+                                      textAlign: TextAlign.center,
+                                    ),
                                     actions: [
                                       TextButton(
                                         onPressed: () => Navigator.of(context).pop(false),
@@ -253,23 +257,46 @@ class _SettingsPageState extends State<SettingsPage> {
                               );
 
                               if (confirm == true) {
+                                // Show spinner while deleting account
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false, // Prevent dismissing the dialog
+                                  builder: (context) {
+                                    return const Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  },
+                                );
+
                                 try {
-                                  Navigator.of(context).popUntil((route) => route.isFirst);
+                                  await userProvider.deleteAccountAndData();
+
+                                  // Close the spinner
+                                  Navigator.of(context).pop();
+
+                                  // Redirect to SignUpPage after deletion
+                                  Navigator.of(context).pushAndRemoveUntil(
+                                    MaterialPageRoute(builder: (context) => const SignUpPage()),
+                                    (route) => false, // Remove all previous routes
+                                  );
+
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                        'Logged out and all data deleted.',
-                                        style: TextStyle(fontSize: screenWidth * 0.04),
+                                        'Account deleted successfully.',
+                                        style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04),
                                       ),
                                     ),
                                   );
-                                  await userProvider.deleteAccountAndData();
                                 } catch (e) {
+                                  // Close the spinner
+                                  Navigator.of(context).pop();
+
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
                                         'Failed to delete account: $e',
-                                        style: TextStyle(fontSize: screenWidth * 0.04),
+                                        style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.04),
                                       ),
                                     ),
                                   );

@@ -120,29 +120,32 @@ class MyApp extends StatelessWidget {
       ],
       child: Builder(
         builder: (context) {
-          return MaterialApp(
-            navigatorKey: navigatorKey,
-            debugShowCheckedModeBanner: false,
-            title: 'Sabaidee',
-            theme: ThemeData(
-              primarySwatch: Colors.blue,
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)), // Set textScaleFactor to 1
+            child: MaterialApp(
+              navigatorKey: navigatorKey,
+              debugShowCheckedModeBanner: false,
+              title: 'Sabaidee',
+              theme: ThemeData(
+                primarySwatch: Colors.blue,
+              ),
+              home: auth.FirebaseAuth.instance.currentUser == null
+                  ? const SignInPage() // Default to Sign In page if not logged in
+                  : FutureBuilder(
+                      future: Provider.of<UserProvider>(context, listen: false)
+                          .fetchUserData(auth.FirebaseAuth.instance.currentUser!.uid),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator()); // Show a loading indicator while fetching data
+                        } else if (snapshot.hasError) {
+                          log('Error fetching user data: ${snapshot.error}');
+                          return const SignInPage(); // Redirect to Sign In page if there's an error
+                        } else {
+                          return const HomePage(); // Navigate to HomePage after fetching user data
+                        }
+                      },
+                    ),
             ),
-            home: auth.FirebaseAuth.instance.currentUser == null
-                ? const SignInPage() // Default to Sign In page if not logged in
-                : FutureBuilder(
-                    future: Provider.of<UserProvider>(context, listen: false)
-                        .fetchUserData(auth.FirebaseAuth.instance.currentUser!.uid),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator()); // Show a loading indicator while fetching data
-                      } else if (snapshot.hasError) {
-                        log('Error fetching user data: ${snapshot.error}');
-                        return const SignInPage(); // Redirect to Sign In page if there's an error
-                      } else {
-                        return const HomePage(); // Navigate to HomePage after fetching user data
-                      }
-                    },
-                  ),
           );
         },
       ),

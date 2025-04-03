@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:convert'; // Add this import for JSON decoding
 
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
@@ -11,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:sabaidee/firebase_options.dart';
 import 'package:sabaidee/home_page.dart';
 import 'package:sabaidee/providers/user_provider.dart';
+import 'package:sabaidee/settings/settings_page.dart';
 import 'package:sabaidee/sign_in_page.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -103,7 +105,33 @@ void main() async {
     android: initializationSettingsAndroid,
     iOS: initializationSettingsIOS,
   );
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse: (NotificationResponse response) async {
+      if (response.payload != null) {
+        log('Notification payload: ${response.payload}'); // Log the raw payload
+
+        try {
+          // Decode the JSON payload
+          final Map<String, dynamic> payloadData = jsonDecode(response.payload!);
+          log('Decoded payload data: $payloadData');
+
+          // Check if the payload contains a specific key to navigate
+          if (payloadData['data']['navigateTo'] == 'settings') {
+            navigatorKey.currentState?.pushNamed('/settings'); // Redirect to the settings page
+          } 
+          if (payloadData['navigateTo'] == 'watching_detail') {
+            log(payloadData['watchingUid']);
+            // navigatorKey.currentState?.pushNamed('/watching_detail'); // Redirect to the settings page
+          } 
+        } catch (e) {
+          log('Error decoding payload: $e');
+        }
+      } else {
+        log('No payload received');
+      }
+    },
+  );
 
   runApp(const MyApp());
 }
@@ -123,6 +151,9 @@ class MyApp extends StatelessWidget {
           return MediaQuery(
             data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)), // Set textScaleFactor to 1
             child: MaterialApp(
+              routes: {
+                '/settings': (context) => const SettingsPage(), // Add the settings page route
+              },
               navigatorKey: navigatorKey,
               debugShowCheckedModeBanner: false,
               title: 'Sabaidee',

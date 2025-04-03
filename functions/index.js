@@ -36,6 +36,7 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
             },
             token: userData.fcmToken,
             data: {
+              navigateTo: 'settings',
               status: 'missed',
             },
           };
@@ -63,7 +64,7 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
                     },
                     token: followerData.fcmToken,
                     data: {
-                      status: 'missed',
+                      followerUid: follower.uid
                     },
                   };
                   admin.messaging().send(followerPayload)
@@ -97,6 +98,7 @@ exports.scheduledCheckInStatusUpdate = functions.pubsub.schedule('every 1 minute
             },
             token: userData.fcmToken,
             data: {
+              navigateTo: 'settings',
               status: 'open',
             },
           };

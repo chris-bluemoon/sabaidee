@@ -71,12 +71,11 @@ class UserProvider with ChangeNotifier {
   Future<void> fetchUserData(String uid) async {
     final userDoc = await _firestore.collection('users').doc(uid).get();
     if (userDoc.exists) {
-      _user = myUser.User.fromFirestore(userDoc);
       log('User data from Firestore: ${userDoc.data()}, uid provided: $uid');
+      _user = myUser.User.fromFirestore(userDoc);
       notifyListeners();
-    }
-    if (_user == null) {
-      log('User data is null, does the UID exist in the database?');
+    } else {
+      log('User document does not exist for UID: $uid');
     }
   }
 

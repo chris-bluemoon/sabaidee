@@ -45,8 +45,12 @@ class User {
       checkInTimes: (data['checkInTimes'] as List)
           .map((item) => CheckInTime.fromMap(item as Map<String, dynamic>))
           .toList(),
-      followers: List<Map<String, String>>.from(data['followers']),
-      watching: List<Map<String, String>>.from(data['watching']),
+      followers: (data['followers'] as List<dynamic>? ?? [])
+          .map((follower) => Map<String, String>.from(follower as Map))
+          .toList(),
+      watching: (data['watching'] as List<dynamic>? ?? [])
+          .map((watchinger) => Map<String, String>.from(watchinger as Map))
+          .toList(),
       fcmToken: data['fcmToken'],
       referralCode: data['referralCode'],
       emojisEnabled: data['emojisEnabled'] ?? true,

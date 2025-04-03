@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/providers/user_provider.dart';
+import 'package:sabaidee/settings/watching_detail.dart';
 
 class MyWatchList extends StatefulWidget {
   const MyWatchList({super.key});
@@ -33,51 +34,36 @@ class _MyWatchListState extends State<MyWatchList> {
     final currentUserUid = userProvider.user?.uid;
 
     if (currentUserUid == null) {
-      print('Current user is not logged in.');
-      if (mounted) {
-        _scaffoldMessengerKey.currentState?.showSnackBar(
-          const SnackBar(content: Text('Current user is not logged in.')),
-        );
-      }
+      log('Error: Current user is not logged in.');
       return;
     }
 
-    final users = await _fetchRegisteredUsers(currentUserUid);
-    bool userFound = false;
-    for (final user in users) {
-      if (user['referralCode'] == code) {
-        userFound = true;
-        print('User found with referral code: $code');
-        final existingWatching = userProvider.watching;
-        final watchingAlreadyExists = existingWatching.any((follower) => follower['uid'] == user['uid']);
+    try {
+      final users = await _fetchRegisteredUsers(currentUserUid);
+      bool userFound = false;
 
-        if (watchingAlreadyExists) {
-          print('Watching already exists.');
-          if (mounted) {
-            _scaffoldMessengerKey.currentState?.showSnackBar(
-              const SnackBar(content: Text('You are already watching this person.')),
-            );
+      for (final user in users) {
+        if (user['referralCode'] == code) {
+          userFound = true;
+          log('User found with referral code: $code');
+          final existingWatching = userProvider.watching;
+          final watchingAlreadyExists = existingWatching.any((follower) => follower['uid'] == user['uid']);
+
+          if (watchingAlreadyExists) {
+            log('Info: You are already watching this person.');
+          } else {
+            await userProvider.createRelationship(user['uid'], 'pending');
+            log('Success: User added as a follower.');
           }
-        } else {
-          await userProvider.createRelationship(user['uid'], 'pending');
-          print('User added as a follower.');
-          if (mounted) {
-            _scaffoldMessengerKey.currentState?.showSnackBar(
-              const SnackBar(content: Text('User added as a follower.')),
-            );
-          }
+          break;
         }
-        break;
       }
-    }
 
-    if (!userFound) {
-      print('User not found');
-      if (mounted) {
-        _scaffoldMessengerKey.currentState?.showSnackBar(
-          const SnackBar(content: Text('User not found')),
-        );
+      if (!userFound) {
+        log('Invalid Code: The referral code you entered is invalid.');
       }
+    } catch (e) {
+      log('Error: An error occurred while checking the referral code. Details: $e');
     }
   }
 
@@ -285,6 +271,7 @@ class _MyWatchListState extends State<MyWatchList> {
                             itemBuilder: (context, index) {
                               final watching = watchings[index];
                               final watchingUid = watching['uid'];
+                              final watchingCreatedAt = watching['createdAt'];
                               final watchingName = watchingNamesAndStatuses[watchingUid]?['name'] ?? 'Unknown';
                               final createdAtString = watchingNamesAndStatuses[watchingUid]?['createdAt'];
                               final createdAtTimestamp = DateTime.parse(createdAtString);
@@ -305,90 +292,84 @@ class _MyWatchListState extends State<MyWatchList> {
                                         : 'TBC';
                                     return Padding(
                                       padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: screenHeight * 0.01), // Add horizontal padding and vertical padding between containers
-                                      child: Dismissible(
-                                        key: Key(watchingUid),
-                                        direction: DismissDirection.endToStart,
-                                        onDismissed: (direction) async {
-                                          await _removeFollower(context, watchingUid);
-                                        },
-                                        background: Container(
-                                          color: Colors.red,
-                                          alignment: Alignment.centerRight,
-                                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                                          child: const Icon(Icons.delete_outline, color: Colors.white),
-                                        ),
-                                        child: GlassmorphismContainer(
-                                          height: screenWidth * 0.25, // Increase height to prevent overflow
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  children: [
-                                                    Padding(
-                                                      padding: EdgeInsets.fromLTRB(
-                                                        screenWidth * 0.02, // Reduced left padding
-                                                        screenHeight * 0.01, // Top padding
-                                                        screenWidth * 0.015, // Right padding
-                                                        0.0, // Bottom padding
-                                                      ),
-                                                      child: Text(
-                                                        watchingName,
-                                                        style: TextStyle(
-                                                          fontWeight: FontWeight.bold,
-                                                          fontSize: screenWidth * 0.05, // Set the font size relative to the screen width
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Padding(
-                                                      padding: EdgeInsets.fromLTRB(
-                                                        screenWidth * 0.02, // Reduced left padding
-                                                        0.0, // Top padding
-                                                        screenWidth * 0.015, // Right padding
-                                                        screenHeight * 0.01, // Bottom padding
-                                                      ),
-                                                      child: Text(
-                                                        'Following since: $createdAt',
-                                                        style: TextStyle(
-                                                          fontSize: screenWidth * 0.035, // Set the font size relative to the screen width
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Padding(
-                                                      padding: EdgeInsets.fromLTRB(
-                                                        screenWidth * 0.02, // Reduced left padding
-                                                        0.0, // Top padding
-                                                        screenWidth * 0.015, // Right padding
-                                                        screenHeight * 0.01, // Bottom padding
-                                                      ),
-                                                      child: Text(
-                                                        'Last check-in status: $displayStatus',
-                                                        style: TextStyle(
-                                                          fontSize: screenWidth * 0.035, // Set the font size relative to the screen width
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              Column(
+                                      child: GlassmorphismContainer(
+                                        height: screenWidth * 0.25, // Increase height to prevent overflow
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
                                                 mainAxisAlignment: MainAxisAlignment.center,
                                                 children: [
-                                                  IconButton(
-                                                    icon: const Icon(Icons.delete_outline, color: Colors.black),
-                                                    iconSize: screenWidth * 0.07, // Set the icon size relative to the screen width
-                                                    onPressed: () async {
-                                                      await _removeFollower(context, watchingUid);
-                                                    },
+                                                  Padding(
+                                                    padding: EdgeInsets.fromLTRB(
+                                                      screenWidth * 0.02, // Reduced left padding
+                                                      screenHeight * 0.01, // Top padding
+                                                      screenWidth * 0.015, // Right padding
+                                                      0.0, // Bottom padding
+                                                    ),
+                                                    child: Text(
+                                                      watchingName,
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: screenWidth * 0.05, // Set the font size relative to the screen width
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding: EdgeInsets.fromLTRB(
+                                                      screenWidth * 0.02, // Reduced left padding
+                                                      0.0, // Top padding
+                                                      screenWidth * 0.015, // Right padding
+                                                      screenHeight * 0.01, // Bottom padding
+                                                    ),
+                                                    child: Text(
+                                                      'Following since: $createdAt',
+                                                      style: TextStyle(
+                                                        fontSize: screenWidth * 0.035, // Set the font size relative to the screen width
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding: EdgeInsets.fromLTRB(
+                                                      screenWidth * 0.02, // Reduced left padding
+                                                      0.0, // Top padding
+                                                      screenWidth * 0.015, // Right padding
+                                                      screenHeight * 0.01, // Bottom padding
+                                                    ),
+                                                    child: Text(
+                                                      'Last check-in status: $displayStatus',
+                                                      style: TextStyle(
+                                                        fontSize: screenWidth * 0.035, // Set the font size relative to the screen width
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
                                                   ),
                                                 ],
                                               ),
-                                            ],
-                                          ),
+                                            ),
+                                            Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                IconButton(
+                                                  icon: const Icon(Icons.chevron_right, color: Colors.black),
+                                                  iconSize: screenWidth * 0.07, // Set the icon size relative to the screen width
+                                                  onPressed: () {
+                                                    Navigator.of(context).push(
+                                                      MaterialPageRoute(
+                                                        builder: (context) => WatchingDetail(
+                                                          watchingUid: watchingUid,
+                                                          createdAt: createdAt,
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     );

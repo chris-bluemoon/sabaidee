@@ -44,10 +44,10 @@ class _CountrySelectionPageState extends State<CountrySelectionPage> {
         widget.email,
         widget.password,
         widget.name,
-        {
-          'country': _selectedCountry ?? '',
-          'timezone': selectedCountry['timezone'] ?? 'UTC+00:00',
-        },
+        // {
+        //   'country': _selectedCountry ?? '',
+        //   'timezone': selectedCountry['timezone'] ?? 'UTC+00:00',
+        // },
       );
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomePage()),

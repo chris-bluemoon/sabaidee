@@ -1,7 +1,11 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sabaidee/country_selection_page.dart';
+import 'package:sabaidee/home_page.dart';
+
+import 'providers/user_provider.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -36,6 +40,31 @@ class _SignUpPageState extends State<SignUpPage> {
     }
   }
 
+  Future<void> _submit() async {
+
+    try {
+      await Provider.of<UserProvider>(context, listen: false).signUp(
+        _emailController.text,
+        _passwordController.text,
+        _nameController.text,
+      );
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to sign up: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+        });
+      }
+    }
+  }
+  
   @override
   void initState() {
     super.initState();
@@ -176,7 +205,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             valueListenable: _isFormValid,
                             builder: (context, isFormValid, child) {
                               return ElevatedButton(
-                                onPressed: isFormValid ? _navigateToCountrySelection : null,
+                                onPressed: isFormValid ? _submit : null, // Use _submit here
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.black, // Set the background color to black
                                   foregroundColor: Colors.white, // Set the text color to white

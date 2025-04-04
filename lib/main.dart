@@ -1,5 +1,5 @@
-import 'dart:developer';
 import 'dart:convert'; // Add this import for JSON decoding
+import 'dart:developer';
 
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
@@ -18,6 +18,7 @@ import 'package:sabaidee/sign_in_page.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
+@pragma('vm:entry-point') // Add this annotation
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   log('Handling a background message: ${message.messageId}');

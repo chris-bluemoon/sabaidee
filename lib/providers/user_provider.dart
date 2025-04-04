@@ -149,7 +149,7 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  Future<void> signUp(String email, String password, String name, Map<String, String> country) async {
+  Future<void> signUp(String email, String password, String name) async {
     try {
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
       final fcmToken = await FirebaseMessaging.instance.getToken();
@@ -158,7 +158,7 @@ class UserProvider with ChangeNotifier {
         uid: userCredential.user!.uid,
         email: email,
         name: name,
-        country: country,
+        country: {'name': 'Test Country'},
         checkInTimes: [],
         followers: [],
         watching: [],
@@ -174,7 +174,7 @@ class UserProvider with ChangeNotifier {
       await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
         'email': email,
         'name': name,
-        'country': country,
+        'country': {'name': 'Test Country'},
         'checkInTimes': [],
         'followers': [],
         'watching': [],

@@ -154,12 +154,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                           border: InputBorder.none,
                                         ),
                                         style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.04),
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Please enter your address';
-                                          }
-                                          return null;
-                                        },
                                         enabled: _isEditing,
                                       ),
                                     ),
@@ -187,12 +181,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                           border: InputBorder.none,
                                         ),
                                         style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.04),
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Please enter your phone number';
-                                          }
-                                          return null;
-                                        },
                                         enabled: _isEditing,
                                       ),
                                     ),
@@ -244,12 +232,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                               });
                                             }
                                           : null,
-                                      validator: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          return 'Please select your country';
-                                        }
-                                        return null;
-                                      },
                                     ),
                                   ),
                                 ],
@@ -274,7 +256,10 @@ class _ProfilePageState extends State<ProfilePage> {
                                             country: {
                                               'country': _selectedCountry ?? '',
                                               'timezone': getCountryList2()
-                                                  .firstWhere((element) => element['country'] == _selectedCountry)['timezone'] ?? '',
+                                                  .firstWhere(
+                                                    (element) => element['country'] == _selectedCountry,
+                                                    orElse: () => {'timezone': ''}, // Provide a default value
+                                                  )['timezone'] ?? '',
                                             },
                                             address: _addressController.text,
                                             phoneNumber: _phoneController.text,

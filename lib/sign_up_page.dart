@@ -19,7 +19,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final bool _isLoading = false;
+  bool _isLoading = false;
   final ValueNotifier<bool> _isFormValid = ValueNotifier<bool>(false);
 
   void _validateForm() {
@@ -205,18 +205,37 @@ class _SignUpPageState extends State<SignUpPage> {
                             valueListenable: _isFormValid,
                             builder: (context, isFormValid, child) {
                               return ElevatedButton(
-                                onPressed: isFormValid ? _submit : null, // Use _submit here
+                                onPressed: isFormValid && !_isLoading
+                                    ? () async {
+                                        setState(() {
+                                          _isLoading = true; // Show spinner
+                                        });
+                                        await _submit(); // Call the submit function
+                                        setState(() {
+                                          _isLoading = false; // Hide spinner after submission
+                                        });
+                                      }
+                                    : null,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.black, // Set the background color to black
                                   foregroundColor: Colors.white, // Set the text color to white
                                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10.0), // Change to 10.0 for squared off corners
+                                    borderRadius: BorderRadius.circular(10.0), // Change to 10.0 for squared-off corners
                                   ),
                                 ),
                                 child: _isLoading
-                                    ? const Center(child: CircularProgressIndicator())
-                                    : const Text('NEXT'),
+                                    ? const Center(
+                                        child: SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white, // Spinner color
+                                            strokeWidth: 2.0,
+                                          ),
+                                        ),
+                                      )
+                                    : const Text('SIGN UP'), // Updated button text
                               );
                             },
                           ),

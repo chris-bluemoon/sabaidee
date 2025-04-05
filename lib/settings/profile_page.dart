@@ -198,7 +198,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                   SizedBox(width: screenWidth * 0.04),
                                   Expanded(
                                     child: DropdownButtonFormField<String>(
-                                      value: _selectedCountry,
+                                      value: getCountryList2().any((country) => country['country'] == _selectedCountry)
+                                          ? _selectedCountry
+                                          : null, // Ensure the value is valid or set to null
                                       decoration: InputDecoration(
                                         hintText: 'Country',
                                         hintStyle: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.04),

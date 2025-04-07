@@ -56,7 +56,7 @@ class _MyWatchListState extends State<MyWatchList> {
             final createdAtTimestamp = watching['createdAt'] is Timestamp
                 ? (watching['createdAt'] as Timestamp).toDate()
                 : DateTime.parse(watching['createdAt'] ?? '');
-            formattedCreatedAt = _formatDateWithSuffix(createdAtTimestamp);
+            formattedCreatedAt = DateFormat('yyyy-MM-dd').format(createdAtTimestamp);
           } catch (e) {
             log('Error parsing createdAt field for $watchingUid: $e');
           }
@@ -72,31 +72,6 @@ class _MyWatchListState extends State<MyWatchList> {
       }
     }
     return watchingData;
-  }
-
-  // Helper function to format the date with a suffix
-  String _formatDateWithSuffix(DateTime date) {
-    final day = date.day;
-    final suffix = _getDaySuffix(day);
-    final formattedDate = DateFormat("d'$suffix' MMMM, yyyy").format(date);
-    return formattedDate;
-  }
-
-  // Helper function to get the day suffix (e.g., 'st', 'nd', 'rd', 'th')
-  String _getDaySuffix(int day) {
-    if (day >= 11 && day <= 13) {
-      return 'th';
-    }
-    switch (day % 10) {
-      case 1:
-        return 'st';
-      case 2:
-        return 'nd';
-      case 3:
-        return 'rd';
-      default:
-        return 'th';
-    }
   }
 
   Future<List<Map<String, dynamic>>> _fetchRegisteredUsers(String currentUserUid) async {

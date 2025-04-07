@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/providers/user_provider.dart';
 import 'package:sabaidee/utils/country_list2.dart'; // Import the country list
@@ -175,6 +176,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                       child: TextFormField(
                                         controller: _phoneController,
                                         keyboardType: TextInputType.phone,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter.digitsOnly, // Allow only numbers
+                                        ],
                                         decoration: InputDecoration(
                                           hintText: 'Phone Number',
                                           hintStyle: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.04),
@@ -182,6 +186,12 @@ class _ProfilePageState extends State<ProfilePage> {
                                         ),
                                         style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.04),
                                         enabled: _isEditing,
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Please enter your phone number';
+                                          }
+                                          return null;
+                                        },
                                       ),
                                     ),
                                   ),
@@ -266,8 +276,22 @@ class _ProfilePageState extends State<ProfilePage> {
                                             address: _addressController.text,
                                             phoneNumber: _phoneController.text,
                                           );
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Profile updated')),
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                title: const Text('Success'),
+                                                content: const Text('Profile updated'),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Navigator.of(context).pop();
+                                                    },
+                                                    child: const Text('OK'),
+                                                  ),
+                                                ],
+                                              );
+                                            },
                                           );
                                           setState(() {
                                             _isEditing = false;

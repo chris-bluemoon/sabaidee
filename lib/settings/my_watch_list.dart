@@ -107,47 +107,78 @@ class _MyWatchListState extends State<MyWatchList> {
 
   void _showReferralCodeDialog(BuildContext context) {
     final TextEditingController referralCodeController = TextEditingController();
+    String? errorText;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Enter Invitation Code'),
-          content: TextField(
-            controller: referralCodeController,
-            decoration: const InputDecoration(
-              labelText: 'Invitation Code',
-              labelStyle: TextStyle(color: Colors.black), // Set the label text color to black
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.black), // Set the enabled border color to black
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: const Text('Enter Invitation Code'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: referralCodeController,
+                    decoration: InputDecoration(
+                      labelText: 'Invitation Code',
+                      labelStyle: const TextStyle(color: Colors.black),
+                      enabledBorder: const UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusedBorder: const UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      errorText: errorText, // Display error text if set
+                    ),
+                    style: const TextStyle(color: Colors.black),
+                  ),
+                ],
               ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.black), // Set the focused border color to black
-              ),
-            ),
-            style: const TextStyle(color: Colors.black), // Set the text color to black
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                'CANCEL',
-                style: TextStyle(color: Colors.black),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text(
-                'OK',
-                style: TextStyle(color: Colors.black),
-              ),
-              onPressed: () async {
-                final code = referralCodeController.text;
-                Navigator.of(context).pop();
-                await _submitReferralCode(context, code);
-              },
-            ),
-          ],
+              actions: <Widget>[
+                TextButton(
+                  child: const Text(
+                    'CANCEL',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text(
+                    'OK',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                  onPressed: () async {
+                    final code = referralCodeController.text;
+                    final userProvider = Provider.of<UserProvider>(context, listen: false);
+                    final currentUserUid = userProvider.user?.uid;
+
+                    if (currentUserUid == null) {
+                      setState(() {
+                        errorText = 'Invalid Code';
+                      });
+                      return;
+                    }
+
+                    final users = await _fetchRegisteredUsers(currentUserUid);
+                    final userFound = users.any((user) => user['referralCode'] == code);
+
+                    if (userFound) {
+                      Navigator.of(context).pop();
+                      await _submitReferralCode(context, code);
+                    } else {
+                      setState(() {
+                        errorText = 'Invalid Code';
+                      });
+                    }
+                  },
+                ),
+              ],
+            );
+          },
         );
       },
     );

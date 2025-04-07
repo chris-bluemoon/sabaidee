@@ -7,8 +7,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/providers/user_provider.dart';
 import 'package:sabaidee/settings/watching_detail.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MyWatchList extends StatefulWidget {
   const MyWatchList({super.key});

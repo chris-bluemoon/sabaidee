@@ -137,6 +137,32 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                             ),
                             SizedBox(height: screenHeight * 0.02),
+                            // Email Address Field
+                            GlassmorphismContainer(
+                              height: screenHeight * 0.08,
+                              child: Row(
+                                children: [
+                                  Icon(Icons.email_outlined, size: screenWidth * 0.055, color: Colors.black),
+                                  SizedBox(width: screenWidth * 0.04),
+                                  Expanded(
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: TextFormField(
+                                        initialValue: userProvider.user?.email ?? 'Unknown', // Ensure this fetches the email address
+                                        decoration: InputDecoration(
+                                          hintText: 'Email Address',
+                                          hintStyle: TextStyle(color: Colors.grey[700], fontSize: screenWidth * 0.04),
+                                          border: InputBorder.none,
+                                        ),
+                                        style: TextStyle(color: Colors.grey[700], fontSize: screenWidth * 0.04),
+                                        enabled: false, // Make the field read-only
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: screenHeight * 0.02),
                             // Address Field
                             GlassmorphismContainer(
                               height: screenHeight * 0.08,

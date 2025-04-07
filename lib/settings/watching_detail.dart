@@ -193,7 +193,7 @@ class WatchingDetail extends StatelessWidget {
                             text: TextSpan(
                               children: [
                                 const TextSpan(
-                                  text: 'Status: ',
+                                  text: 'Latest Check-In Status: ', // Updated heading
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
                                 ),
                                 TextSpan(
@@ -237,7 +237,10 @@ class WatchingDetail extends StatelessWidget {
                               }
                             },
                             icon: const Icon(Icons.phone),
-                            label: Text('CALL $watchingName'.toUpperCase()),
+                            label: Text(
+                              'CALL $watchingName'.toUpperCase(),
+                              overflow: TextOverflow.ellipsis, // Use ellipsis for overflow
+                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black,
                               foregroundColor: Colors.white,
@@ -253,7 +256,10 @@ class WatchingDetail extends StatelessWidget {
                               }
                             },
                             icon: const FaIcon(FontAwesomeIcons.whatsapp),
-                            label: Text('WHATSAPP $watchingName'.toUpperCase()),
+                            label: Text(
+                              'WHATSAPP $watchingName'.toUpperCase(),
+                              overflow: TextOverflow.ellipsis, // Use ellipsis for overflow
+                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
                               foregroundColor: Colors.white,

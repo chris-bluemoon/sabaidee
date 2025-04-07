@@ -2,16 +2,17 @@ import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart'; // Add this import at the top of the file
+import 'package:url_launcher/url_launcher.dart';
 
 class WatchingDetail extends StatelessWidget {
   final String watchingUid;
 
   const WatchingDetail({
-    Key? key,
+    super.key,
     required this.watchingUid,
-  }) : super(key: key);
+  });
 
   Future<Map<String, dynamic>?> _fetchWatchingDetails(String uid) async {
     try {
@@ -23,6 +24,64 @@ class WatchingDetail extends StatelessWidget {
       debugPrint('Error fetching watching details: $e');
     }
     return null;
+  }
+
+  Map<String, String> _getLastCheckInTime(List<dynamic>? checkInTimes) {
+    if (checkInTimes == null || checkInTimes.isEmpty) {
+      return {'time': 'Unknown', 'status': 'No Check-Ins', 'emoji': ''};
+    }
+
+    // Filter out entries with a status of 'pending'
+    final filteredCheckInTimes = checkInTimes.where((entry) {
+      return entry['status']?.toLowerCase() != 'pending';
+    }).toList();
+
+    if (filteredCheckInTimes.isEmpty) {
+      return {'time': 'Unknown', 'status': 'No Valid Check-Ins', 'emoji': ''};
+    }
+
+    // Sort the filtered check-in times in ascending order
+    filteredCheckInTimes.sort((a, b) {
+      final aTime = DateTime.parse(a['dateTime']);
+      final bTime = DateTime.parse(b['dateTime']);
+      return aTime.compareTo(bTime);
+    });
+
+    // Get the last entry
+    final lastCheckIn = filteredCheckInTimes.last;
+    final lastCheckInTime = DateTime.parse(lastCheckIn['dateTime']);
+    String status = lastCheckIn['status'] ?? 'Unknown'; // Get the status from the last check-in entry
+    String emoji = lastCheckIn['emoji'] ?? ''; // Get the emoji from the last check-in entry
+
+    // Capitalize the first letter of the status
+    status = status.toLowerCase().replaceFirst(status[0], status[0].toUpperCase());
+
+    // Format the last check-in time without a comma between the month and the year
+    final formattedTime = DateFormat('EEE, d\'${_getDaySuffix(lastCheckInTime.day)}\' MMMM yyyy @ HH:mm')
+        .format(lastCheckInTime);
+
+    return {
+      'time': formattedTime,
+      'status': status,
+      'emoji': emoji,
+    };
+  }
+
+  // Helper function to get the day suffix (e.g., 'st', 'nd', 'rd', 'th')
+  String _getDaySuffix(int day) {
+    if (day >= 11 && day <= 13) {
+      return 'th';
+    }
+    switch (day % 10) {
+      case 1:
+        return 'st';
+      case 2:
+        return 'nd';
+      case 3:
+        return 'rd';
+      default:
+        return 'th';
+    }
   }
 
   @override
@@ -96,18 +155,72 @@ class WatchingDetail extends StatelessWidget {
                     const SizedBox(height: 100), // Add spacing for the AppBar
                     GlassmorphismContainer(
                       width: double.infinity,
-                      height: 120, // Adjust height as needed
+                      height: 160, // Adjust height to accommodate new fields
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Address: $address',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                const TextSpan(
+                                  text: 'Address: ',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                                ),
+                                TextSpan(
+                                  text: address,
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.black),
+                                ),
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 8),
-                          Text(
-                            'Phone: $phoneNumber',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                const TextSpan(
+                                  text: 'Phone: ',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                                ),
+                                TextSpan(
+                                  text: phoneNumber,
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.black),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                const TextSpan(
+                                  text: 'Status: ',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                                ),
+                                TextSpan(
+                                  text: '${_getLastCheckInTime(watchingDetails['checkInTimes'])['status']}\u00A0\u00A0', // Add two non-breaking spaces
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.black),
+                                ),
+                                TextSpan(
+                                  text: _getLastCheckInTime(watchingDetails['checkInTimes'])['emoji'],
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.black),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                const TextSpan(
+                                  text: 'When: ',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                                ),
+                                TextSpan(
+                                  text: _getLastCheckInTime(watchingDetails['checkInTimes'])['time'],
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.black),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),

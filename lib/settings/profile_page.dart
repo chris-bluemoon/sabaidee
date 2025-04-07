@@ -186,12 +186,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                         ),
                                         style: TextStyle(color: _isEditing ? Colors.black : Colors.grey[700], fontSize: screenWidth * 0.04),
                                         enabled: _isEditing,
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Please enter your phone number';
-                                          }
-                                          return null;
-                                        },
                                       ),
                                     ),
                                   ),

@@ -176,11 +176,41 @@ class MySchedulePage extends StatelessWidget {
       floatingActionButton: pendiningOrOpenScheduleTimes.length < 4
           ? FloatingActionButton(
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const AddScheduleTimePage(),
-                  ),
-                );
+                final userCountry = userProvider.user?.country['country'] ?? '';
+
+                // Check if the country is not set or is "Test Country"
+                if (userCountry.isEmpty || userCountry == 'Test Country') {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Set Country Location'),
+                      content: const Text(
+                        'You must set a country location in your profile before adding a schedule time.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(); // Close the dialog
+                          },
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(); // Close the dialog
+                            Navigator.pushReplacementNamed(context, '/profile'); // Redirect to the profile page
+                          },
+                          child: const Text('Go to Profile'),
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const AddScheduleTimePage(),
+                    ),
+                  );
+                }
               },
               backgroundColor: Colors.white,
               child: const Icon(Icons.add, color: Colors.black),

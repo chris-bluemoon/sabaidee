@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:sabaidee/firebase_options.dart';
 import 'package:sabaidee/home_page.dart';
 import 'package:sabaidee/providers/user_provider.dart';
+import 'package:sabaidee/settings/profile_page.dart';
 import 'package:sabaidee/settings/settings_page.dart';
 import 'package:sabaidee/sign_in_page.dart';
 
@@ -154,6 +155,7 @@ class MyApp extends StatelessWidget {
             child: MaterialApp(
               routes: {
                 '/settings': (context) => const SettingsPage(), // Add the settings page route
+                '/profile': (context) => const ProfilePage(), // Add the settings page route
               },
               navigatorKey: navigatorKey,
               debugShowCheckedModeBanner: false,

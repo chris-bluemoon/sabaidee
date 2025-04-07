@@ -22,7 +22,9 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterL
 @pragma('vm:entry-point') // Add this annotation
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  log('Handling a background message: ${message.messageId}');
+  log('Handling a background message: $message.toString()}');
+  log('Background message data: ${message.data}');
+  log('Background message notification: ${message.notification?.title}');
 
   final userProvider = navigatorKey.currentContext?.read<UserProvider>();
   if (userProvider != null && userProvider.user != null) {
@@ -110,6 +112,7 @@ void main() async {
   await flutterLocalNotificationsPlugin.initialize(
     initializationSettings,
     onDidReceiveNotificationResponse: (NotificationResponse response) async {
+      log('Notification tapped!');
       if (response.payload != null) {
         log('Notification payload: ${response.payload}'); // Log the raw payload
 
@@ -119,13 +122,14 @@ void main() async {
           log('Decoded payload data: $payloadData');
 
           // Check if the payload contains a specific key to navigate
-          if (payloadData['data']['navigateTo'] == 'settings') {
+          if (payloadData['data']['status'] == 'missed') {
             navigatorKey.currentState?.pushNamed('/settings'); // Redirect to the settings page
-          } 
-          if (payloadData['navigateTo'] == 'watching_detail') {
+          } else if (payloadData['data']['navigateTo'] == 'settings') {
+            navigatorKey.currentState?.pushNamed('/settings'); // Redirect to the settings page
+          } else if (payloadData['navigateTo'] == 'watching_detail') {
             log(payloadData['watchingUid']);
-            // navigatorKey.currentState?.pushNamed('/watching_detail'); // Redirect to the settings page
-          } 
+            // navigatorKey.currentState?.pushNamed('/watching_detail'); // Redirect to the watching detail page
+          }
         } catch (e) {
           log('Error decoding payload: $e');
         }

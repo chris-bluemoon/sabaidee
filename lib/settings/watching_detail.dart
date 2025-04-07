@@ -2,16 +2,16 @@ import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class WatchingDetail extends StatelessWidget {
   final String watchingUid;
-  final String createdAt;
 
   const WatchingDetail({
+    Key? key,
     required this.watchingUid,
-    required this.createdAt,
-    super.key,
-  });
+  }) : super(key: key);
 
   Future<Map<String, dynamic>?> _fetchWatchingDetails(String uid) async {
     try {
@@ -27,151 +27,135 @@ class WatchingDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text('Watching Details'),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Stack(
-        children: [
-          // Background image
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/bg3.png',
-              fit: BoxFit.cover,
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _fetchWatchingDetails(watchingUid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        } else if (snapshot.hasError) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Error'),
+              centerTitle: true,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
             ),
+            body: Center(child: Text('Error: ${snapshot.error}')),
+          );
+        } else if (!snapshot.hasData || snapshot.data == null) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('No Details'),
+              centerTitle: true,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+            ),
+            body: const Center(child: Text('No details available.')),
+          );
+        }
+
+        final watchingDetails = snapshot.data!;
+        final phoneNumber = watchingDetails['phoneNumber'] ?? 'Unknown';
+        final address = watchingDetails['address'] ?? 'Unknown';
+        final watchingName = watchingDetails['name'] ?? 'Unknown';
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(watchingName), // Set the AppBar title to the user's name
+            centerTitle: true,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
           ),
-          // Glassmorphism effect
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                color: Colors.black.withOpacity(0.1),
+          extendBodyBehindAppBar: true, // Extend the body behind the AppBar
+          body: Stack(
+            children: [
+              // Background Image
+              Positioned.fill(
+                child: Image.asset(
+                  'assets/images/bg3.png', // Path to your bg3.png file
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
-          ),
-          // Fetch and display details
-          FutureBuilder<Map<String, dynamic>?>(
-            future: _fetchWatchingDetails(watchingUid),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return const Center(child: Text('Error loading details.'));
-              } else if (!snapshot.hasData || snapshot.data == null) {
-                return const Center(child: Text('No details found.'));
-              }
-
-              final data = snapshot.data!;
-              final watchingName = data['name'] ?? 'Unknown';
-              final email = data['email'] ?? 'No email provided';
-              final address = data['address'] ?? 'No address provided';
-              final phoneNumber = data['phoneNumber'] ?? 'No phone number provided';
-              final country = data['country']?['country'] ?? 'No country provided';
-              final checkInTimes = data['checkInTimes'] as List<dynamic>? ?? [];
-
-              return Center(
-                child: GlassmorphismContainer(
-                  width: screenWidth * 0.9,
-                  height: screenHeight * 0.6,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Name Field
-                        Text(
-                          'Name: $watchingName',
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.045,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                        SizedBox(height: screenHeight * 0.02),
-                        // Email Field
-                        Text(
-                          'Email: $email',
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.04,
-                            color: Colors.black,
-                          ),
-                        ),
-                        SizedBox(height: screenHeight * 0.02),
-                        // Address Field
-                        Text(
-                          'Address: $address',
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.04,
-                            color: Colors.black,
-                          ),
-                        ),
-                        SizedBox(height: screenHeight * 0.02),
-                        // Phone Number Field
-                        Text(
-                          'Phone Number: $phoneNumber',
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.04,
-                            color: Colors.black,
-                          ),
-                        ),
-                        SizedBox(height: screenHeight * 0.02),
-                        // Country Field
-                        Text(
-                          'Country: $country',
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.04,
-                            color: Colors.black,
-                          ),
-                        ),
-                        SizedBox(height: screenHeight * 0.02),
-                        // Following Since Field
-                        Text(
-                          'Following Since: $createdAt',
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.04,
-                            color: Colors.black,
-                          ),
-                        ),
-                        SizedBox(height: screenHeight * 0.02),
-                        // Check-In Times Field
-                        Text(
-                          'Check-In Times:',
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.045,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                        SizedBox(height: screenHeight * 0.01),
-                        ...checkInTimes.map((checkIn) {
-                          final dateTime = checkIn['dateTime'] ?? 'Unknown';
-                          final status = checkIn['status'] ?? 'Unknown';
-                          return Padding(
-                            padding: EdgeInsets.only(bottom: screenHeight * 0.01),
-                            child: Text(
-                              '- $dateTime: $status',
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.04,
-                                color: Colors.black,
-                              ),
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
+              // Blur Effect
+              Positioned.fill(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), // Apply blur effect
+                  child: Container(
+                    color: Colors.black.withOpacity(0.2), // Add a semi-transparent overlay
                   ),
                 ),
-              );
-            },
+              ),
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 100), // Add spacing for the AppBar
+                    GlassmorphismContainer(
+                      width: double.infinity,
+                      height: 120, // Adjust height as needed
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Address: $address',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Phone: $phoneNumber',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              if (phoneNumber != 'Unknown') {
+                                launchUrl(Uri.parse('tel:$phoneNumber'));
+                              }
+                            },
+                            icon: const Icon(Icons.phone),
+                            label: Text('CALL $watchingName'.toUpperCase()),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              if (phoneNumber != 'Unknown') {
+                                launchUrl(Uri.parse('https://wa.me/$phoneNumber'));
+                              }
+                            },
+                            icon: const FaIcon(FontAwesomeIcons.whatsapp),
+                            label: Text('WHATSAPP $watchingName'.toUpperCase()),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

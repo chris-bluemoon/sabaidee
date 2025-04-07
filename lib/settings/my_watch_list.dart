@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/providers/user_provider.dart';
 import 'package:sabaidee/settings/watching_detail.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MyWatchList extends StatefulWidget {
   const MyWatchList({super.key});
@@ -323,84 +325,72 @@ class _MyWatchListState extends State<MyWatchList> {
                                         : 'TBC';
                                     return Padding(
                                       padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: screenHeight * 0.01), // Add horizontal padding and vertical padding between containers
-                                      child: GlassmorphismContainer(
-                                        height: screenWidth * 0.25, // Increase height to prevent overflow
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
-                                                  Padding(
-                                                    padding: EdgeInsets.fromLTRB(
-                                                      screenWidth * 0.02, // Reduced left padding
-                                                      screenHeight * 0.01, // Top padding
-                                                      screenWidth * 0.015, // Right padding
-                                                      0.0, // Bottom padding
-                                                    ),
-                                                    child: Text(
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          // Navigate to the watching_detail page
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => WatchingDetail(
+                                                watchingUid: watchingUid,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: GlassmorphismContainer(
+                                          height: screenHeight * 0.15, // Adjust height for the container
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              // Left side: User information
+                                              Padding(
+                                                padding: EdgeInsets.fromLTRB(
+                                                  screenWidth * 0.02, // Left padding
+                                                  screenHeight * 0.01, // Top padding
+                                                  0.0, // Right padding
+                                                  screenHeight * 0.01, // Bottom padding
+                                                ),
+                                                child: Column(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
                                                       watchingName,
                                                       style: TextStyle(
                                                         fontWeight: FontWeight.bold,
                                                         fontSize: screenWidth * 0.05, // Set the font size relative to the screen width
                                                       ),
                                                     ),
-                                                  ),
-                                                  Padding(
-                                                    padding: EdgeInsets.fromLTRB(
-                                                      screenWidth * 0.02, // Reduced left padding
-                                                      0.0, // Top padding
-                                                      screenWidth * 0.015, // Right padding
-                                                      screenHeight * 0.01, // Bottom padding
-                                                    ),
-                                                    child: Text(
+                                                    SizedBox(height: screenHeight * 0.005),
+                                                    Text(
                                                       'Following since: $createdAt',
                                                       style: TextStyle(
                                                         fontSize: screenWidth * 0.035, // Set the font size relative to the screen width
                                                         color: Colors.black,
                                                       ),
                                                     ),
-                                                  ),
-                                                  Padding(
-                                                    padding: EdgeInsets.fromLTRB(
-                                                      screenWidth * 0.02, // Reduced left padding
-                                                      0.0, // Top padding
-                                                      screenWidth * 0.015, // Right padding
-                                                      screenHeight * 0.01, // Bottom padding
-                                                    ),
-                                                    child: Text(
+                                                    SizedBox(height: screenHeight * 0.005),
+                                                    Text(
                                                       'Last check-in status: $displayStatus',
                                                       style: TextStyle(
                                                         fontSize: screenWidth * 0.035, // Set the font size relative to the screen width
                                                         color: Colors.black,
                                                       ),
                                                     ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Column(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                IconButton(
-                                                  icon: const Icon(Icons.chevron_right, color: Colors.black),
-                                                  iconSize: screenWidth * 0.07, // Set the icon size relative to the screen width
-                                                  onPressed: () {
-                                                    Navigator.of(context).push(
-                                                      MaterialPageRoute(
-                                                        builder: (context) => WatchingDetail(
-                                                          watchingUid: watchingUid,
-                                                          createdAt: createdAt,
-                                                        ),
-                                                      ),
-                                                    );
-                                                  },
+                                                  ],
                                                 ),
-                                              ],
-                                            ),
-                                          ],
+                                              ),
+                                              // Right side: Chevron icon
+                                              Padding(
+                                                padding: EdgeInsets.only(right: screenWidth * 0.02), // Right padding for the chevron
+                                                child: Icon(
+                                                  Icons.chevron_right,
+                                                  size: screenWidth * 0.07, // Set the icon size relative to the screen width
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     );

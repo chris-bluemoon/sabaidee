@@ -17,6 +17,87 @@ class MyWatchList extends StatefulWidget {
 
 class _MyWatchListState extends State<MyWatchList> {
   final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+  late Future<Map<String, Map<String, dynamic>>> _watchingDataFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _watchingDataFuture = _fetchWatchingData();
+  }
+
+  Future<Map<String, Map<String, dynamic>>> _fetchWatchingData() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final watchings = userProvider.watching;
+
+    final Map<String, Map<String, dynamic>> watchingData = {};
+    for (final watching in watchings) {
+      final watchingUid = watching['uid'];
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(watchingUid).get();
+
+      if (userDoc.exists) {
+        final data = userDoc.data()!;
+        final checkInTimes = data['checkInTimes'] as List<dynamic>? ?? [];
+        final filteredStatuses = checkInTimes.where((status) => status['status'] != 'pending').toList();
+
+        String lastCheckInStatus = 'TBC';
+        if (filteredStatuses.isNotEmpty) {
+          filteredStatuses.sort((a, b) {
+            final aTimestamp = a['dateTime'] is Timestamp ? a['dateTime'] as Timestamp : Timestamp.fromDate(DateTime.parse(a['dateTime']));
+            final bTimestamp = b['dateTime'] is Timestamp ? b['dateTime'] as Timestamp : Timestamp.fromDate(DateTime.parse(b['dateTime']));
+            return bTimestamp.compareTo(aTimestamp);
+          });
+          lastCheckInStatus = filteredStatuses.first['status'] as String? ?? 'TBC';
+        }
+
+        // Parse and format the createdAt field from the watching field
+        String formattedCreatedAt = 'Unknown';
+        if (watching['createdAt'] != null) {
+          try {
+            final createdAtTimestamp = watching['createdAt'] is Timestamp
+                ? (watching['createdAt'] as Timestamp).toDate()
+                : DateTime.parse(watching['createdAt'] ?? '');
+            formattedCreatedAt = _formatDateWithSuffix(createdAtTimestamp);
+          } catch (e) {
+            log('Error parsing createdAt field for $watchingUid: $e');
+          }
+        }
+
+        if (watchingUid != null) {
+          watchingData[watchingUid] = {
+            'name': data['name'] ?? 'Unknown',
+            'createdAt': formattedCreatedAt, // Use the formatted date
+            'lastCheckInStatus': lastCheckInStatus,
+          };
+        }
+      }
+    }
+    return watchingData;
+  }
+
+  // Helper function to format the date with a suffix
+  String _formatDateWithSuffix(DateTime date) {
+    final day = date.day;
+    final suffix = _getDaySuffix(day);
+    final formattedDate = DateFormat("d'$suffix' MMMM, yyyy").format(date);
+    return formattedDate;
+  }
+
+  // Helper function to get the day suffix (e.g., 'st', 'nd', 'rd', 'th')
+  String _getDaySuffix(int day) {
+    if (day >= 11 && day <= 13) {
+      return 'th';
+    }
+    switch (day % 10) {
+      case 1:
+        return 'st';
+      case 2:
+        return 'nd';
+      case 3:
+        return 'rd';
+      default:
+        return 'th';
+    }
+  }
 
   Future<List<Map<String, dynamic>>> _fetchRegisteredUsers(String currentUserUid) async {
     final usersSnapshot = await FirebaseFirestore.instance.collection('users').get();
@@ -65,44 +146,6 @@ class _MyWatchListState extends State<MyWatchList> {
     } catch (e) {
       log('Error: An error occurred while checking the referral code. Details: $e');
     }
-  }
-
-  Future<String?> _getUserNameFromUid(String uid) async {
-    final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    if (userDoc.exists) {
-      return userDoc.data()?['name'];
-    }
-    return null;
-  }
-
-  Future<String?> _getLastCheckInStatus(String uid) async {
-    try {
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      if (userDoc.exists) {
-        final statuses = userDoc.data()?['checkInTimes'] as List<dynamic>?;
-        log('Statuses: $statuses');
-        if (statuses != null && statuses.isNotEmpty) {
-          final filteredStatuses = statuses.where((status) => status['status'] != 'pending').toList();
-          if (filteredStatuses.isNotEmpty) {
-            filteredStatuses.sort((a, b) {
-              final aTimestamp = a['dateTime'] is Timestamp ? a['dateTime'] as Timestamp : Timestamp.fromDate(DateTime.parse(a['dateTime']));
-              final bTimestamp = b['dateTime'] is Timestamp ? b['dateTime'] as Timestamp : Timestamp.fromDate(DateTime.parse(b['dateTime']));
-              return bTimestamp.compareTo(aTimestamp);
-            });
-            return filteredStatuses.first['status'] as String?;
-          } else {
-            log('Filtered statuses list is empty');
-          }
-        } else {
-          log('Statuses list is empty or null');
-        }
-      } else {
-        log('User document does not exist for UID: $uid');
-      }
-    } catch (e) {
-      log('Error fetching last check-in status: $e');
-    }
-    return 'TBC';
   }
 
   void _showReferralCodeDialog(BuildContext context) {
@@ -210,9 +253,6 @@ class _MyWatchListState extends State<MyWatchList> {
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
-    final watchings = userProvider.watching;
-    final currentUserUid = userProvider.user?.uid;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -225,7 +265,7 @@ class _MyWatchListState extends State<MyWatchList> {
           leading: IconButton(
             icon: Icon(
               Icons.chevron_left,
-              size: screenWidth * 0.08, // Set the size relative to the screen width
+              size: screenWidth * 0.08,
             ),
             onPressed: () {
               Navigator.of(context).pop();
@@ -258,10 +298,10 @@ class _MyWatchListState extends State<MyWatchList> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  SizedBox(height: screenHeight * 0.04), // Reduce space below the app bar
+                  SizedBox(height: screenHeight * 0.04),
                   Expanded(
                     child: FutureBuilder<Map<String, Map<String, dynamic>>>(
-                      future: userProvider.fetchWatchingNamesAndStatuses(),
+                      future: _watchingDataFuture,
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Center(child: CircularProgressIndicator());
@@ -270,25 +310,25 @@ class _MyWatchListState extends State<MyWatchList> {
                         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                           return const Center(
                             child: Padding(
-                              padding: EdgeInsets.all(16.0), // Add padding around the text
+                              padding: EdgeInsets.all(16.0),
                               child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center, // Center the text vertically
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
                                     'Not Currently Following Anyone',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
-                                      fontSize: 24, // Increase the font size
-                                      fontWeight: FontWeight.bold, // Make the text bold
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  SizedBox(height: 8.0), // Add some space between the texts
+                                  SizedBox(height: 8.0),
                                   Text(
                                     '(Click add button below to add a friend who has provided an invitation code)',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
-                                      fontSize: 16, // Set the font size
-                                      color: Colors.black54, // Set the text color
+                                      fontSize: 16,
+                                      color: Colors.black54,
                                     ),
                                   ),
                                 ],
@@ -296,104 +336,85 @@ class _MyWatchListState extends State<MyWatchList> {
                             ),
                           );
                         } else {
-                          final watchingNamesAndStatuses = snapshot.data!;
+                          final watchingData = snapshot.data!;
                           return ListView.builder(
-                            itemCount: watchings.length,
+                            itemCount: watchingData.length,
                             itemBuilder: (context, index) {
-                              final watching = watchings[index];
-                              final watchingUid = watching['uid'];
-                              final watchingCreatedAt = watching['createdAt'];
-                              final watchingName = watchingNamesAndStatuses[watchingUid]?['name'] ?? 'Unknown';
-                              final createdAtString = watchingNamesAndStatuses[watchingUid]?['createdAt'];
-                              final createdAtTimestamp = DateTime.parse(createdAtString);
-                              final formattedCreatedAt = DateFormat("yyyy-MM-dd").format(createdAtTimestamp);
-                              final createdAt = formattedCreatedAt;
-                              return FutureBuilder<String?>(
-                                future: _getLastCheckInStatus(watchingUid!),
-                                builder: (context, statusSnapshot) {
-                                  if (statusSnapshot.connectionState == ConnectionState.waiting) {
-                                    return const Center(child: CircularProgressIndicator());
-                                  } else if (statusSnapshot.hasError) {
-                                    log('Error in FutureBuilder: ${statusSnapshot.error}');
-                                    return const Center(child: Text('Error fetching status'));
-                                  } else {
-                                    final lastCheckInStatus = statusSnapshot.data ?? 'Unknown snapshot data';
-                                    final displayStatus = (lastCheckInStatus == 'missed' || lastCheckInStatus == 'checked in')
-                                        ? lastCheckInStatus.toUpperCase()
-                                        : 'TBC';
-                                    return Padding(
-                                      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: screenHeight * 0.01), // Add horizontal padding and vertical padding between containers
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          // Navigate to the watching_detail page
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => WatchingDetail(
-                                                watchingUid: watchingUid,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        child: GlassmorphismContainer(
-                                          height: screenHeight * 0.15, // Adjust height for the container
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              final watchingUid = watchingData.keys.elementAt(index);
+                              final watching = watchingData[watchingUid]!;
+                              final watchingName = watching['name'];
+                              final createdAt = watching['createdAt'];
+                              final lastCheckInStatus = watching['lastCheckInStatus'];
+
+                              return Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: screenHeight * 0.01),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => WatchingDetail(
+                                          watchingUid: watchingUid,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: GlassmorphismContainer(
+                                    height: screenHeight * 0.15,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        // Left side: User information
+                                        Padding(
+                                          padding: EdgeInsets.fromLTRB(
+                                            screenWidth * 0.02,
+                                            screenHeight * 0.01,
+                                            0.0,
+                                            screenHeight * 0.01,
+                                          ),
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              // Left side: User information
-                                              Padding(
-                                                padding: EdgeInsets.fromLTRB(
-                                                  screenWidth * 0.02, // Left padding
-                                                  screenHeight * 0.01, // Top padding
-                                                  0.0, // Right padding
-                                                  screenHeight * 0.01, // Bottom padding
-                                                ),
-                                                child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      watchingName,
-                                                      style: TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: screenWidth * 0.05, // Set the font size relative to the screen width
-                                                      ),
-                                                    ),
-                                                    SizedBox(height: screenHeight * 0.005),
-                                                    Text(
-                                                      'Following since: $createdAt',
-                                                      style: TextStyle(
-                                                        fontSize: screenWidth * 0.035, // Set the font size relative to the screen width
-                                                        color: Colors.black,
-                                                      ),
-                                                    ),
-                                                    SizedBox(height: screenHeight * 0.005),
-                                                    Text(
-                                                      'Last check-in status: $displayStatus',
-                                                      style: TextStyle(
-                                                        fontSize: screenWidth * 0.035, // Set the font size relative to the screen width
-                                                        color: Colors.black,
-                                                      ),
-                                                    ),
-                                                  ],
+                                              Text(
+                                                watchingName,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: screenWidth * 0.05,
                                                 ),
                                               ),
-                                              // Right side: Chevron icon
-                                              Padding(
-                                                padding: EdgeInsets.only(right: screenWidth * 0.02), // Right padding for the chevron
-                                                child: Icon(
-                                                  Icons.chevron_right,
-                                                  size: screenWidth * 0.07, // Set the icon size relative to the screen width
+                                              SizedBox(height: screenHeight * 0.005),
+                                              Text(
+                                                'Following since: $createdAt',
+                                                style: TextStyle(
+                                                  fontSize: screenWidth * 0.035,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                              SizedBox(height: screenHeight * 0.005),
+                                              Text(
+                                                'Last check-in status: $lastCheckInStatus',
+                                                style: TextStyle(
+                                                  fontSize: screenWidth * 0.035,
                                                   color: Colors.black,
                                                 ),
                                               ),
                                             ],
                                           ),
                                         ),
-                                      ),
-                                    );
-                                  }
-                                },
+                                        // Right side: Chevron icon
+                                        Padding(
+                                          padding: EdgeInsets.only(right: screenWidth * 0.02),
+                                          child: Icon(
+                                            Icons.chevron_right,
+                                            size: screenWidth * 0.07,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               );
                             },
                           );
@@ -432,13 +453,13 @@ class GlassmorphismContainer extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          height: height, // Set a consistent height for each box
+          height: height,
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2), // Semi-transparent white
+            color: Colors.white.withOpacity(0.2),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: Colors.white.withOpacity(0.3), // Semi-transparent white border
+              color: Colors.white.withOpacity(0.3),
               width: 1.5,
             ),
             boxShadow: [
@@ -446,7 +467,7 @@ class GlassmorphismContainer extends StatelessWidget {
                 color: Colors.black.withOpacity(0.1),
                 spreadRadius: 2,
                 blurRadius: 5,
-                offset: const Offset(0, 3), // changes position of shadow
+                offset: const Offset(0, 3),
               ),
             ],
           ),

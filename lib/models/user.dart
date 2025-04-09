@@ -16,6 +16,7 @@ class User {
   final String referralCode;
   bool emojisEnabled;
   bool quotesEnabled;
+  bool locationSharingEnabled; // Add locationSharingEnabled field
 
   User({
     required this.uid,
@@ -31,6 +32,7 @@ class User {
     required this.referralCode,
     required this.emojisEnabled,
     required this.quotesEnabled,
+    required this.locationSharingEnabled, // Initialize locationSharingEnabled
   });
 
   factory User.fromFirestore(DocumentSnapshot doc) {
@@ -55,6 +57,7 @@ class User {
       referralCode: data['referralCode'],
       emojisEnabled: data['emojisEnabled'] ?? true,
       quotesEnabled: data['quotesEnabled'] ?? true,
+      locationSharingEnabled: data['locationSharingEnabled'] ?? false, // Load locationSharingEnabled from Firestore
     );
   }
 
@@ -72,6 +75,7 @@ class User {
       'referralCode': referralCode,
       'emojisEnabled': emojisEnabled,
       'quotesEnabled': quotesEnabled,
+      'locationSharingEnabled': locationSharingEnabled, // Include locationSharingEnabled in Firestore
     };
   }
 }

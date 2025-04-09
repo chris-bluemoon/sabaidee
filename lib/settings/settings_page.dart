@@ -22,6 +22,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _notificationsEnabled = true; // Initial value, adjust as needed
   bool _emojisEnabled = true; // Default value, will be updated in initState
   bool _quotesEnabled = true; // Default value for quotes
+  bool _locationSharingEnabled = false; // Add this variable to track location sharing state
 
   @override
   void initState() {
@@ -140,6 +141,33 @@ class _SettingsPageState extends State<SettingsPage> {
                                 setState(() {
                                   _notificationsEnabled = value;
                                 });
+                              },
+                              activeTrackColor: Colors.black,
+                              inactiveTrackColor: Colors.black,
+                            ),
+                          ),
+                          const Divider(color: Colors.grey, height: 1),
+                          ListTile(
+                            leading: Icon(Icons.location_on_outlined, size: screenWidth * 0.055),
+                            title: Text(
+                              'Share Location',
+                              style: TextStyle(fontSize: screenWidth * 0.04),
+                            ),
+                            trailing: Switch(
+                              value: _locationSharingEnabled,
+                              onChanged: (bool value) async {
+                                setState(() {
+                                  _locationSharingEnabled = value;
+                                });
+
+                                final userProvider = Provider.of<UserProvider>(context, listen: false);
+                                if (userProvider.user != null) {
+                                  userProvider.user!.locationSharingEnabled = value;
+                                  await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(userProvider.user!.uid)
+                                      .update({'locationSharingEnabled': value});
+                                }
                               },
                               activeTrackColor: Colors.black,
                               inactiveTrackColor: Colors.black,

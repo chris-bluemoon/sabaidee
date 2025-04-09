@@ -56,6 +56,7 @@ class UserProvider with ChangeNotifier {
               'referralCode': _generateRandomCode(),
               'emojisEnabled': true, // Default to true
               'quotesEnabled': true, // Default to true
+              'locationSharingEnabled': false, // Default to false
             });
           }
 
@@ -166,6 +167,7 @@ class UserProvider with ChangeNotifier {
         referralCode: _generateRandomCode(),
         emojisEnabled: true, // Default to true
         quotesEnabled: true, // Default to true
+        locationSharingEnabled: false, // Default to false
         address: '', // Add empty address
         phoneNumber: '', // Add empty phone number
       );
@@ -182,6 +184,7 @@ class UserProvider with ChangeNotifier {
         'referralCode': _generateRandomCode(),
         'emojisEnabled': true, // Default to true
         'quotesEnabled': true, // Default to true
+        'locationSharingEnabled': false, // Default to false
         'address': '', // Add empty address
         'phoneNumber': '', // Add empty phone number
       });
@@ -508,6 +511,7 @@ class UserProvider with ChangeNotifier {
     String? phoneNumber, // Add phone number as an optional parameter
     bool? emojisEnabled,
     bool? quotesEnabled,
+    bool? locationSharingEnabled, // Add locationSharingEnabled as an optional parameter
   }) async {
     if (_user == null) return;
 
@@ -526,6 +530,9 @@ class UserProvider with ChangeNotifier {
     if (quotesEnabled != null) {
       _user?.quotesEnabled = quotesEnabled;
     }
+    if (locationSharingEnabled != null) {
+      _user?.locationSharingEnabled = locationSharingEnabled;
+    }
     notifyListeners();
 
     // Update the user information in Firestore
@@ -536,6 +543,7 @@ class UserProvider with ChangeNotifier {
       if (phoneNumber != null) 'phoneNumber': phoneNumber, // Update phone number if provided
       if (emojisEnabled != null) 'emojisEnabled': emojisEnabled,
       if (quotesEnabled != null) 'quotesEnabled': quotesEnabled,
+      if (locationSharingEnabled != null) 'locationSharingEnabled': locationSharingEnabled, // Update locationSharingEnabled if provided
     });
   }
 
@@ -609,6 +617,7 @@ class UserProvider with ChangeNotifier {
         referralCode: _user!.referralCode,
         emojisEnabled: _user!.emojisEnabled, // Add the required parameter
         quotesEnabled: _user!.quotesEnabled, // Add the required parameter
+        locationSharingEnabled: _user!.locationSharingEnabled, // Add the required parameter
       );
       await _firestore.collection('users').doc(_user!.uid).update({
         'fcmToken': token,
@@ -646,6 +655,19 @@ class UserProvider with ChangeNotifier {
     // Handle the notification and update the state
     // For example, you can fetch new data from Firestore and update the user
     _fetchUserData(_user!.uid);
+  }
+
+  Future<void> toggleLocationSharing(bool enabled) async {
+    if (_user != null) {
+      _user!.locationSharingEnabled = enabled;
+
+      // Update Firestore
+      await _firestore.collection('users').doc(_user!.uid).update({
+        'locationSharingEnabled': enabled,
+      });
+
+      notifyListeners();
+    }
   }
 }
 

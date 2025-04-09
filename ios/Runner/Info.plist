@@ -41,7 +41,9 @@
 			<true/>
 		</dict>
 		<key>NSLocationWhenInUseUsageDescription</key>
-		<string>$(PRODUCT_NAME) location usage description</string>
+		<string>We need your location to show the weather.</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>We need your location to show the weather.</string>
 		<key>NSCameraUsageDescription</key>
 		<string>$(PRODUCT_NAME) camera usage description</string>
 		<key>NSMicrophoneUsageDescription</key>

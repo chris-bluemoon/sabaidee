@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/models/check_in_time.dart';
@@ -18,6 +21,7 @@ class NextCheckInPage extends StatefulWidget {
 class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingObserver {
   late final String formattedDate;
   bool _isLoading = true;
+  String? _weatherIconUrl; // URL for the weather icon
 
   @override
   void initState() {
@@ -49,11 +53,65 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     if (userProvider.user != null) {
       await userProvider.fetchUserData(userProvider.user!.uid);
+
+      // Fetch weather data if location sharing is enabled
+      if (userProvider.user!.locationSharingEnabled) {
+        await _fetchWeatherData();
+      }
     }
 
     setState(() {
       _isLoading = false;
     });
+  }
+
+  Future<void> _fetchWeatherData() async {
+    try {
+      // Request location permissions
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Location services are disabled.');
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Location permissions are denied.');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Location permissions are permanently denied.');
+      }
+
+      // Get the current location
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      final latitude = position.latitude;
+      final longitude = position.longitude;
+      print(longitude.toString());
+      print(latitude.toString());
+      // Fetch weather data from OpenWeatherMap API
+
+      // Replace with your weather API key
+      const apiKey = '78cf2627afb3a056ab5593814b9a5238';
+
+      final url = Uri.parse(
+          'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$apiKey&units=metric');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final iconCode = data['weather'][0]['icon'];
+        setState(() {
+          _weatherIconUrl = 'https://openweathermap.org/img/wn/$iconCode@2x.png';
+        });
+      } else {
+        print('Failed to fetch weather data: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching weather data: $e');
+    }
   }
 
   @override
@@ -157,6 +215,15 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                          if (userProvider.user?.locationSharingEnabled == true && _weatherIconUrl != null)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Image.network(
+                                _weatherIconUrl!,
+                                width: 40,
+                                height: 40,
+                              ),
+                            ),
                         ],
                       ),
                       SizedBox(height: screenWidth * 0.1),

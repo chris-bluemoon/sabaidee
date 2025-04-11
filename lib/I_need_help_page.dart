@@ -18,27 +18,12 @@ class INeedHelpPage extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: RichText(
-          textAlign: TextAlign.center,
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: 'EMERGENCY\n',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold, // Make the text bold
-                  fontSize: screenWidth * 0.05, // Set the size relative to the screen width
-                  color: Colors.black, // Set the text color to black
-                ),
-              ),
-              TextSpan(
-                text: 'CONTACTS',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold, // Make the text bold
-                  fontSize: screenWidth * 0.05, // Set the size relative to the screen width
-                  color: Colors.black, // Set the text color to black
-                ),
-              ),
-            ],
+        title: Text(
+          'EMERGENCY CONTACTS',
+          style: TextStyle(
+            fontWeight: FontWeight.bold, // Make the text bold
+            fontSize: screenWidth * 0.05, // Set the size relative to the screen width
+            color: Colors.black, // Set the text color to black
           ),
         ),
         centerTitle: true, // Center the title
@@ -282,7 +267,7 @@ class DetailPage extends StatelessWidget {
                       child: Icon(Icons.phone, color: Colors.white),
                     ),
                     label: Text(
-                      'CALL THE $title EMERGENCY HELPLINE',
+                      'CALL $title ($phoneNumber)', // Add the phone number in brackets
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                     style: ElevatedButton.styleFrom(
@@ -294,7 +279,7 @@ class DetailPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20), // Add space between buttons
+                const SizedBox(height: 40), // Increased space between buttons
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0), // Add horizontal margin
                   child: ElevatedButton.icon(

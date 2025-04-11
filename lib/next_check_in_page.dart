@@ -22,6 +22,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
   late final String formattedDate;
   bool _isLoading = true;
   String? _weatherIconUrl; // URL for the weather icon
+  String? _placeName; // Name of the place
 
   @override
   void initState() {
@@ -67,12 +68,13 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
 
   Future<void> _fetchWeatherData() async {
     try {
-      // Request location permissions
+      // Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         throw Exception('Location services are disabled.');
       }
 
+      // Check and request location permissions
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -86,31 +88,59 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
       }
 
       // Get the current location
-      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
       final latitude = position.latitude;
       final longitude = position.longitude;
-      print(longitude.toString());
-      print(latitude.toString());
+
+      print('\x1B[31mLatitude: $latitude\x1B[0m');   // Red text
+      print('\x1B[31mLongitude: $longitude\x1B[0m'); // Red text
+
       // Fetch weather data from OpenWeatherMap API
+      const weatherApiKey = '78cf2627afb3a056ab5593814b9a5238';
+      final weatherUrl = Uri.parse(
+          'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$weatherApiKey&units=metric');
+      final weatherResponse = await http.get(weatherUrl);
 
-      // Replace with your weather API key
-      const apiKey = '78cf2627afb3a056ab5593814b9a5238';
-
-      final url = Uri.parse(
-          'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$apiKey&units=metric');
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final iconCode = data['weather'][0]['icon'];
+      if (weatherResponse.statusCode == 200) {
+        final weatherData = jsonDecode(weatherResponse.body);
+        final iconCode = weatherData['weather'][0]['icon'];
         setState(() {
           _weatherIconUrl = 'https://openweathermap.org/img/wn/$iconCode@2x.png';
         });
       } else {
-        print('Failed to fetch weather data: ${response.statusCode}');
+        throw Exception('Failed to fetch weather data: ${weatherResponse.statusCode}');
+      }
+
+      // Fetch place name using Google Maps Geocoding API
+      const geocodingApiKey = '78cf2627afb3a056ab5593814b9a5238'; // Replace with your API key
+      final geocodingUrl = Uri.parse('https://api.openweathermap.org/data/2.5/weather?lat=37.785834&lon=-122.406417&appid=$geocodingApiKey&units=metric');
+          // 'https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=$geocodingApiKey');
+      final geocodingResponse = await http.get(geocodingUrl);
+
+      if (geocodingResponse.statusCode == 200) {
+        final geocodingData = jsonDecode(geocodingResponse.body);
+        final results = geocodingData['name'];
+        if (results != null && results.isNotEmpty) {
+          setState(() {
+            _placeName = results;
+          });
+        } else {
+          print(geocodingData.toString());
+          print(geocodingData['name']);
+          setState(() {
+            _placeName = 'Unknown location';
+          });
+        }
+      } else {
+        throw Exception('Failed to fetch place name: ${geocodingResponse.statusCode}');
       }
     } catch (e) {
-      print('Error fetching weather data: $e');
+      print('\x1B[31mError: $e\x1B[0m'); // Red text
+      setState(() {
+        _placeName = 'Error fetching location';
+      });
     }
   }
 
@@ -226,6 +256,17 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                             ),
                         ],
                       ),
+                      if (_placeName != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            _placeName!,
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.04,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                        ),
                       SizedBox(height: screenWidth * 0.1),
                       if (checkInTimes == null || checkInTimes.isEmpty)
                         Center(

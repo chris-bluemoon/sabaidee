@@ -30,6 +30,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     _emojisEnabled = userProvider.user?.emojisEnabled ?? true; // Load emojisEnabled from _user
     _quotesEnabled = userProvider.user?.quotesEnabled ?? true; // Load quotesEnabled from _user
+    _locationSharingEnabled = userProvider.user?.locationSharingEnabled ?? false; // Load locationSharingEnabled from _user
   }
 
   @override

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/models/check_in_time.dart';
 import 'package:sabaidee/providers/user_provider.dart';
@@ -47,6 +48,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
   }
 
   Future<void> _fetchUserData() async {
+    print('Fetching weather data...1');
     setState(() {
       _isLoading = true;
     });
@@ -57,6 +59,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
 
       // Fetch weather data if location sharing is enabled
       if (userProvider.user!.locationSharingEnabled) {
+        print('Fetching weather data...');
         await _fetchWeatherData();
       }
     }
@@ -69,7 +72,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
   Future<void> _fetchWeatherData() async {
     try {
       // Check if location services are enabled
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      bool serviceEnabled = await Permission.locationWhenInUse.serviceStatus.isEnabled;
       if (!serviceEnabled) {
         throw Exception('Location services are disabled.');
       }
@@ -113,9 +116,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
         throw Exception('Failed to fetch weather data: ${weatherResponse.statusCode}');
       }
 
-      // Fetch place name using Google Maps Geocoding API
-      const geocodingApiKey = '78cf2627afb3a056ab5593814b9a5238'; // Replace with your API key
-      final geocodingUrl = Uri.parse('https://api.openweathermap.org/data/2.5/weather?lat=37.785834&lon=-122.406417&appid=$geocodingApiKey&units=metric');
+      final geocodingUrl = Uri.parse('https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$weatherApiKey&units=metric');
           // 'https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=$geocodingApiKey');
       final geocodingResponse = await http.get(geocodingUrl);
 
@@ -329,6 +330,35 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                               ),
                             ),
                             SizedBox(height: screenWidth * 0.05),
+                            // Add the "Help!" button here
+                            Center(
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.pushNamed(context, '/i_need_help'); // Push to the "I Need Help" page
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red, // Red background
+                                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1, vertical: 12.0), // Reduced horizontal padding
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30.0), // Rounded corners
+                                  ),
+                                  elevation: 5, // Slight elevation for shadow effect
+                                ),
+                                icon: const Icon(
+                                  Icons.medical_services, // Medical cross icon
+                                  color: Colors.white,
+                                  size: 24.0, // Slightly smaller icon size
+                                ),
+                                label: const Text(
+                                  'I NEED HELP!',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18.0, // Slightly smaller font size
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                     ],

@@ -9,6 +9,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
+import 'package:sabaidee/I_need_help_page.dart';
 import 'package:sabaidee/firebase_options.dart';
 import 'package:sabaidee/home_page.dart';
 import 'package:sabaidee/providers/user_provider.dart';
@@ -160,6 +161,7 @@ class MyApp extends StatelessWidget {
               routes: {
                 '/settings': (context) => const SettingsPage(), // Add the settings page route
                 '/profile': (context) => const ProfilePage(), // Add the settings page route
+                '/i_need_help': (context) => const INeedHelpPage(), // Add the settings page route
               },
               navigatorKey: navigatorKey,
               debugShowCheckedModeBanner: false,

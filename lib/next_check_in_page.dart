@@ -338,23 +338,40 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.red, // Red background
-                                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1, vertical: 12.0), // Reduced horizontal padding
+                                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1, vertical: 16.0), // Adjust padding for better spacing
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30.0), // Rounded corners
                                   ),
                                   elevation: 5, // Slight elevation for shadow effect
                                 ),
-                                icon: const Icon(
-                                  Icons.medical_services, // Medical cross icon
-                                  color: Colors.white,
-                                  size: 24.0, // Slightly smaller icon size
+                                icon: SizedBox(
+                                  width: 48.0, // Width of the cross
+                                  height: 48.0, // Height of the cross
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      Container(
+                                        width: 12.0, // Thickness of the vertical bar
+                                        height: 48.0, // Height of the vertical bar
+                                        color: Colors.white, // White color for the cross
+                                      ),
+                                      Container(
+                                        width: 48.0, // Width of the horizontal bar
+                                        height: 12.0, // Thickness of the horizontal bar
+                                        color: Colors.white, // White color for the cross
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                label: const Text(
-                                  'I NEED HELP!',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18.0, // Slightly smaller font size
-                                    fontWeight: FontWeight.bold,
+                                label: const Padding(
+                                  padding: EdgeInsets.only(left: 16.0), // Add more space between the icon and text
+                                  child: Text(
+                                    'I NEED HELP!',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24.0, // Increased font size for better visibility
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),

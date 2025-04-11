@@ -255,34 +255,36 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                       else
                         Column(
                           children: [
-                            GlassmorphismContainer(
-                              child: Column(
-                                children: [
-                                  SizedBox(height: screenWidth * 0.04),
-                                  Text(
-                                    nextOrOpenCheckInTime?.status == 'open' ? 'Check In Now' : 'Next Check In',
-                                    style: TextStyle(fontSize: screenWidth * 0.07, fontWeight: FontWeight.normal),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  SizedBox(height: screenWidth * 0.02),
-                                  if (nextOrOpenCheckInTime != null)
-                                    Column(
-                                      children: [
-                                        Text(
-                                          formattedStartTime,
-                                          style: TextStyle(fontSize: screenWidth * 0.1, fontWeight: FontWeight.bold),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        Icon(Icons.arrow_downward_outlined, size: screenWidth * 0.1),
-                                        Text(
-                                          formattedEndTime,
-                                          style: TextStyle(fontSize: screenWidth * 0.1, fontWeight: FontWeight.bold),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ],
+                            Center(
+                              child: GlassmorphismContainer(
+                                child: Column(
+                                  children: [
+                                    SizedBox(height: screenWidth * 0.04),
+                                    Text(
+                                      nextOrOpenCheckInTime?.status == 'open' ? 'Check In Now' : 'Next Check In',
+                                      style: TextStyle(fontSize: screenWidth * 0.07, fontWeight: FontWeight.normal),
+                                      textAlign: TextAlign.center,
                                     ),
-                                  SizedBox(height: screenWidth * 0.05), // Add padding at the bottom
-                                ],
+                                    SizedBox(height: screenWidth * 0.02),
+                                    if (nextOrOpenCheckInTime != null)
+                                      Column(
+                                        children: [
+                                          Text(
+                                            formattedStartTime,
+                                            style: TextStyle(fontSize: screenWidth * 0.1, fontWeight: FontWeight.bold),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          Icon(Icons.arrow_downward_outlined, size: screenWidth * 0.1),
+                                          Text(
+                                            formattedEndTime,
+                                            style: TextStyle(fontSize: screenWidth * 0.1, fontWeight: FontWeight.bold),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                      ),
+                                    SizedBox(height: screenWidth * 0.05), // Add padding at the bottom
+                                  ],
+                                ),
                               ),
                             ),
                             SizedBox(height: screenWidth * 0.05),

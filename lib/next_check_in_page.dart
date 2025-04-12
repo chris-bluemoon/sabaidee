@@ -24,6 +24,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
   bool _isLoading = true;
   String? _weatherIconUrl; // URL for the weather icon
   String? _placeName; // Name of the place
+  String? _weatherType; // Add this variable to store the weather type
 
   @override
   void initState() {
@@ -109,8 +110,10 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
       if (weatherResponse.statusCode == 200) {
         final weatherData = jsonDecode(weatherResponse.body);
         final iconCode = weatherData['weather'][0]['icon'];
+        final weatherType = weatherData['weather'][0]['description']; // Extract weather type
         setState(() {
           _weatherIconUrl = 'https://openweathermap.org/img/wn/$iconCode@2x.png';
+          _weatherType = weatherType; // Store the weather type
         });
       } else {
         throw Exception('Failed to fetch weather data: ${weatherResponse.statusCode}');
@@ -141,6 +144,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
       print('\x1B[31mError: $e\x1B[0m'); // Red text
       setState(() {
         _placeName = 'Error fetching location';
+        _weatherType = null; // Reset weather type on error
       });
     }
   }
@@ -246,26 +250,63 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          if (userProvider.user?.locationSharingEnabled == true && _weatherIconUrl != null)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8.0),
-                              child: Image.network(
-                                _weatherIconUrl!,
-                                width: 40,
-                                height: 40,
-                              ),
-                            ),
                         ],
                       ),
                       if (_placeName != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            _placeName!,
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.04,
-                              fontWeight: FontWeight.normal,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Place name
+                              Text(
+                                _placeName!,
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.05, // Font size for location name
+                                  fontWeight: FontWeight.normal,
+                                ),
+                              ),
+                              // SizedBox(height: screenWidth * 0.005), // Small gap between location and weather details
+
+                              // Weather details (description, icon, and temperature)
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  // Weather description
+                                  if (userProvider.user?.locationSharingEnabled == true && _weatherType != null)
+                                    Text(
+                                      _weatherType!
+                                          .split(' ') // Split the description into words
+                                          .map((word) => word[0].toUpperCase() + word.substring(1)) // Capitalize the first letter of each word
+                                          .join(' '), // Join the words back into a single string
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.04, // Font size for weather description
+                                        fontWeight: FontWeight.normal,
+                                      ),
+                                    ),
+                                  SizedBox(width: screenWidth * 0.02), // Small gap between description and icon
+
+                                  // Weather icon
+                                  if (userProvider.user?.locationSharingEnabled == true && _weatherIconUrl != null)
+                                    Image.network(
+                                      _weatherIconUrl!,
+                                      width: 60, // Width of the weather icon
+                                      height: 60, // Height of the weather icon
+                                    ),
+                                  SizedBox(width: screenWidth * 0.02), // Small gap between icon and temperature
+
+                                  // Temperature
+                                  if (userProvider.user?.locationSharingEnabled == true && _weatherIconUrl != null)
+                                    Text(
+                                      '25°C', // Replace with actual temperature value
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.04, // Font size for temperature
+                                        fontWeight: FontWeight.normal, // Normal font weight for temperature
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       SizedBox(height: screenWidth * 0.1),

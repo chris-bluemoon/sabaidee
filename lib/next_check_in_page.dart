@@ -534,8 +534,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                 ),
                               ),
                             ),
-                            SizedBox(height: screenWidth * 0.05),
-                            // Add the "Help!" button here
+                            SizedBox(height: screenWidth * 0.4), // Add more gap above the button
                             Center(
                               child: ElevatedButton.icon(
                                 onPressed: () {
@@ -543,38 +542,38 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.red, // Red background
-                                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1, vertical: 16.0), // Adjust padding for better spacing
+                                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08, vertical: 12.0), // Reduce padding for smaller button
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30.0), // Rounded corners
+                                    borderRadius: BorderRadius.circular(20.0), // Rounded corners
                                   ),
                                   elevation: 5, // Slight elevation for shadow effect
                                 ),
                                 icon: SizedBox(
-                                  width: 48.0, // Width of the cross
-                                  height: 48.0, // Height of the cross
+                                  width: 32.0, // Reduced width of the cross
+                                  height: 32.0, // Reduced height of the cross
                                   child: Stack(
                                     alignment: Alignment.center,
                                     children: [
                                       Container(
-                                        width: 12.0, // Thickness of the vertical bar
-                                        height: 48.0, // Height of the vertical bar
+                                        width: 8.0, // Reduced thickness of the vertical bar
+                                        height: 32.0, // Reduced height of the vertical bar
                                         color: Colors.white, // White color for the cross
                                       ),
                                       Container(
-                                        width: 48.0, // Width of the horizontal bar
-                                        height: 12.0, // Thickness of the horizontal bar
+                                        width: 32.0, // Reduced width of the horizontal bar
+                                        height: 8.0, // Reduced thickness of the horizontal bar
                                         color: Colors.white, // White color for the cross
                                       ),
                                     ],
                                   ),
                                 ),
                                 label: const Padding(
-                                  padding: EdgeInsets.only(left: 16.0), // Add more space between the icon and text
+                                  padding: EdgeInsets.only(left: 12.0), // Adjust space between the icon and text
                                   child: Text(
                                     'I NEED HELP!',
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 24.0, // Increased font size for better visibility
+                                      fontSize: 20.0, // Reduced font size for better alignment
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),

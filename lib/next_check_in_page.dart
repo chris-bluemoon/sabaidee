@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -363,6 +364,20 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                             style: TextStyle(fontSize: screenWidth * 0.1, fontWeight: FontWeight.bold),
                                             textAlign: TextAlign.center,
                                           ),
+                                          if (nextOrOpenCheckInTime.status == 'pending' &&
+                                              localStartTime != null &&
+                                              localStartTime.day == DateTime.now().add(Duration(days: 1)).day &&
+                                              localStartTime.month == DateTime.now().add(Duration(days: 1)).month &&
+                                              localStartTime.year == DateTime.now().add(Duration(days: 1)).year)
+                                            Text(
+                                              '(Tomorrow)',
+                                              style: TextStyle(
+                                                fontSize: screenWidth * 0.05, // Adjust font size for "(Tomorrow)"
+                                                fontWeight: FontWeight.normal,
+                                                color: Colors.black, // Set text color to black
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
                                         ],
                                       ),
                                     SizedBox(height: screenWidth * 0.05), // Add padding at the bottom

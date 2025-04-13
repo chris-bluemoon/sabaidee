@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -147,6 +147,57 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
         _placeName = 'No location data';
         _weatherType = null; // Reset weather type on error
       });
+    }
+  }
+
+  Future<void> _showRandomQuote(BuildContext context) async {
+    try {
+      // Load the quotes from the JSON file
+      final String quotesJson = await rootBundle.loadString('assets/quotes.json');
+      final List<dynamic> quotes = jsonDecode(quotesJson);
+
+      // Select a random quote
+      final randomQuote = (quotes..shuffle()).first;
+
+      // Extract the quote and author
+      final String quote = randomQuote['quote'];
+      final String author = randomQuote['author'];
+
+      // Show the random quote in a dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Quote of the Day'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  quote,
+                  style: const TextStyle(fontSize: 16.0, fontStyle: FontStyle.italic),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8.0), // Add spacing between quote and author
+                Text(
+                  '- $author',
+                  style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: const Text('Close'),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      print('Error loading quotes: $e');
     }
   }
 
@@ -366,9 +417,9 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                           ),
                                           if (nextOrOpenCheckInTime.status == 'pending' &&
                                               localStartTime != null &&
-                                              localStartTime.day == DateTime.now().add(Duration(days: 1)).day &&
-                                              localStartTime.month == DateTime.now().add(Duration(days: 1)).month &&
-                                              localStartTime.year == DateTime.now().add(Duration(days: 1)).year)
+                                              localStartTime.day == DateTime.now().add(const Duration(days: 1)).day &&
+                                              localStartTime.month == DateTime.now().add(const Duration(days: 1)).month &&
+                                              localStartTime.year == DateTime.now().add(const Duration(days: 1)).year)
                                             Text(
                                               '(Tomorrow)',
                                               style: TextStyle(
@@ -402,46 +453,8 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                                     // Close the dialog
                                                     Navigator.of(context).pop();
 
-                                                    // Optionally, show a confirmation message
-                                                    ScaffoldMessenger.of(context).showSnackBar(
-                                                      SnackBar(content: Text('Check-in completed with emoji $emoji! Next check-in scheduled.')),
-                                                    );
-
-                                                    // Check if quotes are enabled
                                                     if (userProvider.user?.quotesEnabled == true) {
-                                                      // List of random quotes
-                                                      final quotes = [
-                                                        "The best way to predict the future is to create it.",
-                                                        "Success is not final, failure is not fatal: It is the courage to continue that counts.",
-                                                        "Believe you can and you're halfway there.",
-                                                        "Act as if what you do makes a difference. It does.",
-                                                        "The only limit to our realization of tomorrow is our doubts of today.",
-                                                      ];
-
-                                                      // Select a random quote
-                                                      final randomQuote = (quotes..shuffle()).first;
-
-                                                      // Show the random quote in a dialog
-                                                      showDialog(
-                                                        context: context,
-                                                        builder: (BuildContext context) {
-                                                          return AlertDialog(
-                                                            title: const Text('Quote of the Day'),
-                                                            content: Text(
-                                                              randomQuote,
-                                                              style: const TextStyle(fontSize: 16.0, fontStyle: FontStyle.italic),
-                                                            ),
-                                                            actions: [
-                                                              TextButton(
-                                                                onPressed: () {
-                                                                  Navigator.of(context).pop(); // Close the dialog
-                                                                },
-                                                                child: const Text('Close'),
-                                                              ),
-                                                            ],
-                                                          );
-                                                        },
-                                                      );
+                                                      _showRandomQuote(context);
                                                     }
                                                   }
 
@@ -493,7 +506,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                                     );
 
                                                     ScaffoldMessenger.of(context).showSnackBar(
-                                                      SnackBar(content: Text('Check-in completed! Next check-in scheduled.')),
+                                                      const SnackBar(content: Text('Check-in completed! Next check-in scheduled.')),
                                                     );
                                                   }
                                                 },

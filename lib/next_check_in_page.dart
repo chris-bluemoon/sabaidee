@@ -534,7 +534,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                 ),
                               ),
                             ),
-                            SizedBox(height: screenWidth * 0.4), // Add more gap above the button
+                            SizedBox(height: screenWidth * 0.2), // Reduced gap above the button
                             Center(
                               child: ElevatedButton.icon(
                                 onPressed: () {

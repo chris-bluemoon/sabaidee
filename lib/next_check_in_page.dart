@@ -144,7 +144,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
     } catch (e) {
       print('\x1B[31mError: $e\x1B[0m'); // Red text
       setState(() {
-        _placeName = 'Error fetching location';
+        _placeName = 'No location data';
         _weatherType = null; // Reset weather type on error
       });
     }
@@ -372,11 +372,147 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                                             Text(
                                               '(Tomorrow)',
                                               style: TextStyle(
-                                                fontSize: screenWidth * 0.05, // Adjust font size for "(Tomorrow)"
+                                                fontSize: screenWidth * 0.05,
                                                 fontWeight: FontWeight.normal,
-                                                color: Colors.black, // Set text color to black
+                                                color: Colors.black,
                                               ),
                                               textAlign: TextAlign.center,
+                                            ),
+                                          if (nextOrOpenCheckInTime.status == 'open') // Add the button if status is "open"
+                                            Padding(
+                                              padding: EdgeInsets.only(top: screenWidth * 0.05), // Add spacing above the button
+                                              child: ElevatedButton(
+                                                onPressed: () {
+                                                  final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+                                                  // Function to handle emoji selection
+                                                  void handleEmojiSelection(String emoji) {
+                                                    // Set the current check-in status to "checked in" with the selected emoji
+                                                    userProvider.setCheckInStatus(
+                                                      nextOrOpenCheckInTime!.dateTime,
+                                                      'checked in',
+                                                      emoji: emoji,
+                                                    );
+
+                                                    // Add a new check-in time 24 hours in the future with status "pending"
+                                                    userProvider.addCheckInTime(
+                                                      nextOrOpenCheckInTime.dateTime.add(const Duration(days: 1)),
+                                                    );
+
+                                                    // Close the dialog
+                                                    Navigator.of(context).pop();
+
+                                                    // Optionally, show a confirmation message
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      SnackBar(content: Text('Check-in completed with emoji $emoji! Next check-in scheduled.')),
+                                                    );
+
+                                                    // Check if quotes are enabled
+                                                    if (userProvider.user?.quotesEnabled == true) {
+                                                      // List of random quotes
+                                                      final quotes = [
+                                                        "The best way to predict the future is to create it.",
+                                                        "Success is not final, failure is not fatal: It is the courage to continue that counts.",
+                                                        "Believe you can and you're halfway there.",
+                                                        "Act as if what you do makes a difference. It does.",
+                                                        "The only limit to our realization of tomorrow is our doubts of today.",
+                                                      ];
+
+                                                      // Select a random quote
+                                                      final randomQuote = (quotes..shuffle()).first;
+
+                                                      // Show the random quote in a dialog
+                                                      showDialog(
+                                                        context: context,
+                                                        builder: (BuildContext context) {
+                                                          return AlertDialog(
+                                                            title: const Text('Quote of the Day'),
+                                                            content: Text(
+                                                              randomQuote,
+                                                              style: const TextStyle(fontSize: 16.0, fontStyle: FontStyle.italic),
+                                                            ),
+                                                            actions: [
+                                                              TextButton(
+                                                                onPressed: () {
+                                                                  Navigator.of(context).pop(); // Close the dialog
+                                                                },
+                                                                child: const Text('Close'),
+                                                              ),
+                                                            ],
+                                                          );
+                                                        },
+                                                      );
+                                                    }
+                                                  }
+
+                                                  // Check if emojis are enabled
+                                                  if (userProvider.user?.emojisEnabled == true) {
+                                                    // Show a dialog to select an emoji
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (BuildContext context) {
+                                                        return AlertDialog(
+                                                          title: const Text('Choose an Emoji'),
+                                                          content: Wrap(
+                                                            spacing: 10.0,
+                                                            children: [
+                                                              GestureDetector(
+                                                                onTap: () => handleEmojiSelection('😊'),
+                                                                child: const Text('😊', style: TextStyle(fontSize: 24)),
+                                                              ),
+                                                              GestureDetector(
+                                                                onTap: () => handleEmojiSelection('👍'),
+                                                                child: const Text('👍', style: TextStyle(fontSize: 24)),
+                                                              ),
+                                                              GestureDetector(
+                                                                onTap: () => handleEmojiSelection('🎉'),
+                                                                child: const Text('🎉', style: TextStyle(fontSize: 24)),
+                                                              ),
+                                                              GestureDetector(
+                                                                onTap: () => handleEmojiSelection('💪'),
+                                                                child: const Text('💪', style: TextStyle(fontSize: 24)),
+                                                              ),
+                                                              GestureDetector(
+                                                                onTap: () => handleEmojiSelection('🌟'),
+                                                                child: const Text('🌟', style: TextStyle(fontSize: 24)),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        );
+                                                      },
+                                                    );
+                                                  } else {
+                                                    // If emojis are not enabled, proceed with the default check-in logic
+                                                    userProvider.setCheckInStatus(
+                                                      nextOrOpenCheckInTime!.dateTime,
+                                                      'checked in',
+                                                    );
+
+                                                    userProvider.addCheckInTime(
+                                                      nextOrOpenCheckInTime.dateTime.add(const Duration(days: 1)),
+                                                    );
+
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      SnackBar(content: Text('Check-in completed! Next check-in scheduled.')),
+                                                    );
+                                                  }
+                                                },
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.blue, // Set button color to blue
+                                                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.2, vertical: 16.0), // Adjust padding
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(30.0), // Rounded corners
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  'CHECK IN',
+                                                  style: TextStyle(
+                                                    color: Colors.white, // White text color
+                                                    fontSize: screenWidth * 0.05, // Adjust font size
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
                                             ),
                                         ],
                                       ),

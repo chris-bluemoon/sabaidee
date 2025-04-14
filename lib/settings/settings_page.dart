@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:firebase_messaging/firebase_messaging.dart'; // Import Firebase Messaging
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/providers/user_provider.dart';
@@ -227,6 +228,55 @@ class _SettingsPageState extends State<SettingsPage> {
                               activeTrackColor: Colors.black,
                               inactiveTrackColor: Colors.black,
                             ),
+                          ),
+                          const Divider(color: Colors.grey, height: 1),
+                          ListTile(
+                            leading: Icon(Icons.refresh_outlined, size: screenWidth * 0.055),
+                            title: Text(
+                              'Refresh FCM Token',
+                              style: TextStyle(fontSize: screenWidth * 0.04),
+                            ),
+                            onTap: () async {
+                              final userProvider = Provider.of<UserProvider>(context, listen: false);
+                              if (userProvider.user != null) {
+                                try {
+                                  // Get the new FCM token
+                                  final newToken = await FirebaseMessaging.instance.getToken();
+                                  if (newToken != null) {
+                                    // Update the token in Firestore
+                                    await FirebaseFirestore.instance
+                                        .collection('users')
+                                        .doc(userProvider.user!.uid)
+                                        .update({'fcmToken': newToken});
+
+                                    // Update the token in the UserProvider
+                                    userProvider.user!.fcmToken = newToken;
+
+                                    // Show a success message
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'FCM Token refreshed successfully!',
+                                          style: TextStyle(fontSize: screenWidth * 0.04),
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    throw Exception('Failed to retrieve FCM token.');
+                                  }
+                                } catch (e) {
+                                  // Show an error message
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Failed to refresh FCM Token: $e',
+                                        style: TextStyle(fontSize: screenWidth * 0.04),
+                                      ),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
                           ),
                         ],
                       ),

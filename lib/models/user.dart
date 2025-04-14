@@ -12,7 +12,7 @@ class User {
   final List<CheckInTime> checkInTimes;
   final List<Map<String, String>> followers;
   final List<Map<String, String>> watching;
-  final String? fcmToken;
+  String? fcmToken;
   final String referralCode;
   bool emojisEnabled;
   bool quotesEnabled;

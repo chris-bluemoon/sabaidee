@@ -18,7 +18,7 @@ class UserProvider with ChangeNotifier {
   Timer? _timer;
 
   UserProvider() {
-    // _startTimer();
+    initializeFcmTokenListener();
   }
 
   myUser.User? get user => _user;
@@ -668,6 +668,22 @@ class UserProvider with ChangeNotifier {
 
       notifyListeners();
     }
+  }
+
+  void initializeFcmTokenListener() async {
+    // Get the initial FCM token
+    final String? initialToken = await FirebaseMessaging.instance.getToken();
+    if (initialToken != null) {
+      await updateFcmToken(_user!.uid, initialToken);
+    }
+
+    // Listen for token refresh
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+      log('FCM token refreshed: $newToken');
+      await updateFcmToken(_user!.uid, newToken);
+    }).onError((error) {
+      log('Error refreshing FCM token: $error');
+    });
   }
 }
 

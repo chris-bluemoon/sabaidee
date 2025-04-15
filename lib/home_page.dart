@@ -1,8 +1,8 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:sabaidee/activity_page.dart';
 import 'package:sabaidee/next_check_in_page.dart';
 import 'package:sabaidee/settings/settings_page.dart';
+import 'package:sabaidee/wellness_dashboard_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,7 +17,7 @@ class _HomePageState extends State<HomePage> {
 
   static const List<Widget> _pages = <Widget>[
     NextCheckInPage(),
-    ActivityPage(),
+    WellnessDashboardPage(),
     SettingsPage(),
   ];
 

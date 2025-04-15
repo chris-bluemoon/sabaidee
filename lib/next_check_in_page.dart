@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:ui';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,6 +13,7 @@ import 'package:sabaidee/models/check_in_time.dart';
 import 'package:sabaidee/providers/user_provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class NextCheckInPage extends StatefulWidget {
   const NextCheckInPage({super.key});
@@ -26,6 +28,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
   String? _weatherIconUrl; // URL for the weather icon
   String? _placeName; // Name of the place
   String? _weatherType; // Add this variable to store the weather type
+  late StreamSubscription<QuerySnapshot> _firestoreSubscription;
 
   @override
   void initState() {
@@ -34,11 +37,41 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
     final now = DateTime.now();
     formattedDate = DateFormat('E, d MMMM yyyy').format(now).toUpperCase(); // Format the date
     _fetchUserData();
+
+    // Set up Firestore listener
+    _firestoreSubscription = FirebaseFirestore.instance
+        .collection('users') // Target the 'users' collection
+        .where('email', isEqualTo: Provider.of<UserProvider>(context, listen: false).user?.email) // Match the user's email
+        .snapshots()
+        .listen((snapshot) {
+      print('-------------');
+      print('Snapshot received with ${snapshot.docs.length} documents:');
+
+      for (var doc in snapshot.docs) {
+        print('Document ID: ${doc.id}');
+        print('Document Data: ${doc.data()}');
+
+        // Check if 'checkInTimes' exists and contains any status set to 'open'
+        final checkInTimes = doc.data()['checkInTimes'] as List<dynamic>?; // Ensure it's a list
+        if (checkInTimes != null) {
+          final hasOpenStatus = checkInTimes.any((checkInTime) => checkInTime['status'] == 'open');
+          if (hasOpenStatus) {
+            print('Firestore document with status "open" detected. Refreshing user data...');
+            _fetchUserData();
+          } else {
+            print('No CheckInTimes with status "open" found.');
+          }
+        } else {
+          print('No CheckInTimes field found in the document.');
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _firestoreSubscription.cancel(); // Cancel the Firestore listener
     super.dispose();
   }
 
@@ -50,13 +83,13 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
   }
 
   Future<void> _fetchUserData() async {
-    print('Fetching weather data...1');
     setState(() {
       _isLoading = true;
     });
 
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     if (userProvider.user != null) {
+      print('Fetching user data...');
       await userProvider.fetchUserData(userProvider.user!.uid);
 
       // Fetch weather data if location sharing is enabled

@@ -57,7 +57,7 @@ class _HomePageState extends State<HomePage> {
         height: adjustedNavBarHeight, // Height of the navigation bar
         items: <Widget>[
           Icon(Icons.home, size: iconSize, color: _selectedIndex == 0 ? Colors.black : Colors.grey),
-          Icon(Icons.history, size: iconSize, color: _selectedIndex == 1 ? Colors.black : Colors.grey), // Changed icon to history
+          Icon(Icons.spa, size: iconSize, color: _selectedIndex == 1 ? Colors.black : Colors.grey), // Changed icon to spa
           Icon(Icons.settings, size: iconSize, color: _selectedIndex == 2 ? Colors.black : Colors.grey),
         ],
         index: _selectedIndex,

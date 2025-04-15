@@ -1,7 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
-import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
@@ -13,7 +14,6 @@ import 'package:sabaidee/models/check_in_time.dart';
 import 'package:sabaidee/providers/user_provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class NextCheckInPage extends StatefulWidget {
   const NextCheckInPage({super.key});
@@ -107,6 +107,23 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
 
   Future<void> _fetchWeatherData() async {
     try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+      // Check if the weather was fetched within the last hour
+      if (userProvider.lastWeatherFetchTime != null &&
+          DateTime.now().difference(userProvider.lastWeatherFetchTime!) < const Duration(hours: 1)) {
+        print('Weather data was fetched less than an hour ago. Skipping fetch.');
+
+        // Set local variables from the provider before returning
+        setState(() {
+          _weatherIconUrl = userProvider.weatherIconUrl;
+          _placeName = userProvider.placeName;
+          _weatherType = userProvider.weatherType;
+        });
+        print('Weather data from provider: $_weatherIconUrl, $_placeName, $_weatherType');
+        return;
+      }
+
       // Check if location services are enabled
       bool serviceEnabled = await Permission.locationWhenInUse.serviceStatus.isEnabled;
       if (!serviceEnabled) {
@@ -133,8 +150,7 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
       final latitude = position.latitude;
       final longitude = position.longitude;
 
-      print('\x1B[31mLatitude: $latitude\x1B[0m');   // Red text
-      print('\x1B[31mLongitude: $longitude\x1B[0m'); // Red text
+      print('Latitude: $latitude, Longitude: $longitude');
 
       // Fetch weather data from OpenWeatherMap API
       const weatherApiKey = '78cf2627afb3a056ab5593814b9a5238';
@@ -145,41 +161,33 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
       if (weatherResponse.statusCode == 200) {
         final weatherData = jsonDecode(weatherResponse.body);
         final iconCode = weatherData['weather'][0]['icon'];
-        final weatherType = weatherData['weather'][0]['description']; // Extract weather type
+        final weatherType = weatherData['weather'][0]['description'];
+        final placeName = weatherData['name'];
+
+        // Update weather data in the provider
+        userProvider.updateWeatherData(
+          weatherIconUrl: 'https://openweathermap.org/img/wn/$iconCode@2x.png',
+          placeName: placeName,
+          weatherType: weatherType,
+        );
+
+        // Update the last fetch time in the provider
+        userProvider.updateLastWeatherFetchTime(DateTime.now());
+
+        // Set local variables
         setState(() {
           _weatherIconUrl = 'https://openweathermap.org/img/wn/$iconCode@2x.png';
-          _weatherType = weatherType; // Store the weather type
+          _weatherType = weatherType;
+          _placeName = placeName;
         });
       } else {
         throw Exception('Failed to fetch weather data: ${weatherResponse.statusCode}');
       }
-
-      final geocodingUrl = Uri.parse('https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$weatherApiKey&units=metric');
-          // 'https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=$geocodingApiKey');
-      final geocodingResponse = await http.get(geocodingUrl);
-
-      if (geocodingResponse.statusCode == 200) {
-        final geocodingData = jsonDecode(geocodingResponse.body);
-        final results = geocodingData['name'];
-        if (results != null && results.isNotEmpty) {
-          setState(() {
-            _placeName = results;
-          });
-        } else {
-          print(geocodingData.toString());
-          print(geocodingData['name']);
-          setState(() {
-            _placeName = 'Unknown location';
-          });
-        }
-      } else {
-        throw Exception('Failed to fetch place name: ${geocodingResponse.statusCode}');
-      }
     } catch (e) {
-      print('\x1B[31mError: $e\x1B[0m'); // Red text
+      print('Error fetching weather data: $e');
       setState(() {
         _placeName = 'No location data';
-        _weatherType = null; // Reset weather type on error
+        _weatherType = null;
       });
     }
   }

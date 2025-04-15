@@ -17,6 +17,32 @@ class UserProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   Timer? _timer;
 
+  DateTime? _lastWeatherFetchTime;
+  String? _weatherIconUrl;
+  String? _placeName;
+  String? _weatherType;
+
+  DateTime? get lastWeatherFetchTime => _lastWeatherFetchTime;
+  String? get weatherIconUrl => _weatherIconUrl;
+  String? get placeName => _placeName;
+  String? get weatherType => _weatherType;
+
+  void updateLastWeatherFetchTime(DateTime time) {
+    _lastWeatherFetchTime = time;
+    notifyListeners();
+  }
+
+  void updateWeatherData({
+    required String weatherIconUrl,
+    required String placeName,
+    required String weatherType,
+  }) {
+    _weatherIconUrl = weatherIconUrl;
+    _placeName = placeName;
+    _weatherType = weatherType;
+    notifyListeners();
+  }
+
   UserProvider() {
     initializeFcmTokenListener();
   }

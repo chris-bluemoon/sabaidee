@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
-import 'package:firebase_messaging/firebase_messaging.dart'; // Import Firebase Messaging
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/providers/user_provider.dart';
@@ -72,55 +71,50 @@ class _SettingsPageState extends State<SettingsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     GlassmorphismContainer(
-                      child: SizedBox(
-                        height: screenHeight * 0.4, // Constrain the height of the ListView
-                        child: ListView.separated(
-                          physics: const NeverScrollableScrollPhysics(), // Disable internal scrolling
-                          padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
-                          itemCount: 4, // Show 4 items
-                          itemBuilder: (context, index) {
-                            if (index == 0) {
-                              return _buildSettingsOption(
-                                context,
-                                'My Schedule',
-                                Icons.schedule_outlined,
-                                const MySchedulePage(),
-                                screenWidth,
-                              );
-                            } else if (index == 1) {
-                              return _buildSettingsOption(
-                                context,
-                                'My Followers',
-                                Icons.people_outline,
-                                const MyFollowersPage(),
-                                screenWidth,
-                              );
-                            } else if (index == 2) {
-                              return _buildSettingsOption(
-                                context,
-                                'Who Am I Following?',
-                                Icons.remove_red_eye_outlined,
-                                const MyWatchList(),
-                                screenWidth,
-                              );
-                            } else if (index == 3) {
-                              return _buildSettingsOption(
-                                context,
-                                'Profile',
-                                Icons.person_outline,
-                                const ProfilePage(),
-                                screenWidth,
-                              );
-                            }
-                            return Container();
-                          },
-                          separatorBuilder: (context, index) => Column(
-                            children: [
-                              SizedBox(height: screenHeight * 0.01),
-                              const Divider(color: Colors.grey, height: 1),
-                              SizedBox(height: screenHeight * 0.01),
-                            ],
-                          ),
+                      child: ListView.separated(
+                        shrinkWrap: true, // Ensure the ListView does not take unnecessary space
+                        physics: const NeverScrollableScrollPhysics(), // Disable internal scrolling
+                        padding: EdgeInsets.zero, // Remove extra padding
+                        itemCount: 4, // Number of items
+                        itemBuilder: (context, index) {
+                          if (index == 0) {
+                            return _buildSettingsOption(
+                              context,
+                              'My Schedule',
+                              Icons.schedule_outlined,
+                              const MySchedulePage(),
+                              screenWidth,
+                            );
+                          } else if (index == 1) {
+                            return _buildSettingsOption(
+                              context,
+                              'My Followers',
+                              Icons.people_outline,
+                              const MyFollowersPage(),
+                              screenWidth,
+                            );
+                          } else if (index == 2) {
+                            return _buildSettingsOption(
+                              context,
+                              'Who Am I Following?',
+                              Icons.remove_red_eye_outlined,
+                              const MyWatchList(),
+                              screenWidth,
+                            );
+                          } else if (index == 3) {
+                            return _buildSettingsOption(
+                              context,
+                              'Profile',
+                              Icons.person_outline,
+                              const ProfilePage(),
+                              screenWidth,
+                            );
+                          }
+                          return Container();
+                        },
+                        separatorBuilder: (context, index) => const Divider(
+                          color: Colors.grey,
+                          height: 1, // Ensure consistent spacing between items
                         ),
                       ),
                     ),
@@ -229,55 +223,6 @@ class _SettingsPageState extends State<SettingsPage> {
                               inactiveTrackColor: Colors.black,
                             ),
                           ),
-                          const Divider(color: Colors.grey, height: 1),
-                          ListTile(
-                            leading: Icon(Icons.refresh_outlined, size: screenWidth * 0.055),
-                            title: Text(
-                              'Refresh FCM Token',
-                              style: TextStyle(fontSize: screenWidth * 0.04),
-                            ),
-                            onTap: () async {
-                              final userProvider = Provider.of<UserProvider>(context, listen: false);
-                              if (userProvider.user != null) {
-                                try {
-                                  // Get the new FCM token
-                                  final newToken = await FirebaseMessaging.instance.getToken();
-                                  if (newToken != null) {
-                                    // Update the token in Firestore
-                                    await FirebaseFirestore.instance
-                                        .collection('users')
-                                        .doc(userProvider.user!.uid)
-                                        .update({'fcmToken': newToken});
-
-                                    // Update the token in the UserProvider
-                                    userProvider.user!.fcmToken = newToken;
-
-                                    // Show a success message
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'FCM Token refreshed successfully! $newToken',
-                                          style: TextStyle(fontSize: screenWidth * 0.04),
-                                        ),
-                                      ),
-                                    );
-                                  } else {
-                                    throw Exception('Failed to retrieve FCM token.');
-                                  }
-                                } catch (e) {
-                                  // Show an error message
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Failed to refresh FCM Token: $e',
-                                        style: TextStyle(fontSize: screenWidth * 0.04),
-                                      ),
-                                    ),
-                                  );
-                                }
-                              }
-                            },
-                          ),
                         ],
                       ),
                     ),
@@ -304,6 +249,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               );
                             },
                           ),
+                          SizedBox(height: screenHeight * 0.05),
                           ListTile(
                             leading: Icon(Icons.delete_forever_outlined, size: screenWidth * 0.055, color: Colors.black),
                             title: Text(

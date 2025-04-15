@@ -51,15 +51,16 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
         print('Document ID: ${doc.id}');
         print('Document Data: ${doc.data()}');
 
-        // Check if 'checkInTimes' exists and contains any status set to 'open'
+        // Check if 'checkInTimes' exists and contains any status set to 'open' or 'missed'
         final checkInTimes = doc.data()['checkInTimes'] as List<dynamic>?; // Ensure it's a list
         if (checkInTimes != null) {
-          final hasOpenStatus = checkInTimes.any((checkInTime) => checkInTime['status'] == 'open');
-          if (hasOpenStatus) {
-            print('Firestore document with status "open" detected. Refreshing user data...');
+          final hasRelevantStatus = checkInTimes.any((checkInTime) =>
+              checkInTime['status'] == 'open' || checkInTime['status'] == 'missed');
+          if (hasRelevantStatus) {
+            print('Firestore document with status "open" or "missed" detected. Refreshing user data...');
             _fetchUserData();
           } else {
-            print('No CheckInTimes with status "open" found.');
+            print('No CheckInTimes with status "open" or "missed" found.');
           }
         } else {
           print('No CheckInTimes field found in the document.');

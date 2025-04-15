@@ -256,7 +256,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                          'FCM Token refreshed successfully!',
+                                          'FCM Token refreshed successfully! $newToken',
                                           style: TextStyle(fontSize: screenWidth * 0.04),
                                         ),
                                       ),

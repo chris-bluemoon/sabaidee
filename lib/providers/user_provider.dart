@@ -154,6 +154,7 @@ class UserProvider with ChangeNotifier {
     try {
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
       final fcmToken = await FirebaseMessaging.instance.getToken();
+      log('Got FCM token: $fcmToken');
 
       _user = myUser.User(
         uid: userCredential.user!.uid,
@@ -604,6 +605,7 @@ class UserProvider with ChangeNotifier {
   }
 
   Future<void> updateFcmToken(String uid, String token) async {
+    log('updateFcmToken called for user $_user');
     if (_user != null) {
       _user = myUser.User(
         uid: _user!.uid,
@@ -619,6 +621,7 @@ class UserProvider with ChangeNotifier {
         quotesEnabled: _user!.quotesEnabled, // Add the required parameter
         locationSharingEnabled: _user!.locationSharingEnabled, // Add the required parameter
       );
+      log('Updating FCM token for user: ${_user!.uid} to $token');
       await _firestore.collection('users').doc(_user!.uid).update({
         'fcmToken': token,
       });
@@ -673,14 +676,35 @@ class UserProvider with ChangeNotifier {
   void initializeFcmTokenListener() async {
     // Get the initial FCM token
     final String? initialToken = await FirebaseMessaging.instance.getToken();
+    log('Initial FCM token: $initialToken');
+
     if (initialToken != null) {
-      await updateFcmToken(_user!.uid, initialToken);
+      if (_user != null) {
+        log('Calling updateFcmToken with initial token: $initialToken and user uid: ${_user!.uid}');
+        await updateFcmToken(_user!.uid, initialToken);
+      } else {
+        log('User is null, delaying FCM token update');
+        // Wait until _user is initialized
+        void listener() async {
+          if (_user != null) {
+            log('User initialized, updating FCM token');
+            await updateFcmToken(_user!.uid, initialToken);
+            removeListener(listener); // Remove listener after updating
+          }
+        }
+
+        addListener(listener);
+      }
     }
 
     // Listen for token refresh
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
       log('FCM token refreshed: $newToken');
-      await updateFcmToken(_user!.uid, newToken);
+      if (_user != null) {
+        await updateFcmToken(_user!.uid, newToken);
+      } else {
+        log('User is null, cannot update refreshed FCM token');
+      }
     }).onError((error) {
       log('Error refreshing FCM token: $error');
     });

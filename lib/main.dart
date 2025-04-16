@@ -159,9 +159,9 @@ class MyApp extends StatelessWidget {
             data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)), // Set textScaleFactor to 1
             child: MaterialApp(
               routes: {
-                '/settings': (context) => const SettingsPage(), // Add the settings page route
-                '/profile': (context) => const ProfilePage(), // Add the settings page route
-                '/i_need_help': (context) => const INeedHelpPage(), // Add the settings page route
+                '/settings': (context) => const SettingsPage(),
+                '/profile': (context) => const ProfilePage(),
+                '/i_need_help': (context) => const INeedHelpPage(),
               },
               navigatorKey: navigatorKey,
               debugShowCheckedModeBanner: false,
@@ -170,18 +170,21 @@ class MyApp extends StatelessWidget {
                 primarySwatch: Colors.blue,
               ),
               home: auth.FirebaseAuth.instance.currentUser == null
-                  ? const SignInPage() // Default to Sign In page if not logged in
+                  ? const SignInPage()
                   : FutureBuilder(
                       future: Provider.of<UserProvider>(context, listen: false)
                           .fetchUserData(auth.FirebaseAuth.instance.currentUser!.uid),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator()); // Show a loading indicator while fetching data
+                          return const Center(child: CircularProgressIndicator());
                         } else if (snapshot.hasError) {
                           log('Error fetching user data: ${snapshot.error}');
-                          return const SignInPage(); // Redirect to Sign In page if there's an error
+                          return const SignInPage();
                         } else {
-                          return const HomePage(); // Navigate to HomePage after fetching user data
+                          return MediaQuery(
+                            data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)),
+                            child: const HomePage(),
+                          );
                         }
                       },
                     ),

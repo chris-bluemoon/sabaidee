@@ -14,12 +14,14 @@ dependencies:
   firebase_messaging: ^15.2.2
   flutter:
     sdk: flutter
+  flutter_ai_toolkit: ^0.7.1
   flutter_dotenv: ^5.2.1
   flutter_local_notifications: ^18.0.0
   flutter_native_splash: ^2.4.1
   font_awesome_flutter: ^10.8.0
   geolocator: ^13.0.2
   glassmorphism: ^3.0.0
+  google_generative_ai: ^0.4.6
   google_sign_in: ^6.2.2
   intl: ^0.20.2
   mailer: ^6.4.1

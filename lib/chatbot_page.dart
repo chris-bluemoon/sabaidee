@@ -1,5 +1,5 @@
+import 'package:firebase_vertexai/firebase_vertexai.dart';
 import 'package:flutter/material.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
 
 class ChatbotPage extends StatefulWidget {
   const ChatbotPage({super.key});
@@ -9,30 +9,55 @@ class ChatbotPage extends StatefulWidget {
 }
 
 class _ChatbotPageState extends State<ChatbotPage> {
-  // Replace with your Vertex AI API key
-  final String _apiKey = 'YOUR_VERTEX_AI_API_KEY'; // Replace with your actual API key
-  late final GenerativeModel model; // Declare the model as a late final variable
   final TextEditingController _chatController = TextEditingController();
-  final List<Map<String, String>> _messages = [];
-  final bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize the Vertex AI Generative Model
-    model = GenerativeModel(apiKey: _apiKey, model: 'gemini-2.0-flash');
-  }
+  String _responseText = '';
 
   @override
   Widget build(BuildContext context) {
+    final model = FirebaseVertexAI.instance.generativeModel(model: 'gemini-2.0-flash');
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chatbot'),
       ),
-      body: const Center(
-        child: Text(
-          'Chatbot',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Text(
+                  _responseText,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _chatController,
+                    decoration: const InputDecoration(
+                      hintText: 'Type your message...',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () async {
+                    final prompt = [Content.text(_chatController.text)];
+                    final response = await model.generateContent(prompt);
+                    setState(() {
+                      _responseText = response.text ?? '';
+                    });
+                    _chatController.clear();
+                  },
+                  child: const Text('Send'),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

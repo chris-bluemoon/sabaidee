@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "name": "Flutter (lib\\next_check_in_page.dart)",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib\\next_check_in_page.dart"
+        }
+    ]
+}

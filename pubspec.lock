@@ -234,7 +234,7 @@ packages:
     source: hosted
     version: "0.9.3+4"
   firebase_app_check:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: firebase_app_check
       sha256: "9c2b9af9204f5255501127b2e62597ead4003121a93eb385732a43e05fb182e3"

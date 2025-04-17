@@ -1,13 +1,10 @@
-import 'dart:convert'; // Add this import for JSON decoding
 import 'dart:developer';
 
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
 import 'package:sabaidee/I_need_help_page.dart';
 import 'package:sabaidee/firebase_options.dart';
@@ -37,108 +34,18 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  FlutterNativeSplash.preserve(widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
-
-  await dotenv.load(fileName: ".env");
+  // Initialize Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  FlutterNativeSplash.remove();
+  // Activate Firebase App Check
+  // await FirebaseAppCheck.instance.activate(
+    // androidProvider: AndroidProvider.debug,
+  // );
 
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-  NotificationSettings settings = await messaging.requestPermission(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
-
-  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-    log('User granted permission');
-  } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
-    log('User granted provisional permission');
-  } else {
-    log('User declined or has not accepted permission');
-  }
-
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    RemoteNotification? notification = message.notification;
-    AndroidNotification? android = message.notification?.android;
-    AppleNotification? apple = message.notification?.apple;
-
-    if (notification != null) {
-      flutterLocalNotificationsPlugin.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        NotificationDetails(
-          android: android != null
-              ? const AndroidNotificationDetails(
-                  'your_channel_id',
-                  'your_channel_name',
-                  channelDescription: 'your_channel_description',
-                  icon: '@mipmap/ic_launcher',
-                )
-              : null,
-          iOS: apple != null
-              ? const DarwinNotificationDetails(
-                  presentAlert: true,
-                  presentBadge: true,
-                  presentSound: true,
-                )
-              : null,
-        ),
-      );
-      final userProvider = navigatorKey.currentContext?.read<UserProvider>();
-      if (userProvider != null) {
-        log('Notification received: ${message.data}');
-        userProvider.handleNotification(message);
-      }
-    }
-  });
-
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
-  const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings(
-    requestAlertPermission: true,
-    requestBadgePermission: true,
-    requestSoundPermission: true,
-  );
-  const InitializationSettings initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-    iOS: initializationSettingsIOS,
-  );
-  await flutterLocalNotificationsPlugin.initialize(
-    initializationSettings,
-    onDidReceiveNotificationResponse: (NotificationResponse response) async {
-      log('Notification tapped!');
-      if (response.payload != null) {
-        log('Notification payload: ${response.payload}'); // Log the raw payload
-
-        try {
-          // Decode the JSON payload
-          final Map<String, dynamic> payloadData = jsonDecode(response.payload!);
-          log('Decoded payload data: $payloadData');
-
-          // Check if the payload contains a specific key to navigate
-          if (payloadData['data']['status'] == 'missed') {
-            navigatorKey.currentState?.pushNamed('/settings'); // Redirect to the settings page
-          } else if (payloadData['data']['navigateTo'] == 'settings') {
-            navigatorKey.currentState?.pushNamed('/settings'); // Redirect to the settings page
-          } else if (payloadData['navigateTo'] == 'watching_detail') {
-            log(payloadData['watchingUid']);
-            // navigatorKey.currentState?.pushNamed('/watching_detail'); // Redirect to the watching detail page
-          }
-        } catch (e) {
-          log('Error decoding payload: $e');
-        }
-      } else {
-        log('No payload received');
-      }
-    },
-  );
+  // final debugToken = await FirebaseAppCheck.instance.getToken(true);
+  // log('Debug Token: $debugToken');
 
   runApp(const MyApp());
 }

@@ -280,7 +280,8 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                   }
 
                   final checkInTimes = userProvider.user?.checkInTimes.where((time) => (time.status == 'pending' || time.status == 'open')).toList();
-
+print('C- Original CheckInTimes: ${userProvider.user?.checkInTimes.length}');
+print('C- no of check in times: ${checkInTimes?.length}');
                   // Initialize timezone data
                   tz.initializeTimeZones();
 
@@ -321,10 +322,13 @@ class _NextCheckInPageState extends State<NextCheckInPage> with WidgetsBindingOb
                   final now = DateTime.now().toUtc();
                   final futureCheckInTimes = checkInTimes?.where((checkInTime) => checkInTime.dateTime.isAfter(now.subtract(Duration(minutes: checkInTime.duration.inMinutes)))).toList() ?? [];
 
+
                   CheckInTime? nextOrOpenCheckInTime;
                   if (futureCheckInTimes.isNotEmpty) {
                     nextOrOpenCheckInTime = futureCheckInTimes.reduce((a, b) => a.dateTime.isBefore(b.dateTime) ? a : b);
                   }
+                  print('C- Filtered Future CheckInTimes: $futureCheckInTimes');
+                  print('C- Next or Open CheckInTime: $nextOrOpenCheckInTime');
 
                   final localStartTime = nextOrOpenCheckInTime != null ? tz.TZDateTime.from(nextOrOpenCheckInTime.dateTime, location) : null;
                   final localEndTime = localStartTime != null && nextOrOpenCheckInTime != null ? localStartTime.add(nextOrOpenCheckInTime.duration) : null;

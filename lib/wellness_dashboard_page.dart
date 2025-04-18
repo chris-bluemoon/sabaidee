@@ -38,6 +38,7 @@ class WellnessDashboardPage extends StatelessWidget {
                   const SizedBox(height: 100), // Space where the AppBar was
                   // Today's Check-In Section
                   GlassmorphismContainer(
+                    color: Colors.pinkAccent, // Pastel pink
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -66,6 +67,7 @@ class WellnessDashboardPage extends StatelessWidget {
                   const SizedBox(height: 16),
                   // Chatbot Section
                   GlassmorphismContainer(
+                    color: Colors.blueAccent, // Pastel blue
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -98,24 +100,25 @@ class WellnessDashboardPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   // Recommendations Section
-                  const GlassmorphismContainer(
+                  GlassmorphismContainer(
+                    color: Colors.greenAccent, // Pastel green
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           "Recommendations",
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 8),
-                        Text(
+                        const SizedBox(height: 8),
+                        const Text(
                           "Here are some tips to improve your wellness today.",
                           style: TextStyle(fontSize: 16),
                         ),
-                        SizedBox(height: 16),
-                        Text(
+                        const SizedBox(height: 16),
+                        const Text(
                           "- Take a 10-minute walk.\n- Drink more water.\n- Practice mindfulness for 5 minutes.",
                           style: TextStyle(fontSize: 16),
                         ),
@@ -135,8 +138,13 @@ class WellnessDashboardPage extends StatelessWidget {
 // Glassmorphism container widget
 class GlassmorphismContainer extends StatelessWidget {
   final Widget child;
+  final Color color; // Add a color parameter
 
-  const GlassmorphismContainer({super.key, required this.child});
+  const GlassmorphismContainer({
+    super.key,
+    required this.child,
+    this.color = Colors.white, // Default to white if no color is provided
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +154,7 @@ class GlassmorphismContainer extends StatelessWidget {
         margin: const EdgeInsets.symmetric(vertical: 8.0), // Add spacing between sections
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          color: Colors.white.withOpacity(0.2), // Semi-transparent white
+          color: color.withOpacity(0.2), // Use the provided color with transparency
           border: Border.all(color: Colors.white.withOpacity(0.3)), // Border with transparency
         ),
         child: ClipRRect(

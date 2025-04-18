@@ -39,27 +39,29 @@ class _SettingsPageState extends State<SettingsPage> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      body: Stack(
-        children: [
-          // Background image
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/bg3.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-          // Glassmorphism effect
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                color: Colors.black.withOpacity(0.1),
+      body: SizedBox(
+        width: double.infinity, // Ensure the container takes the full width
+        height: double.infinity, // Ensure the container takes the full height
+        child: Stack(
+          children: [
+            // Background image
+            Positioned.fill(
+              child: Image.asset(
+                'assets/images/bg3.png',
+                fit: BoxFit.cover,
               ),
             ),
-          ),
-          // Main content
-          SafeArea(
-            child: SingleChildScrollView(
+            // Glassmorphism effect
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  color: Colors.black.withOpacity(0.1),
+                ),
+              ),
+            ),
+            // Main content
+            SingleChildScrollView(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
                   screenWidth * 0.05, // Adjust left padding
@@ -336,8 +338,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

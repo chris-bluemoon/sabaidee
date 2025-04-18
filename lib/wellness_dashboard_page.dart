@@ -9,181 +9,124 @@ class WellnessDashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Wellness Dashboard',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-      ),
-      body: Stack(
-        children: [
-          // Background image
-          SizedBox.expand(
-            child: Image.asset(
-              'assets/images/bg2.png', // Background image
-              fit: BoxFit.cover,
+      body: SizedBox(
+        width: double.infinity, // Ensure the container takes the full width
+        height: double.infinity, // Ensure the container takes the full height
+        child: Stack(
+          children: [
+            // Background image
+            Positioned.fill(
+              child: Image.asset(
+                'assets/images/bg2.png', // Background image
+                fit: BoxFit.cover, // Ensure the image covers the entire screen
+              ),
             ),
-          ),
-          // Glassmorphic content
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 100), // Space below the AppBar
-                // Today's Check-In Section
-                GlassmorphismContainer(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Today's Check-In",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        "How are you feeling today?",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          // Navigate to check-in page or handle action
-                        },
-                        child: const Text('Start Check-In'),
-                      ),
-                    ],
-                  ),
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  color: Colors.black.withOpacity(0.1),
                 ),
-                const SizedBox(height: 16),
-                // Chatbot Section
-                GlassmorphismContainer(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Chat with Wellness Assistant",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        "Need someone to talk to? Start a conversation with our assistant.",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ChatbotPage(),
-                            ),
-                          );
-                        },
-                        child: const Text('CHAT NOW'),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Recommendations Section
-                const GlassmorphismContainer(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Recommendations",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        "Here are some tips to improve your wellness today.",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        "- Take a 10-minute walk.\n- Drink more water.\n- Practice mindfulness for 5 minutes.",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Achievements Section
-                const GlassmorphismContainer(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Achievements",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        "Your recent accomplishments:",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        "- Completed 5 check-ins this week.\n- Walked 10,000 steps yesterday.\n- Practiced mindfulness for 3 days in a row.",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Weather Forecast Section
-                const GlassmorphismContainer(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Weather Forecast",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        "Today's weather:",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Icon(Icons.wb_sunny, color: Colors.orange, size: 32),
-                          SizedBox(width: 8),
-                          Text(
-                            "Sunny, 25°C",
-                            style: TextStyle(fontSize: 16),
+              ),
+            ),
+            // Main content
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 100), // Space where the AppBar was
+                  // Today's Check-In Section
+                  GlassmorphismContainer(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Today's Check-In",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          "How are you feeling today?",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            // Navigate to check-in page or handle action
+                          },
+                          child: const Text('Start Check-In'),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  // Chatbot Section
+                  GlassmorphismContainer(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Chat with Wellness Assistant",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          "Need someone to talk to? Start a conversation with our assistant.",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ChatbotPage(),
+                              ),
+                            );
+                          },
+                          child: const Text('CHAT NOW'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Recommendations Section
+                  const GlassmorphismContainer(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Recommendations",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "Here are some tips to improve your wellness today.",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          "- Take a 10-minute walk.\n- Drink more water.\n- Practice mindfulness for 5 minutes.",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

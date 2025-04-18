@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
 import 'package:sabaidee/main.dart';
 import 'package:sabaidee/models/check_in_time.dart';
 import 'package:sabaidee/models/user.dart' as myUser;
@@ -734,6 +735,74 @@ class UserProvider with ChangeNotifier {
     }).onError((error) {
       log('Error refreshing FCM token: $error');
     });
+  }
+}
+
+class UserScreen extends StatefulWidget {
+  const UserScreen({super.key});
+
+  @override
+  _UserScreenState createState() => _UserScreenState();
+}
+
+class _UserScreenState extends State<UserScreen> {
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+    _setupFcmTokenListener();
+  }
+
+  Future<void> _fetchUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    if (userProvider.user != null) {
+      await userProvider.fetchUserData(userProvider.user!.uid);
+      await _updateFcmTokenIfNeeded(); // Update FCM token only if needed
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _updateFcmTokenIfNeeded() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final currentToken = await FirebaseMessaging.instance.getToken();
+
+    if (currentToken != null && currentToken != userProvider.user?.fcmToken) {
+      await userProvider.updateFcmToken(userProvider.user!.uid, currentToken);
+      print('FCM token updated: $currentToken');
+    } else {
+      print('FCM token is already up-to-date.');
+    }
+  }
+
+  void _setupFcmTokenListener() {
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      if (newToken != userProvider.user?.fcmToken) {
+        await userProvider.updateFcmToken(userProvider.user!.uid, newToken);
+        print('FCM token refreshed and updated: $newToken');
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('User Screen'),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : const Center(child: Text('User data loaded')),
+    );
   }
 }
 

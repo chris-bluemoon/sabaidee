@@ -238,6 +238,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                         contentPadding: EdgeInsets.zero,
                                       ),
                                       isExpanded: true,
+                                      iconSize: screenWidth * 0.07, // Increase the size of the down arrow
                                       items: getCountryList2().map((country) {
                                         return DropdownMenuItem<String>(
                                           value: country['country'],
